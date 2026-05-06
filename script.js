@@ -1,6 +1,38 @@
-// ===== SHARED STORAGE KEY =====
-var ZC_SHIPMENTS_KEY = 'zc_shipments';
-var ZC_INQUIRIES_KEY = 'zc_inquiries';
+// ===== JSONBIN CONFIG =====
+var ZC_JSONBIN_KEY  = '$2a$10$W1QgCI2lUG0iDnjaWSI0MOeg6/PWuAJqnQ9UcqGvxvyED89713Y.W';
+var ZC_JSONBIN_BASE = 'https://api.jsonbin.io/v3';
+
+async function getShipmentsPublic() {
+  try {
+    const stored = localStorage.getItem('zc_bin_ids');
+    if (!stored) return [];
+    const ids = JSON.parse(stored);
+    const res = await fetch(ZC_JSONBIN_BASE + '/b/' + ids.shipments + '/latest', {
+      headers: { 'X-Master-Key': ZC_JSONBIN_KEY }
+    });
+    const data = await res.json();
+    return data.record || [];
+  } catch { return []; }
+}
+
+async function saveInquiryPublic(inquiry) {
+  try {
+    const stored = localStorage.getItem('zc_bin_ids');
+    if (!stored) return;
+    const ids  = JSON.parse(stored);
+    const res  = await fetch(ZC_JSONBIN_BASE + '/b/' + ids.inquiries + '/latest', {
+      headers: { 'X-Master-Key': ZC_JSONBIN_KEY }
+    });
+    const data = await res.json();
+    const list = data.record || [];
+    list.push(inquiry);
+    await fetch(ZC_JSONBIN_BASE + '/b/' + ids.inquiries, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': ZC_JSONBIN_KEY },
+      body: JSON.stringify(list)
+    });
+  } catch (e) { console.error('Could not save inquiry', e); }
+}
 
 // ===== PAGE LOADER =====
 window.addEventListener('load', () => {
@@ -182,12 +214,11 @@ document.querySelectorAll(
 let leafletMap = null;
 let routeLayer = null;
 
-function trackShipment() {
+async function trackShipment() {
   const input     = document.getElementById('trackInput').value.trim();
   const result    = document.getElementById('trackResult');
 
-  // Always read fresh from localStorage
-  const shipments = JSON.parse(localStorage.getItem(ZC_SHIPMENTS_KEY) || '[]');
+  const shipments = await getShipmentsPublic();
 
   if (!input) {
     result.className = 'track-result error';
@@ -497,7 +528,7 @@ function buildCurvedRoute(from, to, steps) {
 
 // ===== CONTACT FORM =====
 // FIX: saves to localStorage so admin panel can read it
-function submitForm(e) {
+async function submitForm(e) {
   e.preventDefault();
   const name    = document.getElementById('fname').value.trim();
   const email   = document.getElementById('femail').value.trim();
@@ -508,13 +539,10 @@ function submitForm(e) {
     return;
   }
 
-  // Read current inquiries, push new one, save back
-  const inquiries = JSON.parse(localStorage.getItem(ZC_INQUIRIES_KEY) || '[]');
-  inquiries.push({
+  await saveInquiryPublic({
     name, email, service, message,
     date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
   });
-  localStorage.setItem(ZC_INQUIRIES_KEY, JSON.stringify(inquiries));
 
   const form    = document.querySelector('.contact-form');
   const success = document.getElementById('formSuccess');
