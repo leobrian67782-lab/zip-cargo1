@@ -1,3 +1,79 @@
+// ===== JSONBIN CONFIGURATION =====
+const JSONBIN_KEY = '$2a$10$W1QgCI2lUG0iDnjaWSI0MOeg6/PWuAJqnQ9UcqGvxvyED89713Y.W';
+const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
+let SHIPMENTS_BIN_ID = null;
+let INQUIRIES_BIN_ID = null;
+
+// Auto-creates bins on first load if they don't exist yet
+async function initBins() {
+  const stored = localStorage.getItem('zc_bin_ids');
+  if (stored) {
+    const ids = JSON.parse(stored);
+    SHIPMENTS_BIN_ID = ids.shipments;
+    INQUIRIES_BIN_ID = ids.inquiries;
+    return;
+  }
+  showToast('Setting up database for first time...', 'info');
+  try {
+    const s = await fetch(`${JSONBIN_BASE}/b`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Name': 'zipcargo-shipments', 'X-Bin-Private': 'true' },
+      body: JSON.stringify([])
+    });
+    const sData = await s.json();
+    SHIPMENTS_BIN_ID = sData.metadata.id;
+
+    const i = await fetch(`${JSONBIN_BASE}/b`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Name': 'zipcargo-inquiries', 'X-Bin-Private': 'true' },
+      body: JSON.stringify([])
+    });
+    const iData = await i.json();
+    INQUIRIES_BIN_ID = iData.metadata.id;
+
+    localStorage.setItem('zc_bin_ids', JSON.stringify({ shipments: SHIPMENTS_BIN_ID, inquiries: INQUIRIES_BIN_ID }));
+    showToast('Database ready!', 'success');
+  } catch (err) {
+    showToast('Database setup failed. Check your connection.', 'error');
+  }
+}
+
+async function getShipments() {
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/b/${SHIPMENTS_BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    const data = await res.json();
+    return data.record || [];
+  } catch { return []; }
+}
+
+async function getInquiries() {
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/b/${INQUIRIES_BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    const data = await res.json();
+    return data.record || [];
+  } catch { return []; }
+}
+
+async function saveShipments(arr) {
+  await fetch(`${JSONBIN_BASE}/b/${SHIPMENTS_BIN_ID}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+    body: JSON.stringify(arr)
+  });
+}
+
+async function saveInquiries(arr) {
+  await fetch(`${JSONBIN_BASE}/b/${INQUIRIES_BIN_ID}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+    body: JSON.stringify(arr)
+  });
+}
+
 // ===== TOAST NOTIFICATION =====
 function showToast(msg, type = 'success') {
   const toast = document.getElementById('adminToast');
@@ -16,18 +92,9 @@ function showToast(msg, type = 'success') {
 let ADMIN_USER = 'admin';
 let ADMIN_PASS = 'zipcargo2026';
 
-// ===== SHARED STORAGE KEYS (must match script.js) =====
-const ZC_SHIPMENTS_KEY = 'zc_shipments';
-const ZC_INQUIRIES_KEY = 'zc_inquiries';
-
-// ===== DATA helpers - always read fresh so admin sees new inquiries/shipments without refresh =====
-function getShipments() { return JSON.parse(localStorage.getItem(ZC_SHIPMENTS_KEY) || '[]'); }
-function getInquiries() { return JSON.parse(localStorage.getItem(ZC_INQUIRIES_KEY) || '[]'); }
-function saveShipments(arr) { localStorage.setItem(ZC_SHIPMENTS_KEY, JSON.stringify(arr)); }
-function saveInquiries(arr) { localStorage.setItem(ZC_INQUIRIES_KEY, JSON.stringify(arr)); }
-
-let shipments = getShipments();
-let inquiries = getInquiries();
+// In-memory cache
+let shipments = [];
+let inquiries = [];
 
 // ===== LOGIN =====
 function adminLogin() {
@@ -37,8 +104,8 @@ function adminLogin() {
   if (user === ADMIN_USER && pass === ADMIN_PASS) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminPanel').style.display  = 'flex';
-    updateDashboard();
     setCurrentDate();
+    initBins().then(() => updateDashboard());
   } else {
     error.textContent = 'Incorrect username or password.';
     setTimeout(() => error.textContent = '', 3000);
@@ -55,7 +122,6 @@ function adminLogout() {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('loginUser').value = '';
     document.getElementById('loginPass').value = '';
-    // Return to main site (works whether embedded in index.html or standalone)
     history.pushState('', document.title, window.location.pathname + window.location.search);
     const wrapper = document.getElementById('adminWrapper');
     if (wrapper) wrapper.classList.remove('visible');
@@ -69,11 +135,7 @@ function setCurrentDate() {
 }
 
 // ===== SIDEBAR NAVIGATION =====
-function showSection(name, clickedEl) {
-  // Always reload fresh data before rendering
-  shipments = getShipments();
-  inquiries = getInquiries();
-
+async function showSection(name, clickedEl) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('sec-' + name).classList.add('active');
@@ -85,27 +147,19 @@ function showSection(name, clickedEl) {
   document.getElementById('pageTitle').textContent = titles[name] || name;
 
   if (clickedEl) clickedEl.classList.add('active');
-  if (name === 'dashboard') updateDashboard();
-  if (name === 'shipments') renderShipmentsTable();
-  if (name === 'inquiries') renderInquiries();
+  if (name === 'dashboard') await updateDashboard();
+  if (name === 'shipments') { shipments = await getShipments(); renderShipmentsTable(); }
+  if (name === 'inquiries') { inquiries = await getInquiries(); renderInquiries(); }
 
-  // Auto-close sidebar on mobile after navigating
-  if (window.innerWidth <= 900) {
-    closeSidebar();
-  }
+  if (window.innerWidth <= 900) closeSidebar();
 }
 
 function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
+  const sidebar  = document.getElementById('sidebar');
   const backdrop = document.getElementById('sidebarBackdrop');
-  const isOpen = sidebar.classList.contains('open');
-  if (isOpen) {
-    closeSidebar();
-  } else {
-    sidebar.classList.add('open');
-    backdrop.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
+  const isOpen   = sidebar.classList.contains('open');
+  if (isOpen) { closeSidebar(); }
+  else { sidebar.classList.add('open'); backdrop.classList.add('active'); document.body.style.overflow = 'hidden'; }
 }
 
 function closeSidebar() {
@@ -122,7 +176,7 @@ function generateTracking() {
 }
 
 // ===== CREATE SHIPMENT =====
-function createShipment() {
+async function createShipment() {
   const tracking = document.getElementById('newTracking').value.trim();
   const service  = document.getElementById('newService').value;
   const sName    = document.getElementById('newSenderName').value.trim();
@@ -150,7 +204,7 @@ function createShipment() {
     return;
   }
 
-  shipments = getShipments();
+  shipments = await getShipments();
   if (shipments.find(s => s.tracking === tracking)) {
     msg.style.color = '#e74c3c';
     msg.textContent = 'A shipment with this tracking number already exists.';
@@ -166,8 +220,12 @@ function createShipment() {
     timestamp: Date.now()
   };
 
+  msg.style.color = '#185fa5';
+  msg.textContent = 'Saving shipment...';
+
   shipments.unshift(shipment);
-  saveShipments(shipments);
+  await saveShipments(shipments);
+
   msg.style.color = '#27ae60';
   msg.textContent = `Shipment ${tracking} created successfully!`;
   showToast(`Shipment ${tracking} created successfully!`, 'success');
@@ -239,7 +297,8 @@ function renderShipmentsTable() {
 }
 
 // ===== EDIT SHIPMENT =====
-function editShipment(tracking) {
+async function editShipment(tracking) {
+  shipments = await getShipments();
   const s = shipments.find(s => s.tracking === tracking);
   if (!s) return;
   showSection('create', null);
@@ -261,24 +320,25 @@ function editShipment(tracking) {
   document.getElementById('newStatus').value      = s.status;
   document.getElementById('newLocation').value    = s.location;
   document.getElementById('newNotes').value       = s.notes;
-  deleteShipment(tracking, true);
+  await deleteShipment(tracking, true);
   const msg = document.getElementById('createMsg');
   msg.style.color = '#185fa5';
   msg.textContent = `Editing shipment ${tracking} — make changes and click Save.`;
 }
 
 // ===== DELETE SHIPMENT =====
-function deleteShipment(tracking, silent = false) {
+async function deleteShipment(tracking, silent = false) {
   if (!silent && !confirm(`Delete shipment ${tracking}? This cannot be undone.`)) return;
+  shipments = await getShipments();
   shipments = shipments.filter(s => s.tracking !== tracking);
-  saveShipments(shipments);
-  if (!silent) { renderShipmentsTable(); updateDashboard(); }
+  await saveShipments(shipments);
+  if (!silent) { renderShipmentsTable(); await updateDashboard(); showToast('Shipment deleted.', 'info'); }
 }
 
 // ===== DASHBOARD UPDATE =====
-function updateDashboard() {
-  shipments = getShipments();
-  inquiries = getInquiries();
+async function updateDashboard() {
+  shipments = await getShipments();
+  inquiries = await getInquiries();
   document.getElementById('totalShipments').textContent = shipments.length;
   document.getElementById('deliveredCount').textContent = shipments.filter(s => s.status === 'Delivered').length;
   document.getElementById('transitCount').textContent   = shipments.filter(s => s.status === 'In Transit' || s.status === 'Out for Delivery').length;
@@ -300,8 +360,8 @@ function updateDashboard() {
   `).join('');
 }
 
-// ===== GENERATE RECEIPT (ADMIN - PROFESSIONAL) =====
-function generateReceipt() {
+// ===== GENERATE RECEIPT =====
+async function generateReceipt() {
   const tracking = document.getElementById('receiptTracking').value.trim();
   const error    = document.getElementById('receiptError');
   const output   = document.getElementById('receiptOutput');
@@ -312,6 +372,7 @@ function generateReceipt() {
     return;
   }
 
+  shipments = await getShipments();
   const s = shipments.find(s => s.tracking === tracking);
   if (!s) {
     error.textContent = `No shipment found with tracking number "${tracking}".`;
@@ -340,165 +401,78 @@ function generateReceipt() {
 
   const steps      = ['Pending', 'In Transit', 'Out for Delivery', 'Delivered'];
   const stepLabels = ['Order Placed', 'Picked Up', 'Out for Delivery', 'Delivered'];
+  const stepIcons  = ['fa-box', 'fa-plane-departure', 'fa-truck', 'fa-circle-check'];
   const currentIdx = steps.indexOf(s.status);
 
   const stepsHTML = steps.map((step, i) => {
-    const done   = i <= currentIdx && s.status !== 'On Hold';
-    const active = i === currentIdx && s.status !== 'On Hold';
-    const lineColor = (i < currentIdx && s.status !== 'On Hold') ? '#27ae60' : '#ddd';
+    const done = (s.status !== 'On Hold') && (i <= currentIdx);
     return `
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative;">
-        ${i < steps.length - 1 ? `<div style="position:absolute;top:17px;left:50%;width:100%;height:3px;background:${lineColor};z-index:0;"></div>` : ''}
-        <div style="width:34px;height:34px;border-radius:50%;background:${done ? '#27ae60' : '#e0e0e0'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;z-index:1;">
-          ${done ? '<i class="fa-solid fa-check"></i>' : (i + 1)}
-        </div>
-        <div style="font-size:0.65rem;text-align:center;margin-top:6px;color:${active ? '#0d1f35' : '#999'};font-weight:${active ? '700' : '400'};line-height:1.3;max-width:70px;">${stepLabels[i]}</div>
-      </div>`;
+      <div class="receipt-step ${done ? 'done' : ''}">
+        <div class="step-icon"><i class="fa-solid ${stepIcons[i]}"></i></div>
+        <div class="step-label">${stepLabels[i]}</div>
+      </div>
+      ${i < steps.length - 1 ? `<div class="step-connector ${done && i < currentIdx ? 'done' : ''}"></div>` : ''}
+    `;
   }).join('');
 
-  document.getElementById('receiptContent').innerHTML = `
-
-    <div style="background:#0d1f35;padding:32px 36px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
-      <div>
-        <div style="font-size:1.7rem;font-weight:800;color:white;"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
-        <div style="font-size:0.74rem;color:#7a9ab8;margin-top:4px;">Global Logistics Solutions</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:0.64rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#e8820c;margin-bottom:6px;">Official Receipt</div>
-        <div style="font-size:1.1rem;font-weight:700;color:white;">${s.tracking}</div>
-        <div style="font-size:0.79rem;color:#7a9ab8;margin-top:4px;"><i class="fa-regular fa-calendar"></i> Issued: ${s.date}</div>
-        <div style="margin-top:10px;"><span class="badge ${statusClassMap[s.status] || 'badge-pending'}">${s.status}</span></div>
+  const content = document.getElementById('receiptContent');
+  content.innerHTML = `
+    <div class="receipt-header">
+      <div class="receipt-brand"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
+      <div class="receipt-meta">
+        <div class="receipt-label">TRACKING NUMBER</div>
+        <div class="receipt-tracking">${s.tracking}</div>
+        <span class="badge ${statusClassMap[s.status] || 'badge-pending'}">${s.status}</span>
       </div>
     </div>
-
-    <div style="padding:14px 36px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f9f8f5;border-bottom:1px solid #ebe8df;">
-      <div>
-        <div style="font-size:0.64rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:3px;"><i class="fa-solid fa-circle-dot" style="color:#e8820c;"></i> Origin</div>
-        <div style="font-size:1.05rem;font-weight:800;color:#0d1f35;">${s.origin}</div>
+    <div class="receipt-route">
+      <div><div class="route-label">ORIGIN</div><div class="route-city">${s.origin}</div></div>
+      <div class="route-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+      <div><div class="route-label">DESTINATION</div><div class="route-city">${s.dest}</div></div>
+    </div>
+    <div class="receipt-steps">${stepsHTML}</div>
+    <div class="receipt-details">
+      <div class="receipt-col">
+        <div class="receipt-section-title">SENDER</div>
+        <div class="receipt-row"><span>Name</span><span>${s.sName}</span></div>
+        <div class="receipt-row"><span>Phone</span><span>${s.sPhone || '—'}</span></div>
+        <div class="receipt-row"><span>Email</span><span>${s.sEmail || '—'}</span></div>
       </div>
-      <div style="font-size:1.5rem;color:#e8820c;"><i class="fa-solid fa-arrow-right"></i></div>
-      <div style="text-align:right;">
-        <div style="font-size:0.64rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:3px;">Destination <i class="fa-solid fa-location-dot" style="color:#e8820c;"></i></div>
-        <div style="font-size:1.05rem;font-weight:800;color:#0d1f35;">${s.dest}</div>
+      <div class="receipt-col">
+        <div class="receipt-section-title">RECIPIENT</div>
+        <div class="receipt-row"><span>Name</span><span>${s.rName}</span></div>
+        <div class="receipt-row"><span>Phone</span><span>${s.rPhone || '—'}</span></div>
+        <div class="receipt-row"><span>Email</span><span>${s.rEmail || '—'}</span></div>
       </div>
     </div>
-
-    <div style="padding:20px 36px;border-bottom:1px solid #ebe8df;">
-      <div style="font-size:0.64rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#e8820c;margin-bottom:14px;padding-bottom:6px;border-bottom:2px solid #e8820c;">
-        <i class="fa-solid fa-route"></i> Shipment Progress
+    <div class="receipt-details">
+      <div class="receipt-col">
+        <div class="receipt-section-title">PACKAGE</div>
+        <div class="receipt-row"><span>Service</span><span>${s.service}</span></div>
+        <div class="receipt-row"><span>Description</span><span>${s.desc || '—'}</span></div>
+        <div class="receipt-row"><span>Weight</span><span>${s.weight ? s.weight + ' kg' : '—'}</span></div>
+        <div class="receipt-row"><span>Value</span><span>${s.value ? '$' + parseFloat(s.value).toFixed(2) : '—'}</span></div>
       </div>
-      <div style="display:flex;align-items:flex-start;">${stepsHTML}</div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;">
-      <div style="padding:22px 26px;border-right:1px solid #ebe8df;border-bottom:1px solid #ebe8df;">
-        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#e8820c;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #e8820c;">
-          <i class="fa-solid fa-user"></i> Sender
-        </div>
-        <div style="font-size:0.87rem;display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Name</span><strong>${s.sName || '—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Phone</span><strong>${s.sPhone || '—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Email</span><strong style="font-size:0.8rem;">${s.sEmail || '—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Origin</span><strong>${s.origin}</strong></div>
-        </div>
-      </div>
-      <div style="padding:22px 26px;border-bottom:1px solid #ebe8df;">
-        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#e8820c;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #e8820c;">
-          <i class="fa-solid fa-user-check"></i> Recipient
-        </div>
-        <div style="font-size:0.87rem;display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Name</span><strong>${s.rName}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Phone</span><strong>${s.rPhone || '—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Email</span><strong style="font-size:0.8rem;">${s.rEmail || '—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Destination</span><strong>${s.dest}</strong></div>
-        </div>
-      </div>
-      <div style="padding:22px 26px;border-right:1px solid #ebe8df;">
-        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#e8820c;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #e8820c;">
-          <i class="fa-solid fa-box"></i> Package Details
-        </div>
-        <div style="font-size:0.87rem;display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Service</span><strong>${s.service}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Description</span><strong>${s.desc || '—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Weight</span><strong>${s.weight ? s.weight + ' kg' : '—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Declared Value</span><strong>${s.value ? '$' + parseFloat(s.value).toFixed(2) : '—'}</strong></div>
-        </div>
-      </div>
-      <div style="padding:22px 26px;">
-        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#e8820c;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #e8820c;">
-          <i class="fa-solid fa-truck"></i> Delivery Info
-        </div>
-        <div style="font-size:0.87rem;display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Est. Delivery</span><strong>${s.eta || '—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Current Location</span><strong>${s.location || s.origin}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Date Issued</span><strong>${s.date}</strong></div>
-        </div>
+      <div class="receipt-col">
+        <div class="receipt-section-title">DELIVERY</div>
+        <div class="receipt-row"><span>Est. Delivery</span><span>${s.eta || '—'}</span></div>
+        <div class="receipt-row"><span>Location</span><span>${s.location || s.origin}</span></div>
+        <div class="receipt-row"><span>Date Issued</span><span>${s.date}</span></div>
+        <div class="receipt-row"><span>Shipping Cost</span><span>${s.cost ? '$' + parseFloat(s.cost).toFixed(2) : 'Contact Us'}</span></div>
       </div>
     </div>
-
-    <div style="background:#0d1f35;padding:20px 36px;display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div style="font-size:0.74rem;color:#7a9ab8;text-transform:uppercase;letter-spacing:1px;">Total Shipping Cost</div>
-        <div style="font-size:0.72rem;color:#4a6a8a;margin-top:3px;">Inclusive of all applicable fees</div>
-      </div>
-      <div style="font-size:2rem;font-weight:800;color:#e8820c;">${s.cost ? '$' + parseFloat(s.cost).toFixed(2) : 'Contact Us'}</div>
-    </div>
-
-    ${s.notes ? `
-    <div style="padding:14px 36px;background:#fffbf5;border-top:2px solid #e8820c;font-size:0.87rem;color:#5a6a7a;">
-      <i class="fa-solid fa-note-sticky" style="color:#e8820c;"></i> <strong style="color:#0d1f35;">Special Notes:</strong> ${s.notes}
-    </div>` : ''}
-
-    <div style="background:#f9f8f5;padding:20px 36px;text-align:center;border-top:1px solid #ebe8df;font-size:0.79rem;color:#7a8a9a;line-height:2.2;">
-      <strong style="color:#0d1f35;">ZipCargo Logistics</strong><br/>
-      <i class="fa-solid fa-envelope"></i> info@zipcargo.com &nbsp;&bull;&nbsp;
-      <i class="fa-solid fa-globe"></i> www.zipcargo.com<br/>
-      <em>Ship Smarter. Deliver Faster. — Thank you for your business.</em>
-    </div>
-
-    <div style="padding:20px 36px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid #ebe8df;flex-wrap:wrap;">
-      <div style="position:relative;display:inline-block;">
-        <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" style="opacity:0.82;">
-          <circle cx="45" cy="45" r="42" fill="none" stroke="#27ae60" stroke-width="3"/>
-          <circle cx="45" cy="45" r="36" fill="none" stroke="#27ae60" stroke-width="1.2"/>
-          <text x="45" y="30" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="2">ZIPCARGO</text>
-          <text x="45" y="44" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#27ae60">OFFICIAL</text>
-          <text x="45" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="1">RECEIPT</text>
-          <text x="45" y="70" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#27ae60">✦ VERIFIED ✦</text>
-        </svg>
-      </div>
-      <div style="text-align:center;flex:1;">
-        <div style="font-size:0.68rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Scan to verify tracking</div>
-        <div id="qrContainer_${s.tracking.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:inline-block;padding:8px;background:white;border:1px solid #e0ddd5;border-radius:8px;"></div>
-        <div style="font-size:0.68rem;color:#bbb;margin-top:6px;">${s.tracking}</div>
-      </div>
-    </div>
+    ${s.notes ? `<div class="receipt-notes"><strong>Notes:</strong> ${s.notes}</div>` : ''}
   `;
 
-  // Generate QR code using qrcode library
-  const qrId = 'qrContainer_' + '${s.tracking}'.replace(/[^a-zA-Z0-9]/g,'_');
-  const qrContainerId = 'qrContainer_' + s.tracking.replace(/[^a-zA-Z0-9]/g,'_');
-  if (window.QRCode) {
-    new QRCode(document.getElementById(qrContainerId), {
-      text: s.tracking,
-      width: 80,
-      height: 80,
-      colorDark: '#0d1f35',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  } else {
+  // Load QR library
+  if (!document.querySelector('script[src*="qrcode"]')) {
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
     script.onload = () => {
-      new QRCode(document.getElementById(qrContainerId), {
-        text: s.tracking,
-        width: 80,
-        height: 80,
-        colorDark: '#0d1f35',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
+      const qrDiv = document.createElement('div');
+      qrDiv.style.cssText = 'text-align:center;margin-top:16px;';
+      content.appendChild(qrDiv);
+      new QRCode(qrDiv, { text: s.tracking, width: 100, height: 100 });
     };
     document.head.appendChild(script);
   }
@@ -506,7 +480,6 @@ function generateReceipt() {
   output.style.display = 'block';
   output.scrollIntoView({ behavior: 'smooth' });
 
-  // Update receipt action buttons with print + PDF download
   const actionsDiv = output.querySelector('.receipt-actions');
   if (actionsDiv) {
     actionsDiv.innerHTML = `
@@ -517,7 +490,7 @@ function generateReceipt() {
   }
 }
 
-// ===== PRINT RECEIPT (opens clean print window) =====
+// ===== PRINT RECEIPT =====
 function printReceipt() {
   const receiptEl = document.getElementById('receiptContent');
   if (!receiptEl) return;
@@ -542,14 +515,14 @@ function printReceipt() {
   setTimeout(() => { printWin.print(); printWin.close(); }, 700);
 }
 
-// ===== DOWNLOAD RECEIPT AS PDF — direct download =====
-function downloadReceiptPDF(tracking) {
-  shipments = getShipments();
+// ===== DOWNLOAD RECEIPT PDF =====
+async function downloadReceiptPDF(tracking) {
+  shipments = await getShipments();
   const s = shipments.find(x => x.tracking === tracking);
   if (!s) { alert('Shipment not found.'); return; }
 
   const btn = document.querySelector('button[onclick="downloadReceiptPDF(\'' + tracking + '\')"]');
-  if (btn) { btn.innerHTML = '&#9203; Generating...'; btn.disabled = true; }
+  if (btn) { btn.innerHTML = '⏳ Generating...'; btn.disabled = true; }
 
   const statusColors = {
     'Delivered':        { bg:'#d4edda', color:'#155724' },
@@ -577,7 +550,6 @@ function downloadReceiptPDF(tracking) {
       + 'margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e8820c;">' + t + '</div>';
   }
 
-  // Build steps HTML
   let stepsHTML = '';
   steps.forEach(function(step, i) {
     const done     = i <= curIdx && s.status !== 'On Hold';
@@ -598,7 +570,6 @@ function downloadReceiptPDF(tracking) {
       + '</div>';
   });
 
-  // Preload QR as base64 then build the PDF
   const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=' + encodeURIComponent(s.tracking) + '&color=0d1f35&bgcolor=ffffff';
 
   function buildAndDownload(qrDataUrl) {
@@ -621,21 +592,15 @@ function downloadReceiptPDF(tracking) {
       + '<style>*{margin:0;padding:0;box-sizing:border-box;} body{font-family:Arial,Helvetica,sans-serif;background:white;}</style>'
       + '</head><body>'
       + '<div id="rc" style="width:680px;background:white;">'
-
-      // HEADER
       + '<div style="background:#0d1f35;padding:22px 30px;display:flex;justify-content:space-between;align-items:flex-start;">'
-      + '<div>'
-      + '<div style="font-size:21px;font-weight:900;color:white;">&#9889; ZipCargo</div>'
-      + '<div style="font-size:9px;color:#7a9ab8;margin-top:3px;">Global Logistics Solutions</div>'
-      + '</div>'
+      + '<div><div style="font-size:21px;font-weight:900;color:white;">&#9889; ZipCargo</div>'
+      + '<div style="font-size:9px;color:#7a9ab8;margin-top:3px;">Global Logistics Solutions</div></div>'
       + '<div style="text-align:right;">'
       + '<div style="font-size:7px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#e8820c;margin-bottom:4px;">OFFICIAL RECEIPT</div>'
       + '<div style="font-size:14px;font-weight:700;color:white;">' + s.tracking + '</div>'
       + '<div style="font-size:9px;color:#7a9ab8;margin-top:3px;">Issued: ' + s.date + '</div>'
       + '<div style="margin-top:7px;display:inline-block;padding:3px 10px;border-radius:10px;font-size:8px;font-weight:700;background:' + sc.bg + ';color:' + sc.color + ';">' + s.status + '</div>'
       + '</div></div>'
-
-      // ROUTE
       + '<div style="padding:12px 30px;background:#f9f8f5;border-bottom:1px solid #ebe8df;display:flex;align-items:center;justify-content:space-between;">'
       + '<div><div style="font-size:7px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:2px;">ORIGIN</div>'
       + '<div style="font-size:14px;font-weight:800;color:#0d1f35;">' + s.origin + '</div></div>'
@@ -643,47 +608,33 @@ function downloadReceiptPDF(tracking) {
       + '<div style="text-align:right;"><div style="font-size:7px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:2px;">DESTINATION</div>'
       + '<div style="font-size:14px;font-weight:800;color:#0d1f35;">' + s.dest + '</div></div>'
       + '</div>'
-
-      // PROGRESS
       + '<div style="padding:16px 30px;border-bottom:1px solid #ebe8df;">'
       + '<div style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#e8820c;margin-bottom:12px;padding-bottom:4px;border-bottom:2px solid #e8820c;">SHIPMENT PROGRESS</div>'
       + '<div style="display:flex;align-items:flex-start;">' + stepsHTML + '</div>'
       + '</div>'
-
-      // SENDER / RECIPIENT
       + '<div style="display:flex;border-bottom:1px solid #ebe8df;">'
       + '<div style="flex:1;padding:14px 20px;border-right:1px solid #ebe8df;">' + secTitle('SENDER')
       + row('Name', s.sName) + row('Phone', s.sPhone) + row('Email', s.sEmail) + row('Origin', s.origin) + '</div>'
       + '<div style="flex:1;padding:14px 20px;">' + secTitle('RECIPIENT')
       + row('Name', s.rName) + row('Phone', s.rPhone) + row('Email', s.rEmail) + row('Destination', s.dest) + '</div>'
       + '</div>'
-
-      // PACKAGE / DELIVERY
       + '<div style="display:flex;border-bottom:1px solid #ebe8df;">'
       + '<div style="flex:1;padding:14px 20px;border-right:1px solid #ebe8df;">' + secTitle('PACKAGE DETAILS')
       + row('Service', s.service) + row('Description', s.desc) + row('Weight', wt) + row('Declared Value', declVal) + '</div>'
       + '<div style="flex:1;padding:14px 20px;">' + secTitle('DELIVERY INFO')
       + row('Est. Delivery', s.eta) + row('Current Location', s.location || s.origin) + row('Date Issued', s.date) + row('Status', s.status) + '</div>'
       + '</div>'
-
-      // TOTAL
       + '<div style="background:#0d1f35;padding:16px 30px;display:flex;justify-content:space-between;align-items:center;">'
       + '<div><div style="font-size:9px;color:#7a9ab8;text-transform:uppercase;letter-spacing:1px;">Total Shipping Cost</div>'
       + '<div style="font-size:8px;color:#4a6a8a;margin-top:2px;">Inclusive of all applicable fees</div></div>'
       + '<div style="font-size:26px;font-weight:800;color:#e8820c;">' + cost + '</div>'
       + '</div>'
-
-      // NOTES
       + (s.notes ? '<div style="padding:10px 30px;background:#fffbf5;border-top:2px solid #e8820c;font-size:10px;color:#5a6a7a;"><strong style="color:#0d1f35;">Special Notes:</strong> ' + s.notes + '</div>' : '')
-
-      // FOOTER
       + '<div style="background:#f9f8f5;padding:14px 30px;text-align:center;border-top:1px solid #ebe8df;font-size:9px;color:#7a8a9a;line-height:2;">'
       + '<strong style="color:#0d1f35;">ZipCargo Logistics</strong><br/>'
       + 'info@zipcargo.com &bull; www.zipcargo.com<br/>'
       + '<em>Ship Smarter. Deliver Faster. &#8212; Thank you for your business.</em>'
       + '</div>'
-
-      // STAMP + QR
       + '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 30px;gap:16px;border-top:1px solid #ebe8df;background:white;">'
       + stampSVG
       + '<div style="text-align:center;">'
@@ -696,30 +647,21 @@ function downloadReceiptPDF(tracking) {
       + '</div>'
       + '</body></html>';
 
-    // Write to hidden iframe, then capture with html2canvas
     const iframe = document.createElement('iframe');
     iframe.style.cssText = 'position:fixed;top:0;left:0;width:680px;height:2000px;border:none;opacity:0;pointer-events:none;z-index:-999;';
     document.body.appendChild(iframe);
-
     iframe.contentDocument.open();
     iframe.contentDocument.write(receiptHTML);
     iframe.contentDocument.close();
 
-    // Wait for everything to paint
     setTimeout(function() {
       const rc = iframe.contentDocument.getElementById('rc');
       const h  = rc ? rc.offsetHeight : 900;
       iframe.style.height = h + 'px';
-
       setTimeout(function() {
         html2canvas(rc || iframe.contentDocument.body, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          width: 680,
-          height: h,
-          windowWidth: 680
+          scale: 2, useCORS: true, allowTaint: true,
+          backgroundColor: '#ffffff', width: 680, height: h, windowWidth: 680
         }).then(function(canvas) {
           document.body.removeChild(iframe);
           const imgData = canvas.toDataURL('image/jpeg', 0.97);
@@ -754,9 +696,7 @@ function downloadReceiptPDF(tracking) {
     loadScript(jspdfSrc, function() { loadScript(h2cSrc, function() { buildAndDownload(qrDataUrl); }); });
   }
 
-  // Pre-fetch QR code as base64 via fetch+blob — avoids CORS canvas-taint issues
-  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=' + encodeURIComponent(s.tracking) + '&color=0d1f35&bgcolor=ffffff';
-  fetch(qrUrl)
+  fetch(qrApiUrl)
     .then(function(res) { return res.blob(); })
     .then(function(blob) {
       const reader = new FileReader();
@@ -776,7 +716,6 @@ function quickReceipt(tracking) {
 
 // ===== RENDER INQUIRIES =====
 function renderInquiries() {
-  inquiries = getInquiries();
   const tbody = document.getElementById('inquiriesBody');
   if (inquiries.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" class="empty-msg">No inquiries yet.</td></tr>`;
@@ -796,11 +735,11 @@ function renderInquiries() {
 }
 
 // ===== DELETE INQUIRY =====
-function deleteInquiry(index) {
+async function deleteInquiry(index) {
   if (!confirm('Delete this inquiry?')) return;
-  inquiries = getInquiries();
+  inquiries = await getInquiries();
   inquiries.splice(index, 1);
-  saveInquiries(inquiries);
+  await saveInquiries(inquiries);
   renderInquiries();
   updateDashboard();
 }
@@ -830,6 +769,3 @@ function saveSettings() {
   msg.textContent = 'Settings saved successfully!';
   setTimeout(() => msg.textContent = '', 3000);
 }
-
-// ===== INIT =====
-updateDashboard();
