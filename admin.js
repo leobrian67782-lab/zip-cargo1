@@ -1,42 +1,11 @@
 // ===== JSONBIN CONFIGURATION =====
-const JSONBIN_KEY = '$2a$10$W1QgCI2lUG0iDnjaWSI0MOeg6/PWuAJqnQ9UcqGvxvyED89713Y.W';
-const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
-let SHIPMENTS_BIN_ID = null;
-let INQUIRIES_BIN_ID = null;
+const JSONBIN_KEY      = '$2a$10$W1QgCI2lUG0iDnjaWSI0MOeg6/PWuAJqnQ9UcqGvxvyED89713Y.W';
+const JSONBIN_BASE     = 'https://api.jsonbin.io/v3';
+const SHIPMENTS_BIN_ID = '69fbdb43adc21f119a6408ab';
+const INQUIRIES_BIN_ID = '69fbdbd4adc21f119a640d71';
 
-// Auto-creates bins on first load if they don't exist yet
-async function initBins() {
-  const stored = localStorage.getItem('zc_bin_ids');
-  if (stored) {
-    const ids = JSON.parse(stored);
-    SHIPMENTS_BIN_ID = ids.shipments;
-    INQUIRIES_BIN_ID = ids.inquiries;
-    return;
-  }
-  showToast('Setting up database for first time...', 'info');
-  try {
-    const s = await fetch(`${JSONBIN_BASE}/b`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Name': 'zipcargo-shipments', 'X-Bin-Private': 'true' },
-      body: JSON.stringify([])
-    });
-    const sData = await s.json();
-    SHIPMENTS_BIN_ID = sData.metadata.id;
-
-    const i = await fetch(`${JSONBIN_BASE}/b`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Name': 'zipcargo-inquiries', 'X-Bin-Private': 'true' },
-      body: JSON.stringify([])
-    });
-    const iData = await i.json();
-    INQUIRIES_BIN_ID = iData.metadata.id;
-
-    localStorage.setItem('zc_bin_ids', JSON.stringify({ shipments: SHIPMENTS_BIN_ID, inquiries: INQUIRIES_BIN_ID }));
-    showToast('Database ready!', 'success');
-  } catch (err) {
-    showToast('Database setup failed. Check your connection.', 'error');
-  }
-}
+// Bins are hardcoded — no setup needed
+async function initBins() {}
 
 async function getShipments() {
   try {
@@ -44,7 +13,7 @@ async function getShipments() {
       headers: { 'X-Master-Key': JSONBIN_KEY }
     });
     const data = await res.json();
-    return data.record || [];
+    return (data.record && data.record.shipments) ? data.record.shipments : (Array.isArray(data.record) ? data.record : []);
   } catch { return []; }
 }
 
@@ -54,7 +23,7 @@ async function getInquiries() {
       headers: { 'X-Master-Key': JSONBIN_KEY }
     });
     const data = await res.json();
-    return data.record || [];
+    return (data.record && data.record.inquiries) ? data.record.inquiries : (Array.isArray(data.record) ? data.record : []);
   } catch { return []; }
 }
 
@@ -62,7 +31,7 @@ async function saveShipments(arr) {
   await fetch(`${JSONBIN_BASE}/b/${SHIPMENTS_BIN_ID}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-    body: JSON.stringify(arr)
+    body: JSON.stringify({ shipments: arr })
   });
 }
 
@@ -70,8 +39,434 @@ async function saveInquiries(arr) {
   await fetch(`${JSONBIN_BASE}/b/${INQUIRIES_BIN_ID}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-    body: JSON.stringify(arr)
+    body: JSON.stringify({ inquiries: arr })
   });
+}
+
+// ===== TOAST NOTIFICATION =====
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('adminToast');
+  const msgEl = document.getElementById('adminToastMsg');
+  const iconEl = document.getElementById('adminToastIcon');
+  if (!toast) return;
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  iconEl.textContent = icons[type] || '✅';
+  msgEl.textContent = msg;
+  toast.style.display = 'block';
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => { toast.style.display = 'none'; }, 3500);
+}
+
+// ===== CREDENTIALS =====
+let ADMIN_USER = 'admin';
+let ADMIN_PASS = 'zipcargo2026';
+
+// In-memory cache
+let shipments = [];
+let inquiries = [];
+
+// ===== LOGIN =====
+function adminLogin() {
+  const user  = document.getElementById('loginUser').value.trim();
+  const pass  = document.getElementById('loginPass').value.trim();
+  const error = document.getElementById('loginError');
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminPanel').style.display  = 'flex';
+    setCurrentDate();
+    initBins().then(() => updateDashboard());
+  } else {
+    error.textContent = 'Incorrect username or password.';
+    setTimeout(() => error.textContent = '', 3000);
+  }
+}
+
+document.getElementById('loginPass').addEventListener('keypress', e => { if (e.key === 'Enter') adminLogin(); });
+document.getElementById('loginUser').addEventListener('keypress', e => { if (e.key === 'Enter') adminLogin(); });
+
+// ===== LOGOUT =====
+function adminLogout() {
+  if (confirm('Are you sure you want to logout?')) {
+    document.getElementById('adminPanel').style.display  = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    history.pushState('', document.title, window.location.pathname + window.location.search);
+    const wrapper = document.getElementById('adminWrapper');
+    if (wrapper) wrapper.classList.remove('visible');
+  }
+}
+
+// ===== DATE =====
+function setCurrentDate() {
+  document.getElementById('currentDate').textContent =
+    new Date().toLocaleDateString('en-US', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+}
+
+// ===== SIDEBAR NAVIGATION =====
+async function showSection(name, clickedEl) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+
+  const titles = {
+    dashboard: 'Dashboard', shipments: 'Shipments', create: 'New Shipment',
+    receipts: 'Receipts', inquiries: 'Inquiries', settings: 'Settings'
+  };
+  document.getElementById('pageTitle').textContent = titles[name] || name;
+
+  if (clickedEl) clickedEl.classList.add('active');
+  if (name === 'dashboard') await updateDashboard();
+  if (name === 'shipments') { shipments = await getShipments(); renderShipmentsTable(); }
+  if (name === 'inquiries') { inquiries = await getInquiries(); renderInquiries(); }
+
+  if (window.innerWidth <= 900) closeSidebar();
+}
+
+function toggleSidebar() {
+  const sidebar  = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const isOpen   = sidebar.classList.contains('open');
+  if (isOpen) { closeSidebar(); }
+  else { sidebar.classList.add('open'); backdrop.classList.add('active'); document.body.style.overflow = 'hidden'; }
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// ===== GENERATE TRACKING =====
+function generateTracking() {
+  const year = new Date().getFullYear();
+  const rand = Math.floor(10000 + Math.random() * 90000);
+  document.getElementById('newTracking').value = `ZC-${year}-${rand}`;
+}
+
+// ===== CREATE SHIPMENT =====
+async function createShipment() {
+  const tracking = document.getElementById('newTracking').value.trim();
+  const service  = document.getElementById('newService').value;
+  const sName    = document.getElementById('newSenderName').value.trim();
+  const sPhone   = document.getElementById('newSenderPhone').value.trim();
+  const sEmail   = document.getElementById('newSenderEmail').value.trim();
+  const origin   = document.getElementById('newOrigin').value.trim();
+  const rName    = document.getElementById('newRecipName').value.trim();
+  const rPhone   = document.getElementById('newRecipPhone').value.trim();
+  const rEmail   = document.getElementById('newRecipEmail').value.trim();
+  const dest     = document.getElementById('newDestination').value.trim();
+  const desc     = document.getElementById('newDescription').value.trim();
+  const weight   = document.getElementById('newWeight').value.trim();
+  const value    = document.getElementById('newValue').value.trim();
+  const cost     = document.getElementById('newCost').value.trim();
+  const eta      = document.getElementById('newETA').value;
+  const status   = document.getElementById('newStatus').value;
+  const location = document.getElementById('newLocation').value.trim();
+  const notes    = document.getElementById('newNotes').value.trim();
+  const msg      = document.getElementById('createMsg');
+
+  if (!tracking || !sName || !rName || !origin || !dest) {
+    msg.style.color = '#e74c3c';
+    msg.textContent = 'Please fill in all required fields (tracking, sender, recipient, origin, destination).';
+    setTimeout(() => msg.textContent = '', 4000);
+    return;
+  }
+
+  shipments = await getShipments();
+  if (shipments.find(s => s.tracking === tracking)) {
+    msg.style.color = '#e74c3c';
+    msg.textContent = 'A shipment with this tracking number already exists.';
+    setTimeout(() => msg.textContent = '', 4000);
+    return;
+  }
+
+  const shipment = {
+    tracking, service, sName, sPhone, sEmail, origin,
+    rName, rPhone, rEmail, dest, desc, weight, value,
+    cost, eta, status, location, notes,
+    date: new Date().toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }),
+    timestamp: Date.now()
+  };
+
+  msg.style.color = '#185fa5';
+  msg.textContent = 'Saving shipment...';
+
+  shipments.unshift(shipment);
+  await saveShipments(shipments);
+
+  msg.style.color = '#27ae60';
+  msg.textContent = `Shipment ${tracking} created successfully!`;
+  showToast(`Shipment ${tracking} created successfully!`, 'success');
+  setTimeout(() => msg.textContent = '', 4000);
+  clearForm();
+  updateDashboard();
+}
+
+// ===== CLEAR FORM =====
+function clearForm() {
+  ['newTracking','newSenderName','newSenderPhone','newSenderEmail','newOrigin',
+   'newRecipName','newRecipPhone','newRecipEmail','newDestination','newDescription',
+   'newWeight','newValue','newCost','newETA','newLocation','newNotes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('newStatus').value  = 'Pending';
+  document.getElementById('newService').value = 'Air Freight';
+}
+
+// ===== STATUS BADGE =====
+function badgeHTML(status) {
+  const map = {
+    'Pending':          'badge-pending',
+    'In Transit':       'badge-transit',
+    'Out for Delivery': 'badge-out',
+    'Delivered':        'badge-delivered',
+    'On Hold':          'badge-hold'
+  };
+  return `<span class="badge ${map[status] || 'badge-pending'}">${status}</span>`;
+}
+
+// ===== RENDER SHIPMENTS TABLE =====
+function renderShipmentsTable() {
+  const search = (document.getElementById('searchShipments').value || '').toLowerCase();
+  const filter = document.getElementById('filterStatus').value;
+  const tbody  = document.getElementById('shipmentsBody');
+
+  const filtered = shipments.filter(s => {
+    const matchSearch = !search ||
+      s.tracking.toLowerCase().includes(search) ||
+      s.rName.toLowerCase().includes(search) ||
+      s.sName.toLowerCase().includes(search);
+    const matchFilter = !filter || s.status === filter;
+    return matchSearch && matchFilter;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-msg">No shipments found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(s => `
+    <tr>
+      <td data-label="Tracking #"><strong>${s.tracking}</strong></td>
+      <td data-label="Sender">${s.sName}</td>
+      <td data-label="Recipient">${s.rName}</td>
+      <td data-label="Origin">${s.origin}</td>
+      <td data-label="Destination">${s.dest}</td>
+      <td data-label="Service">${s.service}</td>
+      <td data-label="Status">${badgeHTML(s.status)}</td>
+      <td data-label="Date">${s.date}</td>
+      <td data-label="Actions">
+        <button class="tbl-btn tbl-btn-edit"    onclick="editShipment('${s.tracking}')"><i class="fa-solid fa-pen"></i> Edit</button>
+        <button class="tbl-btn tbl-btn-receipt" onclick="quickReceipt('${s.tracking}')"><i class="fa-solid fa-receipt"></i> Receipt</button>
+        <button class="tbl-btn tbl-btn-delete"  onclick="deleteShipment('${s.tracking}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ===== EDIT SHIPMENT =====
+async function editShipment(tracking) {
+  shipments = await getShipments();
+  const s = shipments.find(s => s.tracking === tracking);
+  if (!s) return;
+  showSection('create', null);
+  document.getElementById('newTracking').value    = s.tracking;
+  document.getElementById('newService').value     = s.service;
+  document.getElementById('newSenderName').value  = s.sName;
+  document.getElementById('newSenderPhone').value = s.sPhone;
+  document.getElementById('newSenderEmail').value = s.sEmail;
+  document.getElementById('newOrigin').value      = s.origin;
+  document.getElementById('newRecipName').value   = s.rName;
+  document.getElementById('newRecipPhone').value  = s.rPhone;
+  document.getElementById('newRecipEmail').value  = s.rEmail;
+  document.getElementById('newDestination').value = s.dest;
+  document.getElementById('newDescription').value = s.desc;
+  document.getElementById('newWeight').value      = s.weight;
+  document.getElementById('newValue').value       = s.value;
+  document.getElementById('newCost').value        = s.cost;
+  document.getElementById('newETA').value         = s.eta;
+  document.getElementById('newStatus').value      = s.status;
+  document.getElementById('newLocation').value    = s.location;
+  document.getElementById('newNotes').value       = s.notes;
+  await deleteShipment(tracking, true);
+  const msg = document.getElementById('createMsg');
+  msg.style.color = '#185fa5';
+  msg.textContent = `Editing shipment ${tracking} — make changes and click Save.`;
+}
+
+// ===== DELETE SHIPMENT =====
+async function deleteShipment(tracking, silent = false) {
+  if (!silent && !confirm(`Delete shipment ${tracking}? This cannot be undone.`)) return;
+  shipments = await getShipments();
+  shipments = shipments.filter(s => s.tracking !== tracking);
+  await saveShipments(shipments);
+  if (!silent) { renderShipmentsTable(); await updateDashboard(); showToast('Shipment deleted.', 'info'); }
+}
+
+// ===== DASHBOARD UPDATE =====
+async function updateDashboard() {
+  shipments = await getShipments();
+  inquiries = await getInquiries();
+  document.getElementById('totalShipments').textContent = shipments.length;
+  document.getElementById('deliveredCount').textContent = shipments.filter(s => s.status === 'Delivered').length;
+  document.getElementById('transitCount').textContent   = shipments.filter(s => s.status === 'In Transit' || s.status === 'Out for Delivery').length;
+  document.getElementById('inquiryCount').textContent   = inquiries.length;
+
+  const tbody  = document.getElementById('recentShipmentsBody');
+  const recent = shipments.slice(0, 5);
+  if (recent.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty-msg">No shipments yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = recent.map(s => `
+    <tr>
+      <td><strong>${s.tracking}</strong></td>
+      <td>${s.rName}</td>
+      <td>${badgeHTML(s.status)}</td>
+      <td>${s.date}</td>
+    </tr>
+  `).join('');
+}
+
+// ===== GENERATE RECEIPT =====
+async function generateReceipt() {
+  const tracking = document.getElementById('receiptTracking').value.trim();
+  const error    = document.getElementById('receiptError');
+  const output   = document.getElementById('receiptOutput');
+
+  if (!tracking) {
+    error.textContent = 'Please enter a tracking number.';
+    setTimeout(() => error.textContent = '', 3000);
+    return;
+  }
+
+  shipments = await getShipments();
+  const s = shipments.find(s => s.tracking === tracking);
+  if (!s) {
+    error.textContent = `No shipment found with tracking number "${tracking}".`;
+    setTimeout(() => error.textContent = '', 4000);
+    output.style.display = 'none';
+    return;
+  }
+
+  error.textContent = '';
+
+  const statusClassMap = {
+    'Delivered':        'badge-delivered',
+    'In Transit':       'badge-transit',
+    'Out for Delivery': 'badge-out',
+    'On Hold':          'badge-hold',
+    'Pending':          'badge-pending'
+  };
+
+  const statusBandMap = {
+    'Delivered':        'status-delivered',
+    'In Transit':       'status-transit',
+    'Out for Delivery': 'status-out',
+    'On Hold':          'status-hold',
+    'Pending':          'status-pending'
+  };
+
+  const steps      = ['Pending', 'In Transit', 'Out for Delivery', 'Delivered'];
+  const stepLabels = ['Order Placed', 'Picked Up', 'Out for Delivery', 'Delivered'];
+  const stepIcons  = ['fa-box', 'fa-plane-departure', 'fa-truck', 'fa-circle-check'];
+  const currentIdx = steps.indexOf(s.status);
+
+  const stepsHTML = steps.map((step, i) => {
+    const done = (s.status !== 'On Hold') && (i <= currentIdx);
+    return `
+      <div class="receipt-step ${done ? 'done' : ''}">
+        <div class="step-icon"><i class="fa-solid ${stepIcons[i]}"></i></div>
+        <div class="step-label">${stepLabels[i]}</div>
+      </div>
+      ${i < steps.length - 1 ? `<div class="step-connector ${done && i < currentIdx ? 'done' : ''}"></div>` : ''}
+    `;
+  }).join('');
+
+  const content = document.getElementById('receiptContent');
+  content.innerHTML = `
+    <div class="receipt-header">
+      <div class="receipt-brand"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
+      <div class="receipt-meta">
+        <div class="receipt-label">TRACKING NUMBER</div>
+        <div class="receipt-tracking">${s.tracking}</div>
+        <span class="badge ${statusClassMap[s.status] || 'badge-pending'}">${s.status}</span>
+      </div>
+    </div>
+    <div class="receipt-route">
+      <div><div class="route-label">ORIGIN</div><div class="route-city">${s.origin}</div></div>
+      <div class="route-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+      <div><div class="route-label">DESTINATION</div><div class="route-city">${s.dest}</div></div>
+    </div>
+    <div class="receipt-steps">${stepsHTML}</div>
+    <div class="receipt-details">
+      <div class="receipt-col">
+        <div class="receipt-section-title">SENDER</div>
+        <div class="receipt-row"><span>Name</span><span>${s.sName}</span></div>
+        <div class="receipt-row"><span>Phone</span><span>${s.sPhone || '—'}</span></div>
+        <div class="receipt-row"><span>Email</span><span>${s.sEmail || '—'}</span></div>
+      </div>
+      <div class="receipt-col">
+        <div class="receipt-section-title">RECIPIENT</div>
+        <div class="receipt-row"><span>Name</span><span>${s.rName}</span></div>
+        <div class="receipt-row"><span>Phone</span><span>${s.rPhone || '—'}</span></div>
+        <div class="receipt-row"><span>Email</span><span>${s.rEmail || '—'}</span></div>
+      </div>
+    </div>
+    <div class="receipt-details">
+      <div class="receipt-col">
+        <div class="receipt-section-title">PACKAGE</div>
+        <div class="receipt-row"><span>Service</span><span>${s.service}</span></div>
+        <div class="receipt-row"><span>Description</span><span>${s.desc || '—'}</span></div>
+        <div class="receipt-row"><span>Weight</span><span>${s.weight ? s.weight + ' kg' : '—'}</span></div>
+        <div class="receipt-row"><span>Value</span><span>${s.value ? '$' + parseFloat(s.value).toFixed(2) : '—'}</span></div>
+      </div>
+      <div class="receipt-col">
+        <div class="receipt-section-title">DELIVERY</div>
+        <div class="receipt-row"><span>Est. Delivery</span><span>${s.eta || '—'}</span></div>
+        <div class="receipt-row"><span>Location</span><span>${s.location || s.origin}</span></div>
+        <div class="receipt-row"><span>Date Issued</span><span>${s.date}</span></div>
+        <div class="receipt-row"><span>Shipping Cost</span><span>${s.cost ? '$' + parseFloat(s.cost).toFixed(2) : 'Contact Us'}</span></div>
+      </div>
+    </div>
+    ${s.notes ? `<div class="receipt-notes"><strong>Notes:</strong> ${s.notes}</div>` : ''}
+  `;
+
+  // Load QR library
+  if (!document.querySelector('script[src*="qrcode"]')) {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    script.onload = () => {
+      const qrDiv = document.createElement('div');
+      qrDiv.style.cssText = 'text-align:center;margin-top:16px;';
+      content.appendChild(qrDiv);
+      new QRCode(qrDiv, { text: s.tracking, width: 100, height: 100 });
+    };
+    document.head.appendChild(script);
+  }
+
+  output.style.display = 'block';
+  output.scrollIntoView({ behavior: 'smooth' });
+
+  const actionsDiv = output.querySelector('.receipt-actions');
+  if (actionsDiv) {
+    actionsDiv.innerHTML = `
+      <button class="btn-save" onclick="printReceipt()"><i class="fa-solid fa-print"></i> Print Receipt</button>
+      <button class="btn-save" style="background:#27ae60;" onclick="downloadReceiptPDF('${s.tracking}')"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+      <button class="btn-clear" onclick="document.getElementById('receiptOutput').style.display='none'"><i class="fa-solid fa-xmark"></i> Close</button>
+    `;
+  }
+}
+
+// ===== PRINT RECEIPT =====
+function printReceipt() {
+  const receiptEl = document.getElementById('receiptContent');
+  if (!receiptEl) return;
+  const printWin = window.open('', '_blank', 'width=900,height=700');
+  printWin.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8"/><title>ZipCargo Receipt</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awe  });
 }
 
 // ===== TOAST NOTIFICATION =====
