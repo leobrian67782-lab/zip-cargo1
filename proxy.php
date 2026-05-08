@@ -31,9 +31,26 @@ define('INQUIRIES_BIN_ID',  '69fbdbd4adc21f119a640d71');
 // Admin session secret – change this to any long random string
 define('SESSION_SECRET',    'zc_' . hash('sha256', 'zipcargo_change_me_2026'));
 
+// Credentials file – stored outside web root ideally, but this works on shared hosting
+define('CREDS_FILE', __DIR__ . '/.zc_credentials');
+
 // Rate limit: max requests per window per IP
 define('RATE_LIMIT',        60);
 define('RATE_WINDOW',       60); // seconds
+
+// ─── CREDENTIAL HELPERS ────────────────────────────────────────────────────
+function get_credentials(): array {
+    if (file_exists(CREDS_FILE)) {
+        $data = json_decode(file_get_contents(CREDS_FILE), true);
+        if ($data) return $data;
+    }
+    // Default credentials — change password on first login
+    return ['user' => 'admin', 'pass' => password_hash('zipcargo2026', PASSWORD_BCRYPT)];
+}
+
+function save_credentials(array $creds): void {
+    file_put_contents(CREDS_FILE, json_encode($creds));
+}
 
 // ─── CORS ──────────────────────────────────────────────────────────────────
 // Lock to same origin. If your site is on a subdomain, add it below.
@@ -155,18 +172,17 @@ switch ($action) {
         echo json_encode(['ok' => $ok]);
         break;
 
-    // ADMIN: login — creates server-side session
+    // ADMIN: login — verifies credentials and creates server-side session
     case 'adminLogin':
-        $user = $body['user'] ?? '';
-        $pass = $body['pass'] ?? '';
-        // Credentials are checked in admin.js logic; here we just issue the session
-        // You can add a second check against env vars for extra hardening
-        if ($user === 'admin' && !empty($pass)) {
+        $user  = $body['user'] ?? '';
+        $pass  = $body['pass'] ?? '';
+        $creds = get_credentials();
+        if ($user === $creds['user'] && password_verify($pass, $creds['pass'])) {
             $_SESSION['zc_admin'] = SESSION_SECRET;
             echo json_encode(['ok' => true]);
         } else {
             http_response_code(401);
-            echo json_encode(['ok' => false]);
+            echo json_encode(['ok' => false, 'error' => 'Incorrect username or password.']);
         }
         break;
 
@@ -193,6 +209,27 @@ switch ($action) {
         if (!is_array($inquiries)) { http_response_code(400); echo json_encode(['error'=>'Bad payload']); break; }
         $ok = jsonbin_put(INQUIRIES_BIN_ID, ['inquiries' => $inquiries]);
         echo json_encode(['ok' => $ok]);
+        break;
+
+    // ADMIN: change password
+    case 'changePassword':
+        require_admin();
+        $oldPass = $body['oldPass'] ?? '';
+        $newPass = $body['newPass'] ?? '';
+        $creds   = get_credentials();
+        if (!password_verify($oldPass, $creds['pass'])) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Current password is incorrect.']);
+            break;
+        }
+        if (strlen($newPass) < 6) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'New password must be at least 6 characters.']);
+            break;
+        }
+        $creds['pass'] = password_hash($newPass, PASSWORD_BCRYPT);
+        save_credentials($creds);
+        echo json_encode(['ok' => true]);
         break;
 
     // ADMIN: logout
