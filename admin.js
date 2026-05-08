@@ -51,26 +51,51 @@ function showToast(msg, type = 'success') {
 }
 
 // ===== CREDENTIALS =====
-let ADMIN_USER = 'admin';
-let ADMIN_PASS = 'zipcargo2026';
+// Credentials live only in proxy.php — never stored here.
 
 // In-memory cache
 let shipments = [];
 let inquiries = [];
 
 // ===== LOGIN =====
-function adminLogin() {
+async function adminLogin() {
   const user  = document.getElementById('loginUser').value.trim();
   const pass  = document.getElementById('loginPass').value.trim();
   const error = document.getElementById('loginError');
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminPanel').style.display  = 'flex';
-    setCurrentDate();
-    initBins().then(() => updateDashboard());
-  } else {
-    error.textContent = 'Incorrect username or password.';
+  const btn   = document.querySelector('.login-form button');
+
+  if (!user || !pass) {
+    error.textContent = 'Please enter username and password.';
     setTimeout(() => error.textContent = '', 3000);
+    return;
+  }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(`${ADMIN_PROXY}?action=adminLogin`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ user, pass })
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminPanel').style.display  = 'flex';
+      setCurrentDate();
+      updateDashboard();
+    } else {
+      error.textContent = 'Incorrect username or password.';
+      setTimeout(() => error.textContent = '', 3000);
+    }
+  } catch (e) {
+    error.textContent = 'Connection error. Please try again.';
+    setTimeout(() => error.textContent = '', 4000);
+  } finally {
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
   }
 }
 
@@ -78,8 +103,9 @@ document.getElementById('loginPass').addEventListener('keypress', e => { if (e.k
 document.getElementById('loginUser').addEventListener('keypress', e => { if (e.key === 'Enter') adminLogin(); });
 
 // ===== LOGOUT =====
-function adminLogout() {
+async function adminLogout() {
   if (confirm('Are you sure you want to logout?')) {
+    await fetch(`${ADMIN_PROXY}?action=adminLogout`, { method: 'POST' }).catch(() => {});
     document.getElementById('adminPanel').style.display  = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('loginUser').value = '';
@@ -707,20 +733,36 @@ async function deleteInquiry(index) {
 }
 
 // ===== CHANGE PASSWORD =====
-function changePassword() {
+async function changePassword() {
   const oldP = document.getElementById('oldPass').value;
   const newP = document.getElementById('newPass').value;
   const conP = document.getElementById('confirmPass').value;
   const msg  = document.getElementById('passMsg');
-  if (oldP !== ADMIN_PASS) { msg.style.color = '#e74c3c'; msg.textContent = 'Current password is incorrect.'; return; }
-  if (newP.length < 6)     { msg.style.color = '#e74c3c'; msg.textContent = 'New password must be at least 6 characters.'; return; }
-  if (newP !== conP)        { msg.style.color = '#e74c3c'; msg.textContent = 'Passwords do not match.'; return; }
-  ADMIN_PASS = newP;
-  msg.style.color = '#27ae60';
-  msg.textContent = 'Password updated successfully!';
-  document.getElementById('oldPass').value = '';
-  document.getElementById('newPass').value = '';
-  document.getElementById('confirmPass').value = '';
+
+  if (newP.length < 6) { msg.style.color = '#e74c3c'; msg.textContent = 'New password must be at least 6 characters.'; return; }
+  if (newP !== conP)   { msg.style.color = '#e74c3c'; msg.textContent = 'Passwords do not match.'; return; }
+
+  try {
+    const res  = await fetch(`${ADMIN_PROXY}?action=changePassword`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ oldPass: oldP, newPass: newP })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      msg.style.color = '#27ae60';
+      msg.textContent = 'Password updated successfully!';
+      document.getElementById('oldPass').value = '';
+      document.getElementById('newPass').value = '';
+      document.getElementById('confirmPass').value = '';
+    } else {
+      msg.style.color = '#e74c3c';
+      msg.textContent = data.error || 'Current password is incorrect.';
+    }
+  } catch {
+    msg.style.color = '#e74c3c';
+    msg.textContent = 'Connection error. Please try again.';
+  }
   setTimeout(() => msg.textContent = '', 4000);
 }
 
