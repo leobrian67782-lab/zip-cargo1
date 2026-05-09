@@ -456,208 +456,104 @@ function badgeHTML(status) {
   return `<span class="badge ${m[status]||'badge-pending'}">${status}</span>`;
 }
 
-// ===== DOWNLOAD PDF (A4, watermark, exact preview) =====
+// ===== DOWNLOAD PDF — captures exact receipt preview =====
 async function downloadPDF(tracking) {
   const btn = document.querySelector(`button[onclick="downloadPDF('${tracking}')"]`);
   if (btn) { btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Generating...'; }
 
   function loadScript(src, cb) {
     if (document.querySelector(`script[src="${src}"]`)) { cb(); return; }
-    const s = document.createElement('script'); s.src = src; s.onload = cb; document.head.appendChild(s);
+    const s = document.createElement('script'); s.src=src; s.onload=cb; document.head.appendChild(s);
   }
 
-  function doGenerate() {
-    try {
+  function generate() {
+    const receiptEl = document.getElementById('receiptContent');
+    if (!receiptEl) { alert('Please generate a receipt first.'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF';} return; }
+
+    // Add watermark div temporarily
+    const wm = document.createElement('div');
+    wm.id = 'pdfWatermark';
+    wm.style.cssText = `
+      position:absolute;top:0;left:0;width:100%;height:100%;
+      display:flex;align-items:center;justify-content:center;
+      pointer-events:none;z-index:0;overflow:hidden;
+    `;
+    wm.innerHTML = `<div style="
+      transform:rotate(-40deg);
+      font-size:72px;font-weight:900;
+      color:rgba(13,31,53,0.055);
+      font-family:Arial,sans-serif;
+      line-height:1.2;text-align:center;
+      white-space:nowrap;user-select:none;
+    ">ZipCargo<br/>OFFICIAL RECEIPT</div>`;
+
+    // Make receipt position:relative so watermark positions inside it
+    const origPos = receiptEl.style.position;
+    receiptEl.style.position = 'relative';
+    receiptEl.insertBefore(wm, receiptEl.firstChild);
+
+    // Capture with html2canvas
+    html2canvas(receiptEl, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    }).then(canvas => {
+      // Remove watermark
+      receiptEl.removeChild(wm);
+      receiptEl.style.position = origPos;
+
       const { jsPDF } = window.jspdf;
+      // A4 dimensions
       const pageW = 210, pageH = 297;
-      const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-      const s = window._currentReceiptData;
-      if (!s) { alert('Please generate the receipt first.'); return; }
+      const imgW = canvas.width;
+      const imgH = canvas.height;
 
-      const date = s.date || new Date(s.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
-      const L = 14, R = pageW - 14, mid = pageW / 2;
+      // Scale to fit A4 width with margins
+      const margin = 10;
+      const usableW = pageW - (margin * 2);
+      const scaledH = (imgH / imgW) * usableW;
 
-      // helpers
-      const rgb = (r,g,b) => doc.setTextColor(r,g,b);
-      const fill = (r,g,b) => doc.setFillColor(r,g,b);
-      const stroke = (r,g,b) => doc.setDrawColor(r,g,b);
-      const bold = (sz) => { doc.setFont('helvetica','bold'); doc.setFontSize(sz); };
-      const normal = (sz) => { doc.setFont('helvetica','normal'); doc.setFontSize(sz); };
-      const italic = (sz) => { doc.setFont('helvetica','italic'); doc.setFontSize(sz); };
+      const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
 
-      // ── WATERMARK ──────────────────────────────────────────────────────────
-      doc.saveGraphicsState();
-      doc.setGState(new doc.GState({opacity:0.055}));
-      bold(52); rgb(13,31,53);
-      doc.text('ZipCargo', mid, 148, {align:'center', angle:45});
-      bold(22); doc.text('OFFICIAL RECEIPT', mid, 170, {align:'center', angle:45});
-      doc.restoreGraphicsState();
+      // If content fits on one page
+      if (scaledH <= pageH - (margin * 2)) {
+        // Center vertically if shorter than A4
+        const topOffset = margin;
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', margin, topOffset, usableW, scaledH);
+      } else {
+        // Multi-page if content is very long
+        let remainingH = scaledH;
+        let sourceY = 0;
+        const pageUsableH = pageH - (margin * 2);
 
-      // ── HEADER ─────────────────────────────────────────────────────────────
-      fill(13,31,53); doc.rect(0,0,pageW,42,'F');
-
-      // Logo text (no emoji — jsPDF safe)
-      bold(18); rgb(255,255,255); doc.text('ZipCargo', L+6, 14);
-      // Lightning bolt shape
-      fill(232,130,12);
-      doc.triangle(L,7, L+4,14, L+2,14, 'F');
-      doc.triangle(L+2,14, L+6,14, L+2,21, 'F');
-
-      normal(7.5); rgb(122,154,184); doc.text('Global Logistics Solutions', L+6, 20);
-
-      // Right — official receipt label
-      bold(6.5); rgb(232,130,12); doc.text('OFFICIAL RECEIPT', R, 9, {align:'right'});
-      bold(14); rgb(255,255,255); doc.text(s.tracking, R, 18, {align:'right'});
-      normal(7); rgb(122,154,184); doc.text('Issued: '+date, R, 24, {align:'right'});
-
-      // Status pill
-      const statusBg = {
-        'Delivered':[212,237,218],'In Transit':[204,229,255],
-        'Out for Delivery':[212,237,218],'On Hold':[248,215,218],'Pending':[255,243,205]
-      }[s.status]||[255,243,205];
-      const statusFg = {
-        'Delivered':[21,87,36],'In Transit':[0,64,133],
-        'Out for Delivery':[21,87,36],'On Hold':[114,28,36],'Pending':[133,100,4]
-      }[s.status]||[133,100,4];
-      fill(...statusBg);
-      doc.roundedRect(R-38, 29, 38, 9, 2, 2, 'F');
-      bold(8); rgb(...statusFg); doc.text(s.status, R-19, 34.8, {align:'center'});
-
-      // ── ROUTE BAR ──────────────────────────────────────────────────────────
-      fill(249,248,245); doc.rect(0,42,pageW,20,'F');
-      stroke(235,232,223); doc.setLineWidth(0.3); doc.line(0,62,pageW,62);
-
-      normal(7); rgb(136,136,136);
-      doc.text('ORIGIN', L, 48);
-      doc.text('DESTINATION', R, 48, {align:'right'});
-
-      bold(11); rgb(13,31,53);
-      doc.text(s.origin, L, 56);
-      doc.text(s.dest, R, 56, {align:'right'});
-
-      // Arrow
-      bold(13); rgb(232,130,12); doc.text('→', mid, 56, {align:'center'});
-
-      // ── PROGRESS ───────────────────────────────────────────────────────────
-      const steps = ['Pending','In Transit','Out for Delivery','Delivered'];
-      const sLabels = ['Order Placed','Picked Up','Out for Delivery','Delivered'];
-      const curIdx = steps.indexOf(s.status);
-      const xs = [35, 85, 135, 180];
-      let py = 72;
-
-      bold(7); rgb(232,130,12); doc.text('SHIPMENT PROGRESS', L, py-4);
-      stroke(232,130,12); doc.setLineWidth(0.5); doc.line(L, py-3, L+42, py-3);
-
-      steps.forEach((step, i) => {
-        const done = i <= curIdx && s.status !== 'On Hold';
-        const x = xs[i];
-        if (i < steps.length-1) {
-          stroke(done && i<curIdx ? 39:200, done && i<curIdx ? 174:200, done && i<curIdx ? 96:200);
-          doc.setLineWidth(0.8); doc.line(x+5, py, xs[i+1]-5, py);
+        while (remainingH > 0) {
+          const sliceH = Math.min(remainingH, pageUsableH);
+          doc.addImage(
+            canvas.toDataURL('image/jpeg', 0.97), 'JPEG',
+            margin, margin, usableW, scaledH,
+            '', 'FAST', 0
+          );
+          remainingH -= pageUsableH;
+          sourceY += pageUsableH;
+          if (remainingH > 0) doc.addPage();
         }
-        fill(done?39:210, done?174:210, done?96:210);
-        doc.circle(x, py, 5, 'F');
-        bold(done?8:7); rgb(255,255,255);
-        doc.text(done?'v':String(i+1), x, py+1, {align:'center'});
-        const active = i===curIdx && s.status!=='On Hold';
-        normal(6); rgb(active?13:150, active?31:150, active?53:150);
-        doc.text(sLabels[i], x, py+9, {align:'center', maxWidth:26});
-      });
-
-      // ── GRID ───────────────────────────────────────────────────────────────
-      let y = 98;
-      const c1=L, c2=mid+3, cw=(pageW/2)-17;
-      stroke(235,232,223); doc.setLineWidth(0.3);
-      doc.line(L, y-2, R, y-2);
-
-      function hdr(title, x, yy) {
-        bold(7); rgb(232,130,12); doc.text(title, x, yy);
-        stroke(232,130,12); doc.setLineWidth(0.4); doc.line(x, yy+1, x+cw, yy+1);
-      }
-      function row(lbl, val, x, yy) {
-        normal(8); rgb(150,150,150); doc.text(lbl, x, yy);
-        bold(8); rgb(13,31,53);
-        doc.text(String(val||'—'), x+cw, yy, {align:'right', maxWidth:cw-2});
       }
 
-      // SENDER col
-      hdr('SENDER', c1, y); y+=7;
-      row('Name', s.sName, c1, y); y+=6;
-      row('Phone', s.sPhone, c1, y); y+=6;
-      row('Origin', s.origin, c1, y);
-
-      // RECIPIENT col
-      let y2=98+7;
-      hdr('RECIPIENT', c2, 98);
-      row('Name', s.rName, c2, y2); y2+=6;
-      row('Phone', s.rPhone, c2, y2); y2+=6;
-      row('Destination', s.dest, c2, y2);
-
-      y = Math.max(y, y2) + 12;
-      stroke(235,232,223); doc.setLineWidth(0.3); doc.line(L, y-4, R, y-4);
-
-      // PACKAGE col
-      const py2 = y;
-      hdr('PACKAGE', c1, y); y+=7;
-      row('Service', s.service, c1, y); y+=6;
-      row('Weight', s.weight?s.weight+' kg':'—', c1, y); y+=6;
-      row('Value', s.value?'$'+parseFloat(s.value).toFixed(2):'—', c1, y);
-
-      // DELIVERY col
-      let y3=py2+7;
-      hdr('DELIVERY', c2, py2);
-      row('Est. Delivery', s.eta, c2, y3); y3+=6;
-      row('Location', s.location||s.origin, c2, y3); y3+=6;
-      row('Issued', date, c2, y3);
-
-      y = Math.max(y, y3) + 12;
-
-      // ── TOTAL BAR ──────────────────────────────────────────────────────────
-      fill(13,31,53); doc.rect(0, y, pageW, 22, 'F');
-      normal(8); rgb(122,154,184); doc.text('Total Shipping Cost', L, y+9);
-      normal(6.5); rgb(74,106,138); doc.text('Inclusive of all applicable fees', L, y+15);
-      bold(22); rgb(232,130,12);
-      doc.text(s.cost?'$'+parseFloat(s.cost).toFixed(2):'Contact Us', R, y+15, {align:'right'});
-
-      y += 26;
-
-      // ── NOTES ──────────────────────────────────────────────────────────────
-      if (s.notes) {
-        fill(255,251,245); doc.rect(0, y, pageW, 14, 'F');
-        fill(232,130,12); doc.rect(0, y, 2, 14, 'F');
-        bold(7.5); rgb(13,31,53); doc.text('Notes:', L+4, y+6);
-        normal(7.5); rgb(90,106,122); doc.text(s.notes, L+24, y+6, {maxWidth:R-L-28});
-        y += 18;
-      }
-
-      // ── WATERMARK STAMP ────────────────────────────────────────────────────
-      const stampX = R - 18, stampY = y + 22;
-      doc.saveGraphicsState();
-      doc.setGState(new doc.GState({opacity:0.75}));
-      stroke(39,174,96); doc.setLineWidth(0.8);
-      doc.circle(stampX, stampY, 16); doc.circle(stampX, stampY, 13);
-      bold(5); rgb(39,174,96);
-      doc.text('ZIPCARGO', stampX, stampY-8, {align:'center'});
-      bold(7); doc.text('OFFICIAL', stampX, stampY-2, {align:'center'});
-      doc.text('RECEIPT', stampX, stampY+4, {align:'center'});
-      normal(5); doc.text('* VERIFIED *', stampX, stampY+9, {align:'center'});
-      doc.restoreGraphicsState();
-
-      // ── FOOTER ─────────────────────────────────────────────────────────────
-      fill(249,248,245); doc.rect(0, pageH-26, pageW, 26, 'F');
-      stroke(235,232,223); doc.setLineWidth(0.3); doc.line(0, pageH-26, pageW, pageH-26);
-      bold(9); rgb(13,31,53); doc.text('ZipCargo Logistics', mid, pageH-17, {align:'center'});
-      normal(7.5); rgb(120,130,154); doc.text('info@zipcargo.com  •  www.zipcargo.com', mid, pageH-11, {align:'center'});
-      italic(7); rgb(120,130,154); doc.text('Ship Smarter. Deliver Faster.  —  Thank you for your business.', mid, pageH-5, {align:'center'});
-
-      doc.save(`ZipCargo-Receipt-${s.tracking}.pdf`);
+      doc.save(`ZipCargo-Receipt-${tracking}.pdf`);
       if (btn) { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
-    } catch(e) {
+    }).catch(e => {
+      receiptEl.removeChild(wm);
+      receiptEl.style.position = origPos;
       console.error(e);
-      alert('PDF generation failed: '+e.message);
+      alert('PDF failed: ' + e.message);
       if (btn) { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
-    }
+    });
   }
 
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', doGenerate);
+  // Load both libraries then generate
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', generate);
+  });
 }
