@@ -461,7 +461,6 @@ async function downloadPDF(tracking) {
   const btn = document.querySelector(`button[onclick="downloadPDF('${tracking}')"]`);
   if (btn) { btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Generating...'; }
 
-  // Load jsPDF and html2canvas if not already loaded
   function loadScript(src, cb) {
     if (document.querySelector(`script[src="${src}"]`)) { cb(); return; }
     const s = document.createElement('script'); s.src = src; s.onload = cb; document.head.appendChild(s);
@@ -470,299 +469,195 @@ async function downloadPDF(tracking) {
   function doGenerate() {
     try {
       const { jsPDF } = window.jspdf;
-
-      // A4 dimensions in mm
       const pageW = 210, pageH = 297;
       const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-
-      // Get shipment from current receipt content
       const s = window._currentReceiptData;
       if (!s) { alert('Please generate the receipt first.'); return; }
 
       const date = s.date || new Date(s.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+      const L = 14, R = pageW - 14, mid = pageW / 2;
 
-      const statusColors = {
-        'Delivered':        [212,237,218],
-        'In Transit':       [204,229,255],
-        'Out for Delivery': [212,237,218],
-        'On Hold':          [248,215,218],
-        'Pending':          [255,243,205],
-      };
-      const statusTextColors = {
-        'Delivered':        [21,87,36],
-        'In Transit':       [0,64,133],
-        'Out for Delivery': [21,87,36],
-        'On Hold':          [114,28,36],
-        'Pending':          [133,100,4],
-      };
-      const sc = statusColors[s.status] || statusColors['Pending'];
-      const stc = statusTextColors[s.status] || statusTextColors['Pending'];
+      // helpers
+      const rgb = (r,g,b) => doc.setTextColor(r,g,b);
+      const fill = (r,g,b) => doc.setFillColor(r,g,b);
+      const stroke = (r,g,b) => doc.setDrawColor(r,g,b);
+      const bold = (sz) => { doc.setFont('helvetica','bold'); doc.setFontSize(sz); };
+      const normal = (sz) => { doc.setFont('helvetica','normal'); doc.setFontSize(sz); };
+      const italic = (sz) => { doc.setFont('helvetica','italic'); doc.setFontSize(sz); };
 
       // ── WATERMARK ──────────────────────────────────────────────────────────
-      doc.setGState(new doc.GState({ opacity: 0.06 }));
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(58);
-      doc.setTextColor(13, 31, 53);
-      doc.text('ZipCargo', pageW/2, pageH/2 - 10, { align: 'center', angle: 45 });
-      doc.setFontSize(26);
-      doc.text('OFFICIAL RECEIPT', pageW/2, pageH/2 + 18, { align: 'center', angle: 45 });
-      doc.setGState(new doc.GState({ opacity: 1 }));
+      doc.saveGraphicsState();
+      doc.setGState(new doc.GState({opacity:0.055}));
+      bold(52); rgb(13,31,53);
+      doc.text('ZipCargo', mid, 148, {align:'center', angle:45});
+      bold(22); doc.text('OFFICIAL RECEIPT', mid, 170, {align:'center', angle:45});
+      doc.restoreGraphicsState();
 
       // ── HEADER ─────────────────────────────────────────────────────────────
-      doc.setFillColor(13, 31, 53);
-      doc.rect(0, 0, pageW, 38, 'F');
+      fill(13,31,53); doc.rect(0,0,pageW,42,'F');
 
-      // Logo
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
-      doc.setTextColor(255, 255, 255);
-      doc.text('⚡ ZipCargo', 14, 16);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(122, 154, 184);
-      doc.text('Global Logistics Solutions', 14, 22);
+      // Logo text (no emoji — jsPDF safe)
+      bold(18); rgb(255,255,255); doc.text('ZipCargo', L+6, 14);
+      // Lightning bolt shape
+      fill(232,130,12);
+      doc.triangle(L,7, L+4,14, L+2,14, 'F');
+      doc.triangle(L+2,14, L+6,14, L+2,21, 'F');
 
-      // Right side - tracking + status
-      doc.setFontSize(7);
-      doc.setTextColor(232, 130, 12);
-      doc.text('OFFICIAL RECEIPT', pageW - 14, 10, { align: 'right' });
-      doc.setFontSize(13);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 255, 255);
-      doc.text(s.tracking, pageW - 14, 18, { align: 'right' });
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(122, 154, 184);
-      doc.text(`Issued: ${date}`, pageW - 14, 24, { align: 'right' });
+      normal(7.5); rgb(122,154,184); doc.text('Global Logistics Solutions', L+6, 20);
 
-      // Status badge
-      doc.setFillColor(...sc);
-      doc.roundedRect(pageW - 50, 27, 36, 8, 2, 2, 'F');
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...stc);
-      doc.text(s.status, pageW - 32, 32.5, { align: 'center' });
+      // Right — official receipt label
+      bold(6.5); rgb(232,130,12); doc.text('OFFICIAL RECEIPT', R, 9, {align:'right'});
+      bold(14); rgb(255,255,255); doc.text(s.tracking, R, 18, {align:'right'});
+      normal(7); rgb(122,154,184); doc.text('Issued: '+date, R, 24, {align:'right'});
+
+      // Status pill
+      const statusBg = {
+        'Delivered':[212,237,218],'In Transit':[204,229,255],
+        'Out for Delivery':[212,237,218],'On Hold':[248,215,218],'Pending':[255,243,205]
+      }[s.status]||[255,243,205];
+      const statusFg = {
+        'Delivered':[21,87,36],'In Transit':[0,64,133],
+        'Out for Delivery':[21,87,36],'On Hold':[114,28,36],'Pending':[133,100,4]
+      }[s.status]||[133,100,4];
+      fill(...statusBg);
+      doc.roundedRect(R-38, 29, 38, 9, 2, 2, 'F');
+      bold(8); rgb(...statusFg); doc.text(s.status, R-19, 34.8, {align:'center'});
 
       // ── ROUTE BAR ──────────────────────────────────────────────────────────
-      doc.setFillColor(249, 248, 245);
-      doc.rect(0, 38, pageW, 18, 'F');
-      doc.setDrawColor(235, 232, 223);
-      doc.line(0, 56, pageW, 56);
+      fill(249,248,245); doc.rect(0,42,pageW,20,'F');
+      stroke(235,232,223); doc.setLineWidth(0.3); doc.line(0,62,pageW,62);
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(136, 136, 136);
-      doc.text('ORIGIN', 14, 44);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(13, 31, 53);
-      doc.text(s.origin, 14, 51);
+      normal(7); rgb(136,136,136);
+      doc.text('ORIGIN', L, 48);
+      doc.text('DESTINATION', R, 48, {align:'right'});
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
-      doc.setTextColor(232, 130, 12);
-      doc.text('→', pageW/2, 50, { align: 'center' });
+      bold(11); rgb(13,31,53);
+      doc.text(s.origin, L, 56);
+      doc.text(s.dest, R, 56, {align:'right'});
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(136, 136, 136);
-      doc.text('DESTINATION', pageW - 14, 44, { align: 'right' });
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(13, 31, 53);
-      doc.text(s.dest, pageW - 14, 51, { align: 'right' });
+      // Arrow
+      bold(13); rgb(232,130,12); doc.text('→', mid, 56, {align:'center'});
 
-      // ── PROGRESS BAR ───────────────────────────────────────────────────────
+      // ── PROGRESS ───────────────────────────────────────────────────────────
       const steps = ['Pending','In Transit','Out for Delivery','Delivered'];
-      const stepLabels = ['Order Placed','Picked Up','Out for Delivery','Delivered'];
+      const sLabels = ['Order Placed','Picked Up','Out for Delivery','Delivered'];
       const curIdx = steps.indexOf(s.status);
-      const stepX = [30, 80, 130, 180];
-      const stepY = 68;
+      const xs = [35, 85, 135, 180];
+      let py = 72;
 
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(232, 130, 12);
-      doc.text('SHIPMENT PROGRESS', 14, 63);
-      doc.setDrawColor(232, 130, 12);
-      doc.line(14, 64, 50, 64);
+      bold(7); rgb(232,130,12); doc.text('SHIPMENT PROGRESS', L, py-4);
+      stroke(232,130,12); doc.setLineWidth(0.5); doc.line(L, py-3, L+42, py-3);
 
       steps.forEach((step, i) => {
         const done = i <= curIdx && s.status !== 'On Hold';
-        const x = stepX[i];
-
-        // Line between steps
-        if (i < steps.length - 1) {
-          doc.setDrawColor(done && i < curIdx ? 39 : 200, done && i < curIdx ? 174 : 200, done && i < curIdx ? 96 : 200);
-          doc.setLineWidth(1);
-          doc.line(x + 6, stepY, stepX[i+1] - 6, stepY);
+        const x = xs[i];
+        if (i < steps.length-1) {
+          stroke(done && i<curIdx ? 39:200, done && i<curIdx ? 174:200, done && i<curIdx ? 96:200);
+          doc.setLineWidth(0.8); doc.line(x+5, py, xs[i+1]-5, py);
         }
-
-        // Circle
-        doc.setFillColor(done ? 39 : 220, done ? 174 : 220, done ? 96 : 220);
-        doc.circle(x, stepY, 5, 'F');
-
-        // Check or number
-        doc.setFontSize(done ? 8 : 7);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(255, 255, 255);
-        doc.text(done ? '✓' : String(i+1), x, stepY + 0.8, { align: 'center' });
-
-        // Label
-        doc.setFontSize(6.5);
-        doc.setFont('helvetica', i === curIdx ? 'bold' : 'normal');
-        doc.setTextColor(i === curIdx ? 13 : 150, i === curIdx ? 31 : 150, i === curIdx ? 53 : 150);
-        doc.text(stepLabels[i], x, stepY + 9, { align: 'center', maxWidth: 28 });
+        fill(done?39:210, done?174:210, done?96:210);
+        doc.circle(x, py, 5, 'F');
+        bold(done?8:7); rgb(255,255,255);
+        doc.text(done?'v':String(i+1), x, py+1, {align:'center'});
+        const active = i===curIdx && s.status!=='On Hold';
+        normal(6); rgb(active?13:150, active?31:150, active?53:150);
+        doc.text(sLabels[i], x, py+9, {align:'center', maxWidth:26});
       });
 
-      // ── GRID SECTIONS ──────────────────────────────────────────────────────
-      let y = 92;
-      const col1 = 14, col2 = pageW/2 + 3, colW = pageW/2 - 17;
+      // ── GRID ───────────────────────────────────────────────────────────────
+      let y = 98;
+      const c1=L, c2=mid+3, cw=(pageW/2)-17;
+      stroke(235,232,223); doc.setLineWidth(0.3);
+      doc.line(L, y-2, R, y-2);
 
-      function sectionHeader(title, x, yy) {
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7);
-        doc.setTextColor(232, 130, 12);
-        doc.text(title, x, yy);
-        doc.setDrawColor(232, 130, 12);
-        doc.setLineWidth(0.5);
-        doc.line(x, yy + 1, x + colW, yy + 1);
+      function hdr(title, x, yy) {
+        bold(7); rgb(232,130,12); doc.text(title, x, yy);
+        stroke(232,130,12); doc.setLineWidth(0.4); doc.line(x, yy+1, x+cw, yy+1);
+      }
+      function row(lbl, val, x, yy) {
+        normal(8); rgb(150,150,150); doc.text(lbl, x, yy);
+        bold(8); rgb(13,31,53);
+        doc.text(String(val||'—'), x+cw, yy, {align:'right', maxWidth:cw-2});
       }
 
-      function dataRow(label, value, x, yy) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(136, 136, 136);
-        doc.text(label, x, yy);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(13, 31, 53);
-        doc.text(String(value||'—'), x + colW, yy, { align: 'right', maxWidth: colW - 2 });
-      }
+      // SENDER col
+      hdr('SENDER', c1, y); y+=7;
+      row('Name', s.sName, c1, y); y+=6;
+      row('Phone', s.sPhone, c1, y); y+=6;
+      row('Origin', s.origin, c1, y);
 
-      // Divider line
-      doc.setDrawColor(235, 232, 223);
-      doc.setLineWidth(0.3);
-      doc.line(14, y - 4, pageW - 14, y - 4);
+      // RECIPIENT col
+      let y2=98+7;
+      hdr('RECIPIENT', c2, 98);
+      row('Name', s.rName, c2, y2); y2+=6;
+      row('Phone', s.rPhone, c2, y2); y2+=6;
+      row('Destination', s.dest, c2, y2);
 
-      // SENDER
-      sectionHeader('SENDER', col1, y);
-      y += 6;
-      dataRow('Name', s.sName, col1, y); y += 6;
-      dataRow('Phone', s.sPhone, col1, y); y += 6;
-      dataRow('Email', s.sEmail, col1, y); y += 6;
-      dataRow('Origin', s.origin, col1, y);
+      y = Math.max(y, y2) + 12;
+      stroke(235,232,223); doc.setLineWidth(0.3); doc.line(L, y-4, R, y-4);
 
-      // RECIPIENT
-      let y2 = 92 + 6;
-      sectionHeader('RECIPIENT', col2, 92);
-      dataRow('Name', s.rName, col2, y2); y2 += 6;
-      dataRow('Phone', s.rPhone, col2, y2); y2 += 6;
-      dataRow('Email', s.rEmail, col2, y2); y2 += 6;
-      dataRow('Destination', s.dest, col2, y2);
+      // PACKAGE col
+      const py2 = y;
+      hdr('PACKAGE', c1, y); y+=7;
+      row('Service', s.service, c1, y); y+=6;
+      row('Weight', s.weight?s.weight+' kg':'—', c1, y); y+=6;
+      row('Value', s.value?'$'+parseFloat(s.value).toFixed(2):'—', c1, y);
 
-      y = Math.max(y, y2) + 10;
+      // DELIVERY col
+      let y3=py2+7;
+      hdr('DELIVERY', c2, py2);
+      row('Est. Delivery', s.eta, c2, y3); y3+=6;
+      row('Location', s.location||s.origin, c2, y3); y3+=6;
+      row('Issued', date, c2, y3);
 
-      // Divider
-      doc.setDrawColor(235, 232, 223);
-      doc.line(14, y - 4, pageW - 14, y - 4);
-
-      // PACKAGE DETAILS
-      sectionHeader('PACKAGE DETAILS', col1, y);
-      y += 6;
-      dataRow('Service', s.service, col1, y); y += 6;
-      dataRow('Description', s.desc, col1, y); y += 6;
-      dataRow('Weight', s.weight ? s.weight + ' kg' : '—', col1, y); y += 6;
-      dataRow('Declared Value', s.value ? '$' + parseFloat(s.value).toFixed(2) : '—', col1, y);
-
-      // DELIVERY INFO
-      let y3 = y - 18;
-      sectionHeader('DELIVERY INFO', col2, y3);
-      y3 += 6;
-      dataRow('Est. Delivery', s.eta, col2, y3); y3 += 6;
-      dataRow('Current Location', s.location || s.origin, col2, y3); y3 += 6;
-      dataRow('Status', s.status, col2, y3); y3 += 6;
-      dataRow('Date Issued', date, col2, y3);
-
-      y = Math.max(y, y3) + 14;
+      y = Math.max(y, y3) + 12;
 
       // ── TOTAL BAR ──────────────────────────────────────────────────────────
-      doc.setFillColor(13, 31, 53);
-      doc.rect(0, y, pageW, 18, 'F');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(122, 154, 184);
-      doc.text('Total Shipping Cost', 14, y + 7);
-      doc.setFontSize(7);
-      doc.text('Inclusive of all applicable fees', 14, y + 13);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(20);
-      doc.setTextColor(232, 130, 12);
-      doc.text(s.cost ? '$' + parseFloat(s.cost).toFixed(2) : 'Contact Us', pageW - 14, y + 12, { align: 'right' });
+      fill(13,31,53); doc.rect(0, y, pageW, 22, 'F');
+      normal(8); rgb(122,154,184); doc.text('Total Shipping Cost', L, y+9);
+      normal(6.5); rgb(74,106,138); doc.text('Inclusive of all applicable fees', L, y+15);
+      bold(22); rgb(232,130,12);
+      doc.text(s.cost?'$'+parseFloat(s.cost).toFixed(2):'Contact Us', R, y+15, {align:'right'});
 
-      y += 22;
+      y += 26;
 
       // ── NOTES ──────────────────────────────────────────────────────────────
       if (s.notes) {
-        doc.setFillColor(255, 251, 245);
-        doc.rect(0, y, pageW, 14, 'F');
-        doc.setDrawColor(232, 130, 12);
-        doc.setLineWidth(1);
-        doc.line(0, y, 0, y + 14);
-        doc.setLineWidth(0.3);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.setTextColor(13, 31, 53);
-        doc.text('Special Notes:', 14, y + 6);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(90, 106, 122);
-        doc.text(s.notes, 50, y + 6, { maxWidth: pageW - 64 });
+        fill(255,251,245); doc.rect(0, y, pageW, 14, 'F');
+        fill(232,130,12); doc.rect(0, y, 2, 14, 'F');
+        bold(7.5); rgb(13,31,53); doc.text('Notes:', L+4, y+6);
+        normal(7.5); rgb(90,106,122); doc.text(s.notes, L+24, y+6, {maxWidth:R-L-28});
         y += 18;
       }
 
+      // ── WATERMARK STAMP ────────────────────────────────────────────────────
+      const stampX = R - 18, stampY = y + 22;
+      doc.saveGraphicsState();
+      doc.setGState(new doc.GState({opacity:0.75}));
+      stroke(39,174,96); doc.setLineWidth(0.8);
+      doc.circle(stampX, stampY, 16); doc.circle(stampX, stampY, 13);
+      bold(5); rgb(39,174,96);
+      doc.text('ZIPCARGO', stampX, stampY-8, {align:'center'});
+      bold(7); doc.text('OFFICIAL', stampX, stampY-2, {align:'center'});
+      doc.text('RECEIPT', stampX, stampY+4, {align:'center'});
+      normal(5); doc.text('* VERIFIED *', stampX, stampY+9, {align:'center'});
+      doc.restoreGraphicsState();
+
       // ── FOOTER ─────────────────────────────────────────────────────────────
-      doc.setFillColor(249, 248, 245);
-      doc.rect(0, pageH - 28, pageW, 28, 'F');
-      doc.setDrawColor(235, 232, 223);
-      doc.line(0, pageH - 28, pageW, pageH - 28);
+      fill(249,248,245); doc.rect(0, pageH-26, pageW, 26, 'F');
+      stroke(235,232,223); doc.setLineWidth(0.3); doc.line(0, pageH-26, pageW, pageH-26);
+      bold(9); rgb(13,31,53); doc.text('ZipCargo Logistics', mid, pageH-17, {align:'center'});
+      normal(7.5); rgb(120,130,154); doc.text('info@zipcargo.com  •  www.zipcargo.com', mid, pageH-11, {align:'center'});
+      italic(7); rgb(120,130,154); doc.text('Ship Smarter. Deliver Faster.  —  Thank you for your business.', mid, pageH-5, {align:'center'});
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(13, 31, 53);
-      doc.text('ZipCargo Logistics', pageW/2, pageH - 20, { align: 'center' });
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(122, 130, 154);
-      doc.text('info@zipcargo.com  •  www.zipcargo.com', pageW/2, pageH - 14, { align: 'center' });
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(7);
-      doc.text('Ship Smarter. Deliver Faster. — Thank you for your business.', pageW/2, pageH - 8, { align: 'center' });
-
-      // ── OFFICIAL STAMP ─────────────────────────────────────────────────────
-      doc.setGState(new doc.GState({ opacity: 0.7 }));
-      doc.setDrawColor(39, 174, 96);
-      doc.setLineWidth(1);
-      doc.circle(pageW - 30, pageH - 52, 14);
-      doc.circle(pageW - 30, pageH - 52, 12);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(5);
-      doc.setTextColor(39, 174, 96);
-      doc.text('ZIPCARGO', pageW - 30, pageH - 58, { align: 'center' });
-      doc.setFontSize(6.5);
-      doc.text('OFFICIAL', pageW - 30, pageH - 53, { align: 'center' });
-      doc.text('RECEIPT', pageW - 30, pageH - 47.5, { align: 'center' });
-      doc.setFontSize(5);
-      doc.text('✦ VERIFIED ✦', pageW - 30, pageH - 43, { align: 'center' });
-      doc.setGState(new doc.GState({ opacity: 1 }));
-
-      // Save
       doc.save(`ZipCargo-Receipt-${s.tracking}.pdf`);
       if (btn) { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
     } catch(e) {
       console.error(e);
-      alert('PDF generation failed: ' + e.message);
+      alert('PDF generation failed: '+e.message);
       if (btn) { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
     }
   }
 
-  // Load jsPDF then generate
   loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', doGenerate);
 }
