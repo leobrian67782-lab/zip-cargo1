@@ -410,6 +410,24 @@ function buildReceiptHTML(s) {
       <div style="font-size:.74rem;color:#7a9ab8;">Total Shipping Cost</div>
       <div style="font-size:2rem;font-weight:800;color:#e8820c;">${s.cost?'$'+parseFloat(s.cost).toFixed(2):'Contact Us'}</div></div>
     ${s.notes?`<div style="padding:14px 36px;background:#fffbf5;border-top:2px solid #e8820c;font-size:.87rem;color:#5a6a7a;"><strong>Notes:</strong> ${s.notes}</div>`:''}
+    <div style="padding:16px 36px;display:flex;align-items:center;justify-content:space-between;background:white;border-top:1px solid #ebe8df;">
+      <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" style="opacity:0.85;">
+        <circle cx="45" cy="45" r="42" fill="none" stroke="#27ae60" stroke-width="2.5"/>
+        <circle cx="45" cy="45" r="35" fill="none" stroke="#27ae60" stroke-width="1"/>
+        <text x="45" y="30" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="2">ZIPCARGO</text>
+        <text x="45" y="44" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#27ae60">OFFICIAL</text>
+        <text x="45" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="1">RECEIPT</text>
+        <text x="45" y="69" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#27ae60">&#10022; VERIFIED &#10022;</text>
+      </svg>
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Document verified by</div>
+        <div style="font-size:.85rem;font-weight:700;color:#0d1f35;">ZipCargo Logistics</div>
+        <div style="font-size:.72rem;color:#aaa;margin-top:2px;">${s.tracking}</div>
+      </div>
+      <div style="text-align:right;font-size:.68rem;color:#ccc;line-height:1.8;">
+        Official ZipCargo receipt.<br/>Please retain for your records.
+      </div>
+    </div>
     <div style="background:#f9f8f5;padding:20px 36px;text-align:center;border-top:1px solid #ebe8df;font-size:.79rem;color:#7a8a9a;line-height:2.2;">
       <strong style="color:#0d1f35;">ZipCargo Logistics</strong><br/>info@zipcargo.com &bull; www.zipcargo.com<br/>
       <em>Ship Smarter. Deliver Faster.</em></div>`;
