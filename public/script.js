@@ -219,7 +219,17 @@ function renderTrackingResult(s, result) {
       <div style="font-size:.68rem;text-align:center;margin-top:7px;color:${active?'#0d1f35':'#999'};font-weight:${active?'700':'400'};line-height:1.3;max-width:70px;">${stepLabels[i]}</div></div>`;
   }).join('');
 
-  const tlItems = (s.timeline||[]).slice(-5).reverse().map(t => `
+  // Deduplicate timeline — remove entries with same status+note within 60 seconds of each other
+  const rawTimeline = (s.timeline||[]);
+  const dedupedTimeline = rawTimeline.filter((t, i) => {
+    if (i === 0) return true;
+    const prev = rawTimeline[i-1];
+    const sameStatus = t.status === prev.status;
+    const closeInTime = Math.abs(new Date(t.timestamp) - new Date(prev.timestamp)) < 60000;
+    return !(sameStatus && closeInTime);
+  });
+
+  const tlItems = dedupedTimeline.slice(-5).reverse().map(t => `
     <div style="display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f0ede5;">
       <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;margin-top:5px;flex-shrink:0;"></div>
       <div><div style="font-size:.82rem;font-weight:700;color:#0d1f35;">${t.status}</div>
