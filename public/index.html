@@ -11,10 +11,27 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    #adminWrapper { display:none; position:fixed; inset:0; z-index:9999; background:#f0f2f7; }
-    #adminWrapper.visible { display:flex; }
-    #adminWrapper .login-screen { min-height:100vh; width:100%; }
-    #adminWrapper .admin-panel  { width:100%; min-height:100vh; }
+    #adminWrapper {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #f0f2f7;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #adminWrapper.visible {
+      display: block;
+    }
+    #adminWrapper .login-screen { min-height: 100vh; width: 100%; }
+    #adminWrapper .admin-panel  { width: 100%; min-height: 100vh; }
+
+    /* Prevent main site from scrolling when admin is open */
+    body.admin-open {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -209,9 +226,9 @@
       </div>
     </div>
     <form class="contact-form animate-fade" onsubmit="submitForm(event)">
-      <input type="text"  id="fname"    placeholder="Your Full Name" required/>
-      <input type="email" id="femail"   placeholder="Your Email Address" required/>
-      <input type="text"  id="fcompany" placeholder="Company Name (optional)"/>
+      <input type="text" id="fname" placeholder="Your Full Name" required/>
+      <input type="email" id="femail" placeholder="Your Email Address" required/>
+      <input type="text" id="fcompany" placeholder="Company Name (optional)"/>
       <select id="fservice"><option value="">Select a Service</option><option>Air Freight</option><option>Sea Freight</option><option>Road Transport</option><option>Warehousing</option><option>Customs Clearance</option><option>Supply Chain</option></select>
       <textarea id="fmessage" placeholder="Tell us about your shipment needs..." required></textarea>
       <button type="submit">Send Message <i class="fa-solid fa-paper-plane"></i></button>
@@ -223,8 +240,8 @@
 <section class="testimonials" id="testimonials">
   <div class="section-header animate-fade"><h2 class="section-title">What Our Clients Say</h2><p class="section-subtitle">Trusted by businesses and individuals across 150+ countries</p></div>
   <div class="testimonials-grid">
-    <div class="testimonial-card animate-card"><div class="testimonial-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="testimonial-text">"ZipCargo handled our entire electronics supply chain for the Q4 season. Shipments arrived ahead of schedule with full visibility every step of the way. Absolutely exceptional service."</p><div class="testimonial-author"><div class="author-avatar">MR</div><div><div class="author-name">Michael Reeves</div><div class="author-role">Head of Supply Chain, TechNova International</div></div></div></div>
-    <div class="testimonial-card animate-card"><div class="testimonial-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="testimonial-text">"We switched to ZipCargo after years of unreliable freight partners. Zero delays, all documentation handled seamlessly. Our import costs dropped by 18% in the first quarter."</p><div class="testimonial-author"><div class="author-avatar">SL</div><div><div class="author-name">Sophie Laurent</div><div class="author-role">COO, Maison Goods Retail Group</div></div></div></div>
+    <div class="testimonial-card animate-card"><div class="testimonial-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="testimonial-text">"ZipCargo handled our entire electronics supply chain for the Q4 season. Shipments arrived ahead of schedule with full visibility every step of the way."</p><div class="testimonial-author"><div class="author-avatar">MR</div><div><div class="author-name">Michael Reeves</div><div class="author-role">Head of Supply Chain, TechNova International</div></div></div></div>
+    <div class="testimonial-card animate-card"><div class="testimonial-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="testimonial-text">"We switched to ZipCargo after years of unreliable freight partners. Zero delays, all documentation handled seamlessly. Our import costs dropped by 18%."</p><div class="testimonial-author"><div class="author-avatar">SL</div><div><div class="author-name">Sophie Laurent</div><div class="author-role">COO, Maison Goods Retail Group</div></div></div></div>
     <div class="testimonial-card animate-card"><div class="testimonial-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="testimonial-text">"As a growing e-commerce brand shipping to Africa and Asia, ZipCargo delivered on every promise — and their tracking portal keeps our customers happy."</p><div class="testimonial-author"><div class="author-avatar">AO</div><div><div class="author-name">Adebayo Okonkwo</div><div class="author-role">Founder &amp; CEO, PanAfrika Commerce</div></div></div></div>
   </div>
 </section>
@@ -434,13 +451,16 @@
   function checkAdminHash() {
     if (window.location.hash === '#admin') {
       document.getElementById('adminWrapper').classList.add('visible');
+      document.body.classList.add('admin-open');
     } else {
       document.getElementById('adminWrapper').classList.remove('visible');
+      document.body.classList.remove('admin-open');
     }
   }
   function closeAdminPanel() {
     history.pushState('', document.title, window.location.pathname + window.location.search);
     document.getElementById('adminWrapper').classList.remove('visible');
+    document.body.classList.remove('admin-open');
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
   }
