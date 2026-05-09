@@ -517,13 +517,18 @@ async function downloadPDF(tracking) {
       // ── HEADER ──────────────────────────────────────────────────────────────
       rect(0,0,W,40,[13,31,53]);
 
-      // Lightning bolt (drawn as polygon)
+      // ZipCargo logo — proper lightning bolt
       F(232,130,12);
-      doc.triangle(L, 9, L+4.5, 17, L+2.5, 17, 'F');
-      doc.triangle(L+2.5, 17, L+7, 17, L+2.5, 25, 'F');
+      // Bolt shape: top-right to middle-left to middle-right to bottom-left
+      doc.lines([
+        [6, 8],   // top point
+        [-4, 0],  // top-right to middle-left
+        [3, 0],   // middle notch
+        [-6, 9],  // middle-right to bottom
+      ], L, 8, [1,1], 'F', true);
 
-      B(19); C(255,255,255); txt('ZipCargo', L+9, 16);
-      N(7.5); C(122,154,184); txt('Global Logistics Solutions', L+9, 22);
+      B(19); C(255,255,255); txt('ZipCargo', L+10, 16);
+      N(7.5); C(122,154,184); txt('Global Logistics Solutions', L+10, 22);
 
       // Right header
       B(6.5); C(232,130,12); txt('OFFICIAL RECEIPT', R, 9, {align:'right'});
