@@ -6,6 +6,7 @@ const log        = require('../middleware/activityLogger');
 
 const router = express.Router();
 
+// PUBLIC: track by tracking number
 router.get('/track/:tracking', async (req, res) => {
   try {
     const s = await Shipment.findOne({ tracking: req.params.tracking.toUpperCase().trim() }).select('-__v');
@@ -76,11 +77,24 @@ router.post('/',
     try {
       const exists = await Shipment.findOne({ tracking: req.body.tracking.toUpperCase().trim() });
       if (exists) return res.status(409).json({ error: 'Tracking number already exists.' });
-      const s = await Shipment.create({
+
+      // Create with ONE timeline entry only — prevents duplicate
+      const shipmentData = {
         ...req.body,
         tracking: req.body.tracking.toUpperCase().trim(),
-        timeline: [{ status: req.body.status || 'Pending', location: req.body.location || req.body.origin, note: 'Shipment created', timestamp: new Date() }],
-      });
+        timeline: [{
+          status:    req.body.status || 'Pending',
+          location:  req.body.location || req.body.origin,
+          note:      'Shipment created',
+          timestamp: new Date(),
+        }],
+      };
+
+      // Use insertOne approach to bypass the pre-save hook that adds another timeline entry
+      const s = new Shipment(shipmentData);
+      s.$skipTimelineUpdate = true; // flag to skip in pre-save
+      await s.save();
+
       await log(req, 'CREATE_SHIPMENT', s.tracking);
       res.status(201).json(s);
     } catch (err) {
@@ -94,11 +108,31 @@ router.put('/:id', async (req, res) => {
   try {
     const s = await Shipment.findById(req.params.id);
     if (!s) return res.status(404).json({ error: 'Not found.' });
+
+    const oldStatus = s.status;
     const fields = ['service','sName','sPhone','sEmail','origin','rName','rPhone','rEmail','dest','desc','weight','value','cost','eta','location','notes','status'];
     fields.forEach(f => { if (req.body[f] !== undefined) s[f] = req.body[f]; });
-    if (req.body.timelineNote) {
-      s.timeline.push({ status: s.status, location: s.location, note: req.body.timelineNote, timestamp: new Date() });
+
+    // Only add timeline entry if status actually changed
+    if (req.body.status && req.body.status !== oldStatus) {
+      s.timeline.push({
+        status:    s.status,
+        location:  s.location,
+        note:      `Status updated to ${s.status}`,
+        timestamp: new Date(),
+      });
     }
+
+    if (req.body.timelineNote) {
+      s.timeline.push({
+        status:    s.status,
+        location:  s.location,
+        note:      req.body.timelineNote,
+        timestamp: new Date(),
+      });
+    }
+
+    s.$skipTimelineUpdate = true; // skip pre-save hook
     await s.save();
     await log(req, 'UPDATE_SHIPMENT', s.tracking);
     res.json(s);
