@@ -544,8 +544,12 @@ async function downloadPDF(tracking) {
       txt('ORIGIN', L, 47); txt('DESTINATION', R, 47, {align:'right'});
       B(11); C(13,31,53);
       txt(s.origin, L, 56); txt(s.dest, R, 56, {align:'right'});
-      // Arrow — use simple text dash arrow
-      B(12); C(232,130,12); txt('-->', MID, 56, {align:'center'});
+      // Arrow — drawn with lines for clean look
+      const ax=MID, ay=54;
+      S(232,130,12); doc.setLineWidth(1.0);
+      doc.line(ax-8,ay,ax+7,ay);
+      doc.line(ax+3,ay-2.5,ax+7,ay);
+      doc.line(ax+3,ay+2.5,ax+7,ay);
 
       // ── PROGRESS BAR ────────────────────────────────────────────────────────
       const steps = ['Pending','In Transit','Out for Delivery','Delivered'];
@@ -632,25 +636,27 @@ async function downloadPDF(tracking) {
         y += 18;
       }
 
-      // ── OFFICIAL STAMP — fixed position, always visible ──────────────────
-      const stX = L+20, stY = H-54;
+      // ── OFFICIAL STAMP — inline after content ──────────────────────────
+      const stX = L+18, stY = y+18;
       doc.saveGraphicsState();
       doc.setGState(new doc.GState({opacity:0.85}));
       S(39,174,96); doc.setLineWidth(1.2);
-      doc.circle(stX, stY, 16);
+      doc.circle(stX, stY, 14);
       doc.setLineWidth(0.5);
-      doc.circle(stX, stY, 12.5);
-      B(5.5); C(39,174,96);
-      txt('ZIPCARGO', stX, stY-8, {align:'center'});
-      B(7.5); txt('OFFICIAL', stX, stY-1.5, {align:'center'});
+      doc.circle(stX, stY, 11);
+      B(5); C(39,174,96);
+      txt('ZIPCARGO', stX, stY-7, {align:'center'});
+      B(7); txt('OFFICIAL', stX, stY-1, {align:'center'});
       txt('RECEIPT', stX, stY+5, {align:'center'});
-      N(5.5); txt('* VERIFIED *', stX, stY+10, {align:'center'});
+      N(5); txt('* VERIFIED *', stX, stY+9.5, {align:'center'});
       doc.restoreGraphicsState();
-      // Stamp text
+      // Stamp info text
+      N(7.5); C(100,100,100);
+      txt('Document verified by', stX+20, stY-5);
+      B(8); C(13,31,53);
+      txt('ZipCargo Logistics', stX+20, stY+1);
       N(7); C(150,150,150);
-      txt('Official ZipCargo document', stX+22, stY-4);
-      txt('Tracking: '+s.tracking, stX+22, stY+3);
-      txt('Issued: '+date, stX+22, stY+10);
+      txt(s.tracking, stX+20, stY+7);
 
       // ── FOOTER ───────────────────────────────────────────────────────────────
       rect(0,H-26,W,26,[249,248,245]);
