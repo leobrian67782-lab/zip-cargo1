@@ -31,8 +31,11 @@ const shipmentSchema = new mongoose.Schema({
   updatedAt:{ type: Date, default: Date.now },
 }, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
+// Only add timeline entry if NOT flagged to skip
 shipmentSchema.pre('save', function (next) {
   this.updatedAt = new Date();
+  // Skip automatic timeline update if flagged (we handle it manually in routes)
+  if (this.$skipTimelineUpdate) return next();
   if (this.isModified('status')) {
     this.timeline.push({
       status:    this.status,
