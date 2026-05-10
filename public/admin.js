@@ -67,6 +67,7 @@ async function adminLogout() {
   if (!confirm('Are you sure you want to logout?')) return;
   try { await api.post('/api/auth/logout'); } catch {}
   TokenStore.clear();
+  document.body.classList.remove('no-scroll');
   document.getElementById('adminPanel').style.display  = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginUser').value = '';
