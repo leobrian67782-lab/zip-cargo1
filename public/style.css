@@ -344,9 +344,7 @@ body.no-scroll { overflow: hidden !important; position: fixed !important; width:
   .login-box { padding: 28px 18px; }
 }
 
-/* Fix track result on small screens */
+/* Fix track result on small screens — keep 2 columns, just scale down */
 @media (max-width: 600px) {
   #trackResult > div { border-radius: 10px !important; }
-  #trackResult [style*="grid-template-columns:1fr auto 1fr"] { grid-template-columns: 1fr !important; gap: 6px !important; }
-  #trackResult [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
 }
