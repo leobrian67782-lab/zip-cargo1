@@ -12,6 +12,8 @@ const cors         = require('cors');
 const compression  = require('compression');
 const rateLimit    = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss          = require('xss-clean');
 const path         = require('path');
 const https        = require('https');
 
@@ -94,6 +96,12 @@ app.use(compression());
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.use(cookieParser());
+
+// ── MongoDB injection sanitization ────────────────────────────────────────
+app.use(mongoSanitize());
+
+// ── XSS sanitization ─────────────────────────────────────────────────────
+app.use(xss());
 
 // ── Routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth',      require('./routes/auth'));
