@@ -87,7 +87,7 @@ async function showSection(name, clickedEl) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('sec-'+name)?.classList.add('active');
-  const titles = {dashboard:'Dashboard',shipments:'Shipments',create:'New Shipment',receipts:'Receipts',inquiries:'Inquiries',settings:'Settings',activity:'Activity Log'};
+  const titles = {dashboard:'Dashboard',shipments:'Shipments',create:'New Shipment',receipts:'Receipts',invoice:'Invoice Generator',inquiries:'Inquiries',settings:'Settings',activity:'Activity Log'};
   document.getElementById('pageTitle').textContent = titles[name]||name;
   if (clickedEl) clickedEl.classList.add('active');
   if (window.innerWidth<=900) closeSidebar();
@@ -95,6 +95,7 @@ async function showSection(name, clickedEl) {
   if (name==='shipments')  await loadShipments();
   if (name==='inquiries')  await loadInquiries();
   if (name==='activity')   await loadActivity();
+  if (name==='invoice')    setTimeout(initSignatureCanvas, 100);
 }
 
 function toggleSidebar() {
@@ -685,4 +686,316 @@ async function downloadPDF(tracking) {
   }
 
   loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', generate);
+}
+
+
+// ===== INVOICE GENERATOR =====
+let isDrawing = false, stampDataURL = null, lastX = 0, lastY = 0;
+
+function initSignatureCanvas() {
+  const canvas = document.getElementById('signatureCanvas');
+  if (!canvas || canvas._initialized) return;
+  canvas._initialized = true;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#0d1f35';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+      return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+    }
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+  }
+
+  function start(e) { e.preventDefault(); isDrawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; }
+  function draw(e) {
+    if (!isDrawing) return; e.preventDefault();
+    const p = getPos(e);
+    ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke();
+    lastX = p.x; lastY = p.y;
+  }
+  function stop(e) { e.preventDefault(); isDrawing = false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stop);
+  canvas.addEventListener('mouseleave', stop);
+  canvas.addEventListener('touchstart', start, { passive: false });
+  canvas.addEventListener('touchmove', draw, { passive: false });
+  canvas.addEventListener('touchend', stop, { passive: false });
+}
+
+function clearSignature() {
+  const canvas = document.getElementById('signatureCanvas');
+  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function previewStamp(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    stampDataURL = e.target.result;
+    const preview = document.getElementById('inv_stampPreview');
+    preview.innerHTML = `<img src="${stampDataURL}" style="width:80px;height:80px;object-fit:contain;border-radius:50%;"/>`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearStamp() {
+  stampDataURL = null;
+  document.getElementById('inv_stampPreview').innerHTML = `
+    <i class="fa-solid fa-stamp" style="color:#27ae60;font-size:1.6rem;"></i>
+    <span style="font-size:.6rem;color:#27ae60;margin-top:4px;">Tap to upload</span>`;
+  document.getElementById('inv_stampUpload').value = '';
+}
+
+function toggleCrateFields() {
+  const opt = document.getElementById('inv_crateOption').value;
+  document.getElementById('inv_crateRentalFields').style.display = opt === 'rental' ? 'block' : 'none';
+  document.getElementById('inv_cratePurchaseFields').style.display = opt === 'purchase' ? 'block' : 'none';
+}
+
+// Auto-calculate refund amount
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'inv_rentalFee') {
+    const fee = parseFloat(e.target.value) || 0;
+    const refund = document.getElementById('inv_rentalRefund');
+    if (refund) refund.value = '$' + (fee * 0.9).toFixed(2);
+  }
+});
+
+function getInvoiceData() {
+  const g = (id) => (document.getElementById(id) ? document.getElementById(id).value.trim() : '');
+  const n = (id) => parseFloat(document.getElementById(id) ? document.getElementById(id).value : 0) || 0;
+
+  const crateOpt = g('inv_crateOption');
+  const rentalFee = crateOpt === 'rental' ? n('inv_rentalFee') : 0;
+  const purchasePrice = crateOpt === 'purchase' ? n('inv_purchasePrice') : 0;
+  const shippingFee = n('inv_shippingFee');
+  const handlingFee = n('inv_handlingFee');
+  const vetFee = n('inv_vetFee');
+  const otherFee = n('inv_otherFee');
+  const crateAmount = crateOpt === 'rental' ? rentalFee : purchasePrice;
+  const total = shippingFee + handlingFee + vetFee + otherFee + crateAmount;
+
+  return {
+    clientName: g('inv_clientName'),
+    clientEmail: g('inv_clientEmail'),
+    clientPhone: g('inv_clientPhone'),
+    clientAddress: g('inv_clientAddress'),
+    petDesc: g('inv_petDesc'),
+    origin: g('inv_origin'),
+    destination: g('inv_destination'),
+    deliveryDate: g('inv_deliveryDate'),
+    invNumber: g('inv_number') || `INV-${new Date().getFullYear()}-${Math.floor(1000+Math.random()*9000)}`,
+    invDate: g('inv_date') || new Date().toISOString().split('T')[0],
+    crateOpt, rentalFee, purchasePrice, crateAmount,
+    shippingFee, handlingFee, vetFee, otherFee,
+    otherFeeDesc: g('inv_otherFeeDesc'),
+    notes: g('inv_notes'),
+    total,
+  };
+}
+
+function generateInvoice() {
+  const d = getInvoiceData();
+  if (!d.clientName || !d.origin || !d.destination) {
+    const msg = document.getElementById('invoiceMsg');
+    msg.style.color = '#e74c3c'; msg.textContent = 'Please fill in Client Name, Origin and Destination.';
+    setTimeout(() => msg.textContent = '', 4000); return;
+  }
+
+  const canvas = document.getElementById('signatureCanvas');
+  const sigDataURL = canvas ? canvas.toDataURL('image/png') : null;
+  const sigEmpty = !canvas || isCanvasEmpty(canvas);
+
+  const fmt = (v) => v ? '$' + v.toFixed(2) : '—';
+  const fmtDate = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'}) : '—';
+
+  let crateHTML = '';
+  if (d.crateOpt === 'rental') {
+    crateHTML = `
+      <tr><td style="padding:9px 0;border-bottom:1px solid #f0ede5;color:#555;">Crate Rental Fee <span style="background:#fff3cd;color:#856404;font-size:.72rem;padding:2px 8px;border-radius:10px;margin-left:6px;font-weight:600;">90% REFUNDABLE</span></td>
+      <td style="padding:9px 0;border-bottom:1px solid #f0ede5;text-align:right;font-weight:600;color:#0d1f35;">${fmt(d.rentalFee)}</td></tr>
+      <tr><td colspan="2" style="padding:4px 0 12px;font-size:.78rem;color:#27ae60;"><i class="fa-solid fa-circle-info"></i> Refundable amount upon safe crate return: <strong>${fmt(d.rentalFee * 0.9)}</strong></td></tr>`;
+  } else if (d.crateOpt === 'purchase') {
+    crateHTML = `
+      <tr><td style="padding:9px 0;border-bottom:1px solid #f0ede5;color:#555;">Crate Purchase <span style="background:#d4edda;color:#155724;font-size:.72rem;padding:2px 8px;border-radius:10px;margin-left:6px;font-weight:600;">FULL OWNERSHIP</span></td>
+      <td style="padding:9px 0;border-bottom:1px solid #f0ede5;text-align:right;font-weight:600;color:#0d1f35;">${fmt(d.purchasePrice)}</td></tr>
+      <tr><td colspan="2" style="padding:4px 0 12px;font-size:.78rem;color:#185fa5;"><i class="fa-solid fa-circle-info"></i> Client receives full ownership of the air-conditioned crate.</td></tr>`;
+  }
+
+  document.getElementById('invoiceContent').innerHTML = `
+    <div id="inv_printArea" style="font-family:'Outfit',Arial,sans-serif;max-width:780px;margin:0 auto;background:white;">
+
+      <!-- HEADER -->
+      <div style="background:#0d1f35;padding:28px 36px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="font-size:1.8rem;font-weight:800;color:white;"><i class="fa-solid fa-bolt" style="color:#e8820c;"></i> ZipCargo</div>
+          <div style="font-size:.75rem;color:#7a9ab8;margin-top:4px;">Global Logistics Solutions</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:.65rem;color:#e8820c;font-weight:700;letter-spacing:3px;text-transform:uppercase;">Invoice</div>
+          <div style="font-size:1.4rem;font-weight:800;color:white;margin-top:2px;">${d.invNumber}</div>
+          <div style="font-size:.78rem;color:#7a9ab8;margin-top:4px;">Date: ${fmtDate(d.invDate)}</div>
+          ${d.deliveryDate ? `<div style="font-size:.78rem;color:#7a9ab8;">Delivery: ${fmtDate(d.deliveryDate)}</div>` : ''}
+        </div>
+      </div>
+
+      <!-- CLIENT & ROUTE -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #ebe8df;">
+        <div style="padding:20px 24px;border-right:1px solid #ebe8df;">
+          <div style="font-size:.65rem;color:#e8820c;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8820c;">Bill To</div>
+          <div style="font-size:1rem;font-weight:700;color:#0d1f35;">${d.clientName}</div>
+          ${d.clientEmail ? `<div style="font-size:.82rem;color:#777;margin-top:4px;"><i class="fa-solid fa-envelope" style="font-size:10px;color:#e8820c;"></i> ${d.clientEmail}</div>` : ''}
+          ${d.clientPhone ? `<div style="font-size:.82rem;color:#777;margin-top:3px;"><i class="fa-solid fa-phone" style="font-size:10px;color:#e8820c;"></i> ${d.clientPhone}</div>` : ''}
+          ${d.clientAddress ? `<div style="font-size:.82rem;color:#777;margin-top:3px;"><i class="fa-solid fa-location-dot" style="font-size:10px;color:#e8820c;"></i> ${d.clientAddress}</div>` : ''}
+        </div>
+        <div style="padding:20px 24px;">
+          <div style="font-size:.65rem;color:#e8820c;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8820c;">Shipment Route</div>
+          ${d.petDesc ? `<div style="font-size:.82rem;color:#555;margin-bottom:8px;"><i class="fa-solid fa-paw" style="color:#e8820c;font-size:10px;"></i> ${d.petDesc}</div>` : ''}
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div><div style="font-size:.6rem;color:#999;text-transform:uppercase;">From</div><div style="font-weight:700;color:#0d1f35;font-size:.9rem;">${d.origin}</div></div>
+            <i class="fa-solid fa-arrow-right" style="color:#e8820c;"></i>
+            <div><div style="font-size:.6rem;color:#999;text-transform:uppercase;">To</div><div style="font-weight:700;color:#0d1f35;font-size:.9rem;">${d.destination}</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEMIZED FEES -->
+      <div style="padding:24px 36px;border-bottom:1px solid #ebe8df;">
+        <div style="font-size:.65rem;color:#e8820c;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;padding-bottom:6px;border-bottom:2px solid #e8820c;">Itemized Charges</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f9f8f5;">
+              <th style="text-align:left;padding:8px 10px;font-size:.75rem;color:#888;font-weight:600;">Description</th>
+              <th style="text-align:right;padding:8px 10px;font-size:.75rem;color:#888;font-weight:600;">Amount (USD)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${d.shippingFee ? `<tr><td style="padding:9px 0;border-bottom:1px solid #f0ede5;color:#555;">Shipping Fee</td><td style="padding:9px 0;border-bottom:1px solid #f0ede5;text-align:right;font-weight:600;color:#0d1f35;">${fmt(d.shippingFee)}</td></tr>` : ''}
+            ${d.handlingFee ? `<tr><td style="padding:9px 0;border-bottom:1px solid #f0ede5;color:#555;">Handling Fee</td><td style="padding:9px 0;border-bottom:1px solid #f0ede5;text-align:right;font-weight:600;color:#0d1f35;">${fmt(d.handlingFee)}</td></tr>` : ''}
+            ${d.vetFee ? `<tr><td style="padding:9px 0;border-bottom:1px solid #f0ede5;color:#555;">Vet / Health Certificate Fee</td><td style="padding:9px 0;border-bottom:1px solid #f0ede5;text-align:right;font-weight:600;color:#0d1f35;">${fmt(d.vetFee)}</td></tr>` : ''}
+            ${crateHTML}
+            ${d.otherFee ? `<tr><td style="padding:9px 0;border-bottom:1px solid #f0ede5;color:#555;">${d.otherFeeDesc || 'Other Fee'}</td><td style="padding:9px 0;border-bottom:1px solid #f0ede5;text-align:right;font-weight:600;color:#0d1f35;">${fmt(d.otherFee)}</td></tr>` : ''}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TOTAL -->
+      <div style="background:#0d1f35;padding:18px 36px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="color:#7a9ab8;font-size:.85rem;">Total Amount Due</div>
+        <div style="font-size:2rem;font-weight:800;color:#e8820c;">$${d.total.toFixed(2)}</div>
+      </div>
+
+      <!-- CRATE REFUND NOTICE -->
+      ${d.crateOpt === 'rental' ? `
+      <div style="background:#fffbf5;padding:14px 36px;border-top:2px solid #e8820c;font-size:.82rem;color:#5a6a7a;">
+        <strong>Crate Rental Terms:</strong> A refundable deposit of ${fmt(d.rentalFee)} is charged for the air-conditioned pet crate.
+        Upon safe return of the crate in good condition, <strong style="color:#27ae60;">${fmt(d.rentalFee * 0.9)} (90%) will be refunded</strong> to the client.
+      </div>` : ''}
+
+      <!-- NOTES -->
+      ${d.notes ? `<div style="padding:14px 36px;background:#f9f8f5;border-top:1px solid #ebe8df;font-size:.82rem;color:#5a6a7a;"><strong>Notes:</strong> ${d.notes}</div>` : ''}
+
+      <!-- SIGNATURE & STAMP -->
+      <div style="padding:24px 36px;border-top:1px solid #ebe8df;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Authorized Signature</div>
+          ${!sigEmpty ? `<img src="${sigDataURL}" style="max-width:220px;height:70px;object-fit:contain;border-bottom:1.5px solid #0d1f35;display:block;"/>` : '<div style="width:220px;height:70px;border-bottom:1.5px solid #0d1f35;"></div>'}
+          <div style="font-size:.78rem;color:#555;margin-top:6px;font-weight:600;">ZipCargo Logistics</div>
+        </div>
+        ${stampDataURL ? `
+        <div style="text-align:center;">
+          <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Official Stamp</div>
+          <img src="${stampDataURL}" style="width:90px;height:90px;object-fit:contain;opacity:0.9;"/>
+        </div>` : `
+        <div style="text-align:center;">
+          <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" style="opacity:0.8;">
+            <circle cx="45" cy="45" r="42" fill="none" stroke="#27ae60" stroke-width="2.5"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="#27ae60" stroke-width="1"/>
+            <text x="45" y="29" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="2">ZIPCARGO</text>
+            <text x="45" y="42" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#27ae60">OFFICIAL</text>
+            <text x="45" y="55" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="1">INVOICE</text>
+            <text x="45" y="66" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#27ae60">&#10022; VERIFIED &#10022;</text>
+          </svg>
+        </div>`}
+      </div>
+
+      <!-- FOOTER -->
+      <div style="background:#f9f8f5;padding:16px 36px;text-align:center;border-top:1px solid #ebe8df;font-size:.75rem;color:#7a8a9a;line-height:2;">
+        <strong style="color:#0d1f35;">ZipCargo Logistics</strong> &bull; info@zipcargo.com &bull; www.zipcargo.com<br/>
+        <em>Ship Smarter. Deliver Faster. — Thank you for your business.</em>
+      </div>
+    </div>`;
+
+  document.getElementById('invoicePreview').style.display = 'block';
+  document.getElementById('invoicePreview').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('invoiceMsg').style.color = '#27ae60';
+  document.getElementById('invoiceMsg').textContent = 'Invoice generated! Scroll down to preview.';
+  setTimeout(() => document.getElementById('invoiceMsg').textContent = '', 4000);
+
+  // Store for PDF
+  window._currentInvoiceData = d;
+}
+
+function isCanvasEmpty(canvas) {
+  const ctx = canvas.getContext('2d');
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  return !data.some(v => v !== 0);
+}
+
+function downloadInvoicePDF() {
+  const area = document.getElementById('inv_printArea');
+  if (!area) { alert('Please generate the invoice first.'); return; }
+
+  function loadScript(src, cb) {
+    if (document.querySelector(`script[src="${src}"]`)) { cb(); return; }
+    const s = document.createElement('script'); s.src = src; s.onload = cb; document.head.appendChild(s);
+  }
+
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => {
+      html2canvas(area, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false }).then(canvas => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+        const imgW = 210, imgH = (canvas.height * imgW) / canvas.width;
+        let y = 0, pageH = 297;
+        if (imgH <= pageH) {
+          doc.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, imgW, imgH);
+        } else {
+          let remaining = imgH;
+          while (remaining > 0) {
+            doc.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, -y, imgW, imgH);
+            remaining -= pageH; y += pageH;
+            if (remaining > 0) doc.addPage();
+          }
+        }
+        const d = window._currentInvoiceData;
+        doc.save(`ZipCargo-Invoice-${d ? d.invNumber : 'invoice'}.pdf`);
+      });
+    });
+  });
+}
+
+function clearInvoiceForm() {
+  ['inv_clientName','inv_clientEmail','inv_clientPhone','inv_clientAddress',
+   'inv_petDesc','inv_origin','inv_destination','inv_deliveryDate',
+   'inv_number','inv_date','inv_rentalFee','inv_rentalRefund',
+   'inv_purchasePrice','inv_shippingFee','inv_handlingFee',
+   'inv_vetFee','inv_otherFee','inv_otherFeeDesc','inv_notes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('inv_crateOption').value = 'none';
+  document.getElementById('inv_crateRentalFields').style.display = 'none';
+  document.getElementById('inv_cratePurchaseFields').style.display = 'none';
+  document.getElementById('invoicePreview').style.display = 'none';
+  clearSignature();
+  clearStamp();
 }
