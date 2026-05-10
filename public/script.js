@@ -275,23 +275,23 @@ function renderTrackingResult(s, result) {
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #ebe8df;">
-        <div style="padding:14px 16px;border-right:1px solid #ebe8df;">
-          <div style="font-size:.62rem;color:#999;text-transform:uppercase;margin-bottom:5px;">Sender</div>
-          <div style="font-weight:700;color:#0d1f35;font-size:.9rem;">${s.sName||'—'}</div>
-          ${s.sPhone?`<div style="font-size:.78rem;color:#777;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${s.sPhone}</div>`:''}
+        <div style="padding:12px 14px;border-right:1px solid #ebe8df;">
+          <div style="font-size:.6rem;color:#999;text-transform:uppercase;margin-bottom:4px;">Sender</div>
+          <div style="font-weight:700;color:#0d1f35;font-size:.85rem;word-break:break-word;">${s.sName||'—'}</div>
+          ${s.sPhone?`<div style="font-size:.75rem;color:#777;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${s.sPhone}</div>`:''}
         </div>
-        <div style="padding:14px 16px;">
-          <div style="font-size:.62rem;color:#999;text-transform:uppercase;margin-bottom:5px;">Recipient</div>
-          <div style="font-weight:700;color:#0d1f35;font-size:.9rem;">${s.rName}</div>
-          ${s.rPhone?`<div style="font-size:.78rem;color:#777;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${s.rPhone}</div>`:''}
+        <div style="padding:12px 14px;">
+          <div style="font-size:.6rem;color:#999;text-transform:uppercase;margin-bottom:4px;">Recipient</div>
+          <div style="font-weight:700;color:#0d1f35;font-size:.85rem;word-break:break-word;">${s.rName}</div>
+          ${s.rPhone?`<div style="font-size:.75rem;color:#777;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${s.rPhone}</div>`:''}
         </div>
-        <div style="padding:14px 16px;border-right:1px solid #ebe8df;border-top:1px solid #ebe8df;">
-          <div style="font-size:.62rem;color:#999;text-transform:uppercase;margin-bottom:5px;">Service</div>
-          <div style="font-weight:700;color:#0d1f35;font-size:.9rem;"><i class="fa-solid fa-box" style="color:#e8820c;font-size:11px;"></i> ${s.service}</div>
+        <div style="padding:12px 14px;border-right:1px solid #ebe8df;border-top:1px solid #ebe8df;">
+          <div style="font-size:.6rem;color:#999;text-transform:uppercase;margin-bottom:4px;">Service</div>
+          <div style="font-weight:700;color:#0d1f35;font-size:.85rem;"><i class="fa-solid fa-box" style="color:#e8820c;font-size:10px;"></i> ${s.service}</div>
         </div>
-        <div style="padding:14px 16px;border-top:1px solid #ebe8df;">
-          <div style="font-size:.62rem;color:#999;text-transform:uppercase;margin-bottom:5px;">Est. Delivery</div>
-          <div style="font-weight:700;color:#0d1f35;font-size:.9rem;"><i class="fa-regular fa-calendar" style="color:#e8820c;font-size:11px;"></i> ${s.eta||'—'}</div>
+        <div style="padding:12px 14px;border-top:1px solid #ebe8df;">
+          <div style="font-size:.6rem;color:#999;text-transform:uppercase;margin-bottom:4px;">Est. Delivery</div>
+          <div style="font-weight:700;color:#0d1f35;font-size:.85rem;"><i class="fa-regular fa-calendar" style="color:#e8820c;font-size:10px;"></i> ${s.eta||'—'}</div>
         </div>
       </div>
 
