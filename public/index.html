@@ -11,10 +11,58 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    #adminWrapper { display:none; position:fixed; inset:0; z-index:9999; background:#f0f2f7; }
-    #adminWrapper.visible { display:flex; }
-    #adminWrapper .login-screen { min-height:100vh; width:100%; }
-    #adminWrapper .admin-panel  { width:100%; min-height:100vh; }
+    /* ── ADMIN OVERLAY — full fixed, own scroll, nothing behind ── */
+    #adminWrapper {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #f0f2f7;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    #adminWrapper.visible { display: block; }
+    #adminWrapper .login-screen { min-height: 100vh; width: 100%; display:flex; align-items:center; justify-content:center; }
+    #adminWrapper .admin-panel  { width: 100%; min-height: 100vh; display:flex; }
+
+    /* Lock main site completely when admin or loader is open */
+    body.no-scroll {
+      overflow: hidden !important;
+      position: fixed !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* ── RESPONSIVE FIXES ── */
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2rem !important; }
+      .hero p  { font-size: 0.95rem !important; }
+      .btn-primary, .btn-secondary { padding: 12px 22px !important; font-size: 0.9rem !important; }
+      .section-title { font-size: 1.6rem !important; }
+      .services-grid { grid-template-columns: 1fr !important; }
+      .stats { padding: 30px 16px !important; }
+      .stat-item h2 { font-size: 2rem !important; }
+      .hubs-grid { grid-template-columns: repeat(2,1fr) !important; }
+      .testimonials-grid { grid-template-columns: 1fr !important; }
+      .contact-wrapper { padding: 0 16px !important; }
+      .footer-content { gap: 28px !important; }
+      .tracking-form { flex-direction: column !important; }
+      .tracking-form input { min-width: unset !important; width: 100% !important; }
+      .tracking-form button { width: 100% !important; }
+    }
+    @media (max-width: 768px) {
+      .services { padding: 60px 16px !important; }
+      .about { padding: 60px 16px !important; }
+      .contact { padding: 60px 16px !important; }
+      .testimonials { padding: 60px 16px !important; }
+      .map-section { padding: 60px 16px !important; }
+      .how-it-works { padding: 60px 16px !important; }
+      .footer { padding: 50px 16px 20px !important; }
+      .footer-content { flex-direction: column !important; }
+      .footer-bottom { flex-direction: column !important; text-align: center !important; }
+      .footer-bottom-links { justify-content: center !important; }
+    }
   </style>
 </head>
 <body>
@@ -444,13 +492,16 @@
   function checkAdminHash() {
     if (window.location.hash === '#admin') {
       document.getElementById('adminWrapper').classList.add('visible');
+      document.body.classList.add('no-scroll');
     } else {
       document.getElementById('adminWrapper').classList.remove('visible');
+      document.body.classList.remove('no-scroll');
     }
   }
   function closeAdminPanel() {
     history.pushState('', document.title, window.location.pathname + window.location.search);
     document.getElementById('adminWrapper').classList.remove('visible');
+    document.body.classList.remove('no-scroll');
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
   }
