@@ -246,40 +246,65 @@ function renderTrackingResult(s, result) {
   result.className = 'track-result success';
   result.innerHTML = `
     <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.13);font-family:'Outfit',sans-serif;">
-      <div style="background:#0d1f35;padding:22px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <div><div style="font-size:.7rem;color:#7a9ab8;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Tracking Number</div>
-          <div style="font-size:1.25rem;font-weight:800;color:white;letter-spacing:1px;">${s.tracking}</div></div>
-        <div style="background:${sc.bg};color:${sc.color};padding:8px 18px;border-radius:30px;font-weight:700;font-size:.88rem;display:flex;align-items:center;gap:7px;">
-          <i class="fa-solid ${sc.icon}"></i> ${s.status}</div></div>
-      <div style="padding:22px 28px;background:#f9f8f5;border-bottom:1px solid #ebe8df;">
-        <div style="font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;font-weight:600;">Shipment Progress</div>
-        <div style="display:flex;align-items:flex-start;">${stepsHTML}</div></div>
-      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:18px 28px;border-bottom:1px solid #ebe8df;gap:10px;">
-        <div><div style="font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Origin</div>
-          <div style="font-size:1rem;font-weight:700;color:#0d1f35;"><i class="fa-solid fa-circle-dot" style="color:#e8820c;font-size:12px;"></i> ${s.origin}</div></div>
-        <div style="text-align:center;"><i class="fa-solid fa-arrow-right" style="color:#e8820c;font-size:1.2rem;"></i></div>
-        <div style="text-align:right;"><div style="font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Destination</div>
-          <div style="font-size:1rem;font-weight:700;color:#0d1f35;">${s.dest} <i class="fa-solid fa-location-dot" style="color:#e8820c;font-size:12px;"></i></div></div></div>
+
+      <div style="background:#0d1f35;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:.65rem;color:#7a9ab8;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Tracking Number</div>
+          <div style="font-size:1.1rem;font-weight:800;color:white;letter-spacing:1px;">${s.tracking}</div>
+        </div>
+        <div style="background:${sc.bg};color:${sc.color};padding:7px 14px;border-radius:30px;font-weight:700;font-size:.82rem;display:flex;align-items:center;gap:6px;">
+          <i class="fa-solid ${sc.icon}"></i> ${s.status}
+        </div>
+      </div>
+
+      <div style="padding:18px 20px;background:#f9f8f5;border-bottom:1px solid #ebe8df;">
+        <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;font-weight:600;">Shipment Progress</div>
+        <div style="display:flex;align-items:flex-start;">${stepsHTML}</div>
+      </div>
+
+      <div style="padding:16px 20px;border-bottom:1px solid #ebe8df;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div>
+          <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Origin</div>
+          <div style="font-size:.95rem;font-weight:700;color:#0d1f35;"><i class="fa-solid fa-circle-dot" style="color:#e8820c;font-size:11px;"></i> ${s.origin}</div>
+        </div>
+        <i class="fa-solid fa-arrow-right" style="color:#e8820c;font-size:1.1rem;flex-shrink:0;"></i>
+        <div style="text-align:right;">
+          <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Destination</div>
+          <div style="font-size:.95rem;font-weight:700;color:#0d1f35;">${s.dest} <i class="fa-solid fa-location-dot" style="color:#e8820c;font-size:11px;"></i></div>
+        </div>
+      </div>
+
       <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #ebe8df;">
-        <div style="padding:16px 22px;border-right:1px solid #ebe8df;">
-          <div style="font-size:.65rem;color:#999;text-transform:uppercase;margin-bottom:6px;">Sender</div>
-          <div style="font-weight:700;color:#0d1f35;">${s.sName||'—'}</div>
-          ${s.sPhone?`<div style="font-size:.8rem;color:#777;"><i class="fa-solid fa-phone" style="font-size:10px;"></i> ${s.sPhone}</div>`:''}</div>
-        <div style="padding:16px 22px;">
-          <div style="font-size:.65rem;color:#999;text-transform:uppercase;margin-bottom:6px;">Recipient</div>
-          <div style="font-weight:700;color:#0d1f35;">${s.rName}</div>
-          ${s.rPhone?`<div style="font-size:.8rem;color:#777;"><i class="fa-solid fa-phone" style="font-size:10px;"></i> ${s.rPhone}</div>`:''}</div>
-        <div style="padding:16px 22px;border-right:1px solid #ebe8df;border-top:1px solid #ebe8df;">
-          <div style="font-size:.65rem;color:#999;text-transform:uppercase;margin-bottom:6px;">Service</div>
-          <div style="font-weight:700;color:#0d1f35;"><i class="fa-solid fa-box" style="color:#e8820c;font-size:12px;"></i> ${s.service}</div></div>
-        <div style="padding:16px 22px;border-top:1px solid #ebe8df;">
-          <div style="font-size:.65rem;color:#999;text-transform:uppercase;margin-bottom:6px;">Est. Delivery</div>
-          <div style="font-weight:700;color:#0d1f35;"><i class="fa-regular fa-calendar" style="color:#e8820c;font-size:12px;"></i> ${s.eta||'—'}</div></div></div>
-      ${tlItems ? `<div style="padding:18px 28px;border-bottom:1px solid #ebe8df;">
-        <div style="font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600;">Recent Updates</div>
-        ${tlItems}</div>` : ''}
-      <div style="padding:8px 24px 14px;text-align:center;font-size:.74rem;color:#bbb;">
-        <i class="fa-regular fa-clock"></i> ${date} &bull; ZipCargo Logistics</div></div>`;
+        <div style="padding:14px 16px;border-right:1px solid #ebe8df;">
+          <div style="font-size:.62rem;color:#999;text-transform:uppercase;margin-bottom:5px;">Sender</div>
+          <div style="font-weight:700;color:#0d1f35;font-size:.9rem;">${s.sName||'—'}</div>
+          ${s.sPhone?`<div style="font-size:.78rem;color:#777;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${s.sPhone}</div>`:''}
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="font-size:.62rem;color:#999;text-transform:uppercase;margin-bottom:5px;">Recipient</div>
+          <div style="font-weight:700;color:#0d1f35;font-size:.9rem;">${s.rName}</div>
+          ${s.rPhone?`<div style="font-size:.78rem;color:#777;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${s.rPhone}</div>`:''}
+        </div>
+        <div style="padding:14px 16px;border-right:1px solid #ebe8df;border-top:1px solid #ebe8df;">
+          <div style="font-size:.62rem;color:#999;text-transform:uppercase;margin-bottom:5px;">Service</div>
+          <div style="font-weight:700;color:#0d1f35;font-size:.9rem;"><i class="fa-solid fa-box" style="color:#e8820c;font-size:11px;"></i> ${s.service}</div>
+        </div>
+        <div style="padding:14px 16px;border-top:1px solid #ebe8df;">
+          <div style="font-size:.62rem;color:#999;text-transform:uppercase;margin-bottom:5px;">Est. Delivery</div>
+          <div style="font-weight:700;color:#0d1f35;font-size:.9rem;"><i class="fa-regular fa-calendar" style="color:#e8820c;font-size:11px;"></i> ${s.eta||'—'}</div>
+        </div>
+      </div>
+
+      ${tlItems ? `
+      <div style="padding:14px 20px;border-bottom:1px solid #ebe8df;">
+        <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600;">Recent Updates</div>
+        ${tlItems}
+      </div>` : ''}
+
+      <div style="padding:10px 20px;text-align:center;font-size:.72rem;color:#bbb;">
+        <i class="fa-regular fa-clock"></i> ${date} &bull; ZipCargo Logistics
+      </div>
+    </div>`;
 }
 
 document.getElementById('trackInput')?.addEventListener('keypress', e => {
