@@ -337,6 +337,7 @@
         <a href="#" class="nav-item" onclick="showSection('shipments',this)"><i class="fa-solid fa-boxes-stacked nav-icon"></i> Shipments</a>
         <a href="#" class="nav-item" onclick="showSection('create',this)"><i class="fa-solid fa-plus nav-icon"></i> New Shipment</a>
         <a href="#" class="nav-item" onclick="showSection('receipts',this)"><i class="fa-solid fa-receipt nav-icon"></i> Receipts</a>
+        <a href="#" class="nav-item" onclick="showSection('invoice',this)"><i class="fa-solid fa-file-invoice-dollar nav-icon"></i> Invoice</a>
         <a href="#" class="nav-item" onclick="showSection('inquiries',this)"><i class="fa-solid fa-comments nav-icon"></i> Inquiries</a>
         <a href="#" class="nav-item" onclick="showSection('activity',this)"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Activity Log</a>
         <a href="#" class="nav-item" onclick="showSection('settings',this)"><i class="fa-solid fa-gear nav-icon"></i> Settings</a>
@@ -372,6 +373,7 @@
             <button class="qa-btn" onclick="showSection('create',null)"><i class="fa-solid fa-plus"></i> New Shipment</button>
             <button class="qa-btn" onclick="showSection('shipments',null)"><i class="fa-solid fa-boxes-stacked"></i> View All Shipments</button>
             <button class="qa-btn" onclick="showSection('receipts',null)"><i class="fa-solid fa-receipt"></i> Generate Receipt</button>
+            <button class="qa-btn" onclick="showSection('invoice',null)"><i class="fa-solid fa-file-invoice-dollar"></i> Create Invoice</button>
             <button class="qa-btn" onclick="showSection('inquiries',null)"><i class="fa-solid fa-comments"></i> View Inquiries</button>
           </div></div>
         </div>
@@ -460,7 +462,132 @@
         </div>
       </section>
 
-      <section class="section" id="sec-settings">
+      <section class="section" id="sec-invoice">
+        <div class="form-card">
+          <h3><i class="fa-solid fa-file-invoice-dollar" style="color:#e8820c;"></i> Invoice Generator</h3>
+          <p style="color:#888;font-size:.85rem;margin-bottom:20px;">Create a professional invoice with pet crate options, signature and stamp.</p>
+
+          <div class="form-grid">
+            <!-- CLIENT INFO -->
+            <div class="form-group full-width" style="background:#f9f8f5;padding:14px 16px;border-radius:10px;border-left:3px solid #e8820c;">
+              <label style="color:#e8820c;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;">Client Information</label>
+            </div>
+            <div class="form-group"><label>Client Full Name</label><input type="text" id="inv_clientName" placeholder="e.g. John Doe"/></div>
+            <div class="form-group"><label>Client Email</label><input type="email" id="inv_clientEmail" placeholder="client@email.com"/></div>
+            <div class="form-group"><label>Client Phone</label><input type="text" id="inv_clientPhone" placeholder="+1 000 000 0000"/></div>
+            <div class="form-group"><label>Client Address</label><input type="text" id="inv_clientAddress" placeholder="City, Country"/></div>
+
+            <!-- SHIPMENT INFO -->
+            <div class="form-group full-width" style="background:#f9f8f5;padding:14px 16px;border-radius:10px;border-left:3px solid #e8820c;margin-top:8px;">
+              <label style="color:#e8820c;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;">Shipment Details</label>
+            </div>
+            <div class="form-group"><label>Pet Name / Description</label><input type="text" id="inv_petDesc" placeholder="e.g. Golden Retriever, 3 months"/></div>
+            <div class="form-group"><label>Origin</label><input type="text" id="inv_origin" placeholder="e.g. New York, USA"/></div>
+            <div class="form-group"><label>Destination</label><input type="text" id="inv_destination" placeholder="e.g. London, UK"/></div>
+            <div class="form-group"><label>Delivery Date</label><input type="date" id="inv_deliveryDate"/></div>
+            <div class="form-group"><label>Invoice Number</label><input type="text" id="inv_number" placeholder="e.g. INV-2026-001"/></div>
+            <div class="form-group"><label>Invoice Date</label><input type="date" id="inv_date"/></div>
+
+            <!-- CRATE OPTIONS -->
+            <div class="form-group full-width" style="background:#f9f8f5;padding:14px 16px;border-radius:10px;border-left:3px solid #e8820c;margin-top:8px;">
+              <label style="color:#e8820c;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;">Pet Crate Handling</label>
+            </div>
+            <div class="form-group full-width">
+              <label>Crate Option</label>
+              <select id="inv_crateOption" onchange="toggleCrateFields()">
+                <option value="none">No Crate Service</option>
+                <option value="rental">Crate Rental (90% Refundable)</option>
+                <option value="purchase">Crate Purchase (Full Ownership)</option>
+              </select>
+            </div>
+            <div id="inv_crateRentalFields" style="display:none;" class="form-group full-width">
+              <div class="form-grid" style="padding:0;">
+                <div class="form-group">
+                  <label>Rental Fee (USD)</label>
+                  <input type="number" id="inv_rentalFee" placeholder="0.00" min="0"/>
+                </div>
+                <div class="form-group">
+                  <label>Refundable Amount (auto)</label>
+                  <input type="text" id="inv_rentalRefund" readonly style="background:#f0f0f0;color:#888;"/>
+                </div>
+              </div>
+              <p style="font-size:.78rem;color:#27ae60;margin-top:6px;"><i class="fa-solid fa-circle-info"></i> 90% of the rental fee will be refunded upon safe return of the crate.</p>
+            </div>
+            <div id="inv_cratePurchaseFields" style="display:none;" class="form-group full-width">
+              <div class="form-group">
+                <label>Purchase Price (USD)</label>
+                <input type="number" id="inv_purchasePrice" placeholder="0.00" min="0"/>
+              </div>
+              <p style="font-size:.78rem;color:#185fa5;margin-top:6px;"><i class="fa-solid fa-circle-info"></i> Client will have full ownership of the crate after purchase.</p>
+            </div>
+
+            <!-- ADDITIONAL FEES -->
+            <div class="form-group full-width" style="background:#f9f8f5;padding:14px 16px;border-radius:10px;border-left:3px solid #e8820c;margin-top:8px;">
+              <label style="color:#e8820c;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;">Fees & Charges</label>
+            </div>
+            <div class="form-group"><label>Shipping Fee (USD)</label><input type="number" id="inv_shippingFee" placeholder="0.00" min="0"/></div>
+            <div class="form-group"><label>Handling Fee (USD)</label><input type="number" id="inv_handlingFee" placeholder="0.00" min="0"/></div>
+            <div class="form-group"><label>Vet / Health Certificate Fee (USD)</label><input type="number" id="inv_vetFee" placeholder="0.00" min="0"/></div>
+            <div class="form-group"><label>Other Fee (USD)</label><input type="number" id="inv_otherFee" placeholder="0.00" min="0"/></div>
+            <div class="form-group full-width"><label>Other Fee Description</label><input type="text" id="inv_otherFeeDesc" placeholder="e.g. USDA Endorsement Fee"/></div>
+
+            <!-- SIGNATURE & STAMP -->
+            <div class="form-group full-width" style="background:#f9f8f5;padding:14px 16px;border-radius:10px;border-left:3px solid #e8820c;margin-top:8px;">
+              <label style="color:#e8820c;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;">Signature & Stamp</label>
+            </div>
+            <div class="form-group full-width">
+              <label>Draw Your Signature</label>
+              <div style="border:2px dashed #ddd;border-radius:10px;background:white;position:relative;touch-action:none;">
+                <canvas id="signatureCanvas" width="600" height="160" style="width:100%;height:160px;border-radius:8px;cursor:crosshair;display:block;touch-action:none;"></canvas>
+                <button onclick="clearSignature()" style="position:absolute;top:8px;right:8px;background:#e74c3c;color:white;border:none;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer;">Clear</button>
+              </div>
+              <p style="font-size:.75rem;color:#aaa;margin-top:4px;">Draw your signature above using mouse or finger</p>
+            </div>
+            <div class="form-group full-width">
+              <label>Official Stamp</label>
+              <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                <div id="inv_stampPreview" style="width:90px;height:90px;border-radius:50%;border:2.5px solid #27ae60;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;background:white;" onclick="document.getElementById('inv_stampUpload').click()">
+                  <i class="fa-solid fa-stamp" style="color:#27ae60;font-size:1.6rem;"></i>
+                  <span style="font-size:.6rem;color:#27ae60;margin-top:4px;">Tap to upload</span>
+                </div>
+                <input type="file" id="inv_stampUpload" accept="image/*" style="display:none;" onchange="previewStamp(this)"/>
+                <div>
+                  <p style="font-size:.82rem;color:#555;margin-bottom:4px;">Upload your official stamp image</p>
+                  <p style="font-size:.75rem;color:#aaa;">PNG with transparent background works best</p>
+                  <button onclick="document.getElementById('inv_stampUpload').click()" style="margin-top:8px;background:#27ae60;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:.78rem;cursor:pointer;"><i class="fa-solid fa-upload"></i> Upload Stamp</button>
+                  <button onclick="clearStamp()" style="margin-top:8px;margin-left:6px;background:#e74c3c;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:.78rem;cursor:pointer;"><i class="fa-solid fa-trash"></i> Remove</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- NOTES -->
+            <div class="form-group full-width" style="margin-top:8px;">
+              <label>Additional Notes</label>
+              <textarea id="inv_notes" placeholder="Any additional terms, conditions or notes for the client..." style="height:80px;"></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions" style="margin-top:24px;">
+            <button class="btn-save" onclick="generateInvoice()"><i class="fa-solid fa-file-invoice-dollar"></i> Generate Invoice</button>
+            <button class="btn-save" style="background:#27ae60;" onclick="downloadInvoicePDF()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+            <button class="btn-clear" onclick="clearInvoiceForm()"><i class="fa-solid fa-trash"></i> Clear</button>
+          </div>
+          <div id="invoiceMsg" class="create-msg" style="margin-top:12px;"></div>
+        </div>
+
+        <!-- INVOICE PREVIEW -->
+        <div id="invoicePreview" style="display:none;margin-top:24px;">
+          <div class="form-card" style="padding:0;overflow:hidden;">
+            <div style="padding:14px 20px;background:#0d1f35;display:flex;justify-content:space-between;align-items:center;">
+              <span style="color:white;font-weight:700;"><i class="fa-solid fa-eye"></i> Invoice Preview</span>
+              <button onclick="downloadInvoicePDF()" style="background:#e8820c;color:white;border:none;border-radius:6px;padding:7px 16px;font-size:.82rem;cursor:pointer;font-weight:600;"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+            </div>
+            <div id="invoiceContent" style="padding:0;"></div>
+          </div>
+        </div>
+      </section>
+
+
         <div class="form-card">
           <h3>Change Admin Password</h3>
           <div class="form-grid" style="max-width:500px;">
