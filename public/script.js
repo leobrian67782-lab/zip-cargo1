@@ -1,11 +1,11 @@
 // ===== PAGE LOADER =====
-document.body.classList.add('loading'); // lock scroll immediately
+document.body.classList.add('no-scroll');
 window.addEventListener('load', () => {
   setTimeout(() => {
     const loader = document.getElementById('loader');
     if (loader) {
       loader.classList.add('hidden');
-      document.body.classList.remove('loading'); // unlock scroll
+      document.body.classList.remove('no-scroll');
       setTimeout(() => loader.remove(), 700);
     }
   }, 1800);
