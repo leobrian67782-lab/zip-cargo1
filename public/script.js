@@ -201,114 +201,191 @@ async function trackShipment() {
 
 function renderTrackingResult(s, result) {
   const sc = {
-    'Pending':          { bg:'#fff3cd', color:'#856404', icon:'fa-clock' },
-    'In Transit':       { bg:'#cce5ff', color:'#004085', icon:'fa-plane' },
-    'Out for Delivery': { bg:'#d4edda', color:'#155724', icon:'fa-truck' },
-    'Delivered':        { bg:'#d4edda', color:'#155724', icon:'fa-circle-check' },
-    'On Hold':          { bg:'#f8d7da', color:'#721c24', icon:'fa-triangle-exclamation' },
-  }[s.status] || { bg:'#fff3cd', color:'#856404', icon:'fa-clock' };
+    'Pending':          { bg:'#fff3cd', color:'#856404', icon:'fa-clock',                  bar:'#f0c040' },
+    'In Transit':       { bg:'#dbeafe', color:'#1e40af', icon:'fa-plane',                  bar:'#3b82f6' },
+    'Out for Delivery': { bg:'#dcfce7', color:'#166534', icon:'fa-truck',                  bar:'#22c55e' },
+    'Delivered':        { bg:'#dcfce7', color:'#166534', icon:'fa-circle-check',           bar:'#16a34a' },
+    'On Hold':          { bg:'#fee2e2', color:'#991b1b', icon:'fa-triangle-exclamation',   bar:'#ef4444' },
+  }[s.status] || { bg:'#fff3cd', color:'#856404', icon:'fa-clock', bar:'#f0c040' };
 
   const steps      = ['Pending','In Transit','Out for Delivery','Delivered'];
-  const stepLabels = ['Order Placed','Picked Up','Out for Delivery','Delivered'];
-  const stepIcons  = ['fa-box','fa-plane-departure','fa-truck','fa-circle-check'];
-  const curIdx     = steps.indexOf(s.status);
+  const stepLabels = ['Order Placed','In Transit','Out for Delivery','Delivered'];
+  const stepIcons  = ['fa-box-open','fa-plane-departure','fa-truck','fa-circle-check'];
+  const curIdx     = s.status === 'On Hold' ? -1 : steps.indexOf(s.status);
 
-  const stepsHTML = steps.map((step,i) => {
-    const done   = i<=curIdx && s.status!=='On Hold';
-    const active = i===curIdx && s.status!=='On Hold';
-    const lineColor = (i<curIdx && s.status!=='On Hold') ? '#27ae60' : '#ddd';
-    return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
-      ${i<steps.length-1?`<div style="position:absolute;top:18px;left:50%;width:100%;height:3px;background:${lineColor};z-index:0;"></div>`:''}
-      <div style="width:36px;height:36px;border-radius:50%;background:${done?'#27ae60':'#e0e0e0'};display:flex;align-items:center;justify-content:center;z-index:1;box-shadow:0 2px 8px rgba(0,0,0,.12);">
-        <i class="fa-solid ${stepIcons[i]}" style="font-size:14px;color:${done?'white':'#aaa'};"></i></div>
-      <div style="font-size:.68rem;text-align:center;margin-top:7px;color:${active?'#0d1f35':'#999'};font-weight:${active?'700':'400'};line-height:1.3;max-width:70px;">${stepLabels[i]}</div></div>`;
+  const stepsHTML = steps.map((step, i) => {
+    const done   = curIdx >= 0 && i <= curIdx;
+    const active = i === curIdx;
+    const lineW  = (curIdx >= 0 && i < curIdx) ? '100%' : '0%';
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;z-index:1;">
+        ${i < steps.length - 1 ? `
+          <div style="position:absolute;top:19px;left:50%;width:100%;height:3px;background:#e5e7eb;z-index:0;">
+            <div style="height:100%;width:${lineW};background:#27ae60;"></div>
+          </div>` : ''}
+        <div style="
+          width:38px;height:38px;border-radius:50%;z-index:1;
+          background:${done ? (active ? '#e8820c' : '#27ae60') : '#e5e7eb'};
+          display:flex;align-items:center;justify-content:center;
+          box-shadow:${active ? '0 0 0 4px rgba(232,130,12,.25)' : '0 2px 6px rgba(0,0,0,.1)'};">
+          <i class="fa-solid ${stepIcons[i]}" style="font-size:14px;color:${done?'white':'#aaa'};"></i>
+        </div>
+        <div style="font-size:.62rem;text-align:center;margin-top:8px;line-height:1.35;max-width:68px;
+          color:${active?'#0d1f35':'#9ca3af'};font-weight:${active?'700':'500'};">${stepLabels[i]}</div>
+      </div>`;
   }).join('');
 
-  // Deduplicate timeline — remove entries with same status+note within 60 seconds of each other
-  const rawTimeline = (s.timeline||[]);
+  const rawTimeline = (s.timeline || []);
   const dedupedTimeline = rawTimeline.filter((t, i) => {
     if (i === 0) return true;
-    const prev = rawTimeline[i-1];
-    const sameStatus = t.status === prev.status;
-    const closeInTime = Math.abs(new Date(t.timestamp) - new Date(prev.timestamp)) < 60000;
-    return !(sameStatus && closeInTime);
+    const prev = rawTimeline[i - 1];
+    return !(t.status === prev.status && Math.abs(new Date(t.timestamp) - new Date(prev.timestamp)) < 60000);
   });
 
-  const tlItems = dedupedTimeline.slice(-5).reverse().map(t => `
-    <div style="display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f0ede5;">
-      <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;margin-top:5px;flex-shrink:0;"></div>
-      <div><div style="font-size:.82rem;font-weight:700;color:#0d1f35;">${t.status}</div>
-        <div style="font-size:.77rem;color:#888;">${t.location||''} &bull; ${new Date(t.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-        ${t.note?`<div style="font-size:.75rem;color:#aaa;margin-top:2px;">${t.note}</div>`:''}</div></div>`).join('');
+  const tlItems = dedupedTimeline.slice().reverse().map((t, i) => {
+    const tsc = {
+      'Pending':          { dot:'#f59e0b', icon:'fa-clock' },
+      'In Transit':       { dot:'#3b82f6', icon:'fa-plane' },
+      'Out for Delivery': { dot:'#22c55e', icon:'fa-truck' },
+      'Delivered':        { dot:'#16a34a', icon:'fa-circle-check' },
+      'On Hold':          { dot:'#ef4444', icon:'fa-triangle-exclamation' },
+    }[t.status] || { dot:'#e8820c', icon:'fa-circle-dot' };
+    const isLast = i === dedupedTimeline.length - 1;
+    return `
+      <div style="display:flex;gap:14px;align-items:flex-start;position:relative;">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+          <div style="width:34px;height:34px;border-radius:50%;background:${i===0?tsc.dot+'22':'#f3f4f6'};
+            border:2px solid ${i===0?tsc.dot:'#e5e7eb'};display:flex;align-items:center;justify-content:center;">
+            <i class="fa-solid ${tsc.icon}" style="font-size:12px;color:${i===0?tsc.dot:'#9ca3af'};"></i>
+          </div>
+          ${!isLast ? `<div style="width:2px;flex:1;min-height:16px;background:#e5e7eb;margin:3px 0;"></div>` : ''}
+        </div>
+        <div style="padding-bottom:${isLast?'0':'16px'};flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:4px;">
+            <div style="font-size:.83rem;font-weight:700;color:${i===0?'#0d1f35':'#374151'};">${t.status}</div>
+            <div style="font-size:.7rem;color:#9ca3af;white-space:nowrap;">
+              ${new Date(t.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+            </div>
+          </div>
+          ${t.location ? `<div style="font-size:.75rem;color:#6b7280;margin-top:2px;"><i class="fa-solid fa-location-dot" style="font-size:10px;color:#e8820c;"></i> ${t.location}</div>` : ''}
+          ${t.note ? `<div style="font-size:.73rem;color:#9ca3af;margin-top:3px;font-style:italic;">${t.note}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
 
   const date = s.date || new Date(s.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+  const fmt  = v => v ? parseFloat(v).toLocaleString() : '—';
+
+  const cell = (label, icon, val, rightBorder=false) => `
+    <div style="flex:1;min-width:130px;padding:14px 16px;${rightBorder?'':'border-right:1px solid #f0ede8;'}">
+      <div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">
+        <i class="fa-solid ${icon}" style="color:#e8820c;margin-right:4px;font-size:9px;"></i>${label}
+      </div>
+      <div style="font-size:.88rem;font-weight:700;color:#0d1f35;">${val}</div>
+    </div>`;
 
   result.className = 'track-result success';
   result.innerHTML = `
-    <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.13);font-family:'Outfit',sans-serif;">
+  <div style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.14);font-family:'Outfit',sans-serif;max-width:700px;margin:0 auto;">
 
-      <div style="background:#0d1f35;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <div>
-          <div style="font-size:.65rem;color:#7a9ab8;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Tracking Number</div>
-          <div style="font-size:1.1rem;font-weight:800;color:white;letter-spacing:1px;">${s.tracking}</div>
-        </div>
-        <div style="background:${sc.bg};color:${sc.color};padding:7px 14px;border-radius:30px;font-weight:700;font-size:.82rem;display:flex;align-items:center;gap:6px;">
-          <i class="fa-solid ${sc.icon}"></i> ${s.status}
-        </div>
+    <div style="height:4px;background:${sc.bar};"></div>
+
+    <div style="background:#0d1f35;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:.6rem;color:#7a9ab8;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:5px;">Tracking Number</div>
+        <div style="font-size:1.15rem;font-weight:800;color:white;letter-spacing:1.5px;">${s.tracking}</div>
+        <div style="font-size:.72rem;color:#4a6a88;margin-top:4px;"><i class="fa-regular fa-calendar" style="font-size:10px;"></i> Created ${date}</div>
       </div>
-
-      <div style="padding:18px 20px;background:#f9f8f5;border-bottom:1px solid #ebe8df;">
-        <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;font-weight:600;">Shipment Progress</div>
-        <div style="display:flex;align-items:flex-start;">${stepsHTML}</div>
+      <div style="background:${sc.bg};color:${sc.color};padding:9px 18px;border-radius:30px;font-weight:700;font-size:.82rem;display:flex;align-items:center;gap:7px;white-space:nowrap;">
+        <i class="fa-solid ${sc.icon}"></i> ${s.status}
       </div>
+    </div>
 
-      <div style="padding:16px 20px;border-bottom:1px solid #ebe8df;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-        <div>
-          <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Origin</div>
-          <div style="font-size:.95rem;font-weight:700;color:#0d1f35;"><i class="fa-solid fa-circle-dot" style="color:#e8820c;font-size:11px;"></i> ${s.origin}</div>
-        </div>
-        <i class="fa-solid fa-arrow-right" style="color:#e8820c;font-size:1.1rem;flex-shrink:0;"></i>
-        <div style="text-align:right;">
-          <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Destination</div>
-          <div style="font-size:.95rem;font-weight:700;color:#0d1f35;">${s.dest} <i class="fa-solid fa-location-dot" style="color:#e8820c;font-size:11px;"></i></div>
-        </div>
+    <div style="padding:22px 22px 18px;background:#f9f8f5;border-bottom:1px solid #ebe8df;">
+      <div style="font-size:.6rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:18px;font-weight:600;">Shipment Progress</div>
+      <div style="display:flex;align-items:flex-start;">${stepsHTML}</div>
+      ${s.status === 'On Hold' ? `
+        <div style="margin-top:14px;background:#fee2e2;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:.8rem;color:#991b1b;font-weight:600;">
+          <i class="fa-solid fa-triangle-exclamation"></i> This shipment is currently on hold. Please contact support.
+        </div>` : ''}
+    </div>
+
+    <div style="padding:18px 22px;border-bottom:1px solid #ebe8df;display:flex;align-items:center;justify-content:space-between;gap:10px;background:white;">
+      <div style="flex:1;">
+        <div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">Origin</div>
+        <div style="font-size:.95rem;font-weight:700;color:#0d1f35;"><i class="fa-solid fa-circle-dot" style="color:#27ae60;font-size:12px;margin-right:5px;"></i>${s.origin}</div>
       </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;">
+        <i class="fa-solid fa-arrow-right" style="color:#e8820c;font-size:1rem;"></i>
+        <div style="font-size:.55rem;color:#d1d5db;font-weight:500;letter-spacing:.5px;">ROUTE</div>
+      </div>
+      <div style="flex:1;text-align:right;">
+        <div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">Destination</div>
+        <div style="font-size:.95rem;font-weight:700;color:#0d1f35;">${s.dest}<i class="fa-solid fa-location-dot" style="color:#ef4444;font-size:12px;margin-left:5px;"></i></div>
+      </div>
+    </div>
+    ${s.location ? `
+    <div style="padding:10px 22px;background:#fffbf5;border-bottom:1px solid #ebe8df;display:flex;align-items:center;gap:8px;">
+      <i class="fa-solid fa-satellite-dish" style="color:#e8820c;font-size:12px;"></i>
+      <span style="font-size:.78rem;color:#6b7280;">Current location:</span>
+      <span style="font-size:.78rem;font-weight:700;color:#0d1f35;">${s.location}</span>
+    </div>` : ''}
 
-      <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ebe8df;">
-        <tr>
-          <td style="width:50%;padding:12px 14px;border-right:1px solid #ebe8df;vertical-align:top;">
-            <div style="font-size:.6rem;color:#999;text-transform:uppercase;margin-bottom:4px;">Sender</div>
-            <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">${s.sName||'—'}</div>
-            ${s.sPhone?`<div style="font-size:.75rem;color:#777;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${s.sPhone}</div>`:''}
-          </td>
-          <td style="width:50%;padding:12px 14px;vertical-align:top;">
-            <div style="font-size:.6rem;color:#999;text-transform:uppercase;margin-bottom:4px;">Recipient</div>
-            <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">${s.rName}</div>
-            ${s.rPhone?`<div style="font-size:.75rem;color:#777;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${s.rPhone}</div>`:''}
-          </td>
-        </tr>
-        <tr style="border-top:1px solid #ebe8df;">
-          <td style="width:50%;padding:12px 14px;border-right:1px solid #ebe8df;vertical-align:top;">
-            <div style="font-size:.6rem;color:#999;text-transform:uppercase;margin-bottom:4px;">Service</div>
-            <div style="font-weight:700;color:#0d1f35;font-size:.85rem;"><i class="fa-solid fa-box" style="color:#e8820c;font-size:10px;"></i> ${s.service}</div>
-          </td>
-          <td style="width:50%;padding:12px 14px;vertical-align:top;">
-            <div style="font-size:.6rem;color:#999;text-transform:uppercase;margin-bottom:4px;">Est. Delivery</div>
-            <div style="font-weight:700;color:#0d1f35;font-size:.85rem;"><i class="fa-regular fa-calendar" style="color:#e8820c;font-size:10px;"></i> ${s.eta||'—'}</div>
-          </td>
-        </tr>
-      </table>
+    <div style="display:flex;flex-wrap:wrap;border-bottom:1px solid #ebe8df;">
+      <div style="flex:1;min-width:140px;padding:16px 22px;border-right:1px solid #f0ede8;">
+        <div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;font-weight:600;"><i class="fa-solid fa-user" style="color:#e8820c;font-size:9px;margin-right:4px;"></i>Sender</div>
+        <div style="font-weight:700;color:#0d1f35;font-size:.88rem;">${s.sName || '—'}</div>
+        ${s.sPhone ? `<div style="font-size:.75rem;color:#6b7280;margin-top:3px;"><i class="fa-solid fa-phone" style="font-size:9px;color:#e8820c;"></i> ${s.sPhone}</div>` : ''}
+        ${s.sEmail ? `<div style="font-size:.72rem;color:#6b7280;margin-top:2px;"><i class="fa-solid fa-envelope" style="font-size:9px;color:#e8820c;"></i> ${s.sEmail}</div>` : ''}
+      </div>
+      <div style="flex:1;min-width:140px;padding:16px 22px;">
+        <div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;font-weight:600;"><i class="fa-solid fa-user-check" style="color:#e8820c;font-size:9px;margin-right:4px;"></i>Recipient</div>
+        <div style="font-weight:700;color:#0d1f35;font-size:.88rem;">${s.rName || '—'}</div>
+        ${s.rPhone ? `<div style="font-size:.75rem;color:#6b7280;margin-top:3px;"><i class="fa-solid fa-phone" style="font-size:9px;color:#e8820c;"></i> ${s.rPhone}</div>` : ''}
+        ${s.rEmail ? `<div style="font-size:.72rem;color:#6b7280;margin-top:2px;"><i class="fa-solid fa-envelope" style="font-size:9px;color:#e8820c;"></i> ${s.rEmail}</div>` : ''}
+      </div>
+    </div>
 
-      ${tlItems ? `
-      <div style="padding:14px 20px;border-bottom:1px solid #ebe8df;">
-        <div style="font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600;">Recent Updates</div>
-        ${tlItems}
+    <div style="border-bottom:1px solid #ebe8df;">
+      <div style="padding:12px 22px 0;font-size:.6rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Shipment Details</div>
+      <div style="display:flex;flex-wrap:wrap;">
+        ${cell('Service','fa-box',s.service||'—')}
+        ${cell('Est. Delivery','fa-calendar',s.eta||'—',true)}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;border-top:1px solid #f0ede8;">
+        ${cell('Weight','fa-weight-hanging',s.weight ? fmt(s.weight)+' kg' : '—')}
+        ${cell('Cargo Value','fa-dollar-sign',s.value ? '$'+fmt(s.value) : '—',true)}
+      </div>
+      ${(s.cost || s.desc) ? `
+      <div style="display:flex;flex-wrap:wrap;border-top:1px solid #f0ede8;">
+        ${s.cost ? cell('Shipping Cost','fa-receipt','$'+fmt(s.cost)) : ''}
+        ${s.desc ? `
+          <div style="flex:1;min-width:130px;padding:14px 16px;${s.cost?'border-left:1px solid #f0ede8;':''}">
+            <div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">
+              <i class="fa-solid fa-file-lines" style="color:#e8820c;margin-right:4px;font-size:9px;"></i>Description
+            </div>
+            <div style="font-size:.82rem;font-weight:600;color:#374151;line-height:1.4;">${s.desc}</div>
+          </div>` : ''}
       </div>` : ''}
+    </div>
 
-      <div style="padding:10px 20px;text-align:center;font-size:.72rem;color:#bbb;">
-        <i class="fa-regular fa-clock"></i> ${date} &bull; ZipCargo Logistics
+    ${tlItems ? `
+    <div style="padding:18px 22px;border-bottom:1px solid #ebe8df;background:white;">
+      <div style="font-size:.6rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;font-weight:600;">
+        <i class="fa-solid fa-timeline" style="color:#e8820c;margin-right:5px;"></i>Tracking History
       </div>
-    </div>`;
+      ${tlItems}
+    </div>` : ''}
+
+    <div style="padding:12px 22px;background:#f9f8f5;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:.72rem;color:#9ca3af;">
+        <i class="fa-solid fa-bolt" style="color:#e8820c;"></i>
+        <span style="font-weight:700;color:#0d1f35;">ZipCargo</span> Logistics
+      </div>
+      <div style="font-size:.68rem;color:#bbb;">Last updated: ${new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>
+
+  </div>`;
 }
 
 document.getElementById('trackInput')?.addEventListener('keypress', e => {
