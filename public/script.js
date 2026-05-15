@@ -334,7 +334,7 @@ function renderTrackingResult(s, result) {
   function chip(icon, val) {
     return '<div style="display:flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 10px;font-size:.72rem;color:#475569;margin-top:6px;width:100%;box-sizing:border-box;min-width:0;overflow:hidden;">'
          + '<i class="fa-solid ' + icon + '" style="color:#e8820c;font-size:9px;flex-shrink:0;"></i>'
-         + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + val + '</span>'
+         + '<span style="word-break:break-all;min-width:0;flex:1;">' + val + '</span>'
          + '</div>';
   }
   var sPhoneHTML = s.sPhone ? chip('fa-phone', s.sPhone) : '';
@@ -402,23 +402,23 @@ function renderTrackingResult(s, result) {
     + '</div>'
 
     // ── ROUTE ──
-    + '<div class="zc-fadein" style="padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;gap:8px;background:white;animation-delay:.15s;">'
-    + '<div style="flex:1;min-width:0;overflow:hidden;">'
+    + '<div class="zc-fadein" style="padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;gap:10px;background:white;animation-delay:.15s;">'
+    + '<div style="flex:1;min-width:0;">'
     + '<div style="font-size:.55rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">Origin</div>'
     + '<div style="display:flex;align-items:center;gap:6px;">'
     + '<div style="width:28px;height:28px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
     + '<i class="fa-solid fa-warehouse" style="color:#16a34a;font-size:11px;"></i></div>'
-    + '<div style="font-size:.88rem;font-weight:700;color:#0d1f35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + s.origin + '</div>'
+    + '<div style="font-size:.88rem;font-weight:700;color:#0d1f35;word-break:break-word;line-height:1.3;">' + s.origin + '</div>'
     + '</div></div>'
 
-    + '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;padding:0 6px;">'
+    + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding:0 4px;">'
     + '<i class="fa-solid fa-angles-right" style="color:#e8820c;font-size:.9rem;"></i>'
     + '</div>'
 
-    + '<div style="flex:1;min-width:0;overflow:hidden;text-align:right;">'
+    + '<div style="flex:1;min-width:0;text-align:right;">'
     + '<div style="font-size:.55rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">Destination</div>'
     + '<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">'
-    + '<div style="font-size:.88rem;font-weight:700;color:#0d1f35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + s.dest + '</div>'
+    + '<div style="font-size:.88rem;font-weight:700;color:#0d1f35;word-break:break-word;line-height:1.3;min-width:0;flex:1;">' + s.dest + '</div>'
     + '<div style="width:28px;height:28px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
     + '<i class="fa-solid fa-flag-checkered" style="color:#ef4444;font-size:11px;"></i></div>'
     + '</div></div></div>'
@@ -434,7 +434,7 @@ function renderTrackingResult(s, result) {
     + '<i class="fa-solid fa-user-tie" style="color:#0ea5e9;font-size:11px;"></i></div>'
     + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;font-weight:600;">Sender</div>'
     + '</div>'
-    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (s.sName || '&mdash;') + '</div>'
+    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;word-break:break-word;">' + (s.sName || '&mdash;') + '</div>'
     + sPhoneHTML + sEmailHTML
     + '</div>'
     + '<div style="flex:1;min-width:0;width:50%;padding:18px 20px;overflow:hidden;box-sizing:border-box;">'
@@ -443,7 +443,7 @@ function renderTrackingResult(s, result) {
     + '<i class="fa-solid fa-user-check" style="color:#16a34a;font-size:11px;"></i></div>'
     + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;font-weight:600;">Recipient</div>'
     + '</div>'
-    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (s.rName || '&mdash;') + '</div>'
+    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;word-break:break-word;">' + (s.rName || '&mdash;') + '</div>'
     + rPhoneHTML + rEmailHTML
     + '</div></div>'
 
