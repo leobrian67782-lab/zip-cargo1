@@ -317,19 +317,6 @@ function renderTrackingResult(s, result) {
   var rPhoneHTML = s.rPhone ? '<div style="font-size:.75rem;color:#6b7280;margin-top:3px;"><i class="fa-solid fa-phone" style="font-size:9px;color:#e8820c;"></i> ' + s.rPhone + '</div>' : '';
   var rEmailHTML = s.rEmail ? '<div style="font-size:.72rem;color:#6b7280;margin-top:2px;"><i class="fa-solid fa-envelope" style="font-size:9px;color:#e8820c;"></i> ' + s.rEmail + '</div>' : '';
 
-  // Extra cost/desc row
-  var extraRow = '';
-  if (s.cost || s.desc) {
-    var costCell = s.cost ? cell('Shipping Cost', 'fa-receipt', '$' + fmt(s.cost), false) : '';
-    var descCell = s.desc
-      ? '<div style="flex:1;min-width:130px;padding:14px 16px;' + (s.cost ? 'border-left:1px solid #f0ede8;' : '') + '">'
-      + '<div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">'
-      + '<i class="fa-solid fa-file-lines" style="color:#e8820c;margin-right:4px;font-size:9px;"></i>Description</div>'
-      + '<div style="font-size:.82rem;font-weight:600;color:#374151;line-height:1.4;">' + s.desc + '</div>'
-      + '</div>'
-      : '';
-    extraRow = '<div style="display:flex;flex-wrap:wrap;border-top:1px solid #f0ede8;">' + costCell + descCell + '</div>';
-  }
 
   // Timeline section
   var tlSection = tlItems
@@ -405,10 +392,8 @@ function renderTrackingResult(s, result) {
     + cell('Est. Delivery','fa-calendar',        s.eta     || '&mdash;', true)
     + '</div>'
     + '<div style="display:flex;flex-wrap:wrap;border-top:1px solid #f0ede8;">'
-    + cell('Weight',      'fa-weight-hanging', s.weight ? fmt(s.weight) + ' kg' : '&mdash;', false)
-    + cell('Cargo Value', 'fa-dollar-sign',    s.value  ? '$' + fmt(s.value)    : '&mdash;', true)
+    + cell('Weight',      'fa-weight-hanging', s.weight ? fmt(s.weight) + ' kg' : '&mdash;', true)
     + '</div>'
-    + extraRow
     + '</div>'
 
     // timeline
