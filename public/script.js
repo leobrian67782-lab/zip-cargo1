@@ -332,8 +332,10 @@ function renderTrackingResult(s, result) {
 
   // Contact chips
   function chip(icon, val) {
-    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:3px 10px;font-size:.72rem;color:#475569;margin-top:5px;margin-right:4px;">'
-         + '<i class="fa-solid ' + icon + '" style="color:#e8820c;font-size:9px;"></i>' + val + '</span>';
+    return '<div style="display:flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 10px;font-size:.72rem;color:#475569;margin-top:6px;width:100%;box-sizing:border-box;min-width:0;overflow:hidden;">'
+         + '<i class="fa-solid ' + icon + '" style="color:#e8820c;font-size:9px;flex-shrink:0;"></i>'
+         + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + val + '</span>'
+         + '</div>';
   }
   var sPhoneHTML = s.sPhone ? chip('fa-phone', s.sPhone) : '';
   var sEmailHTML = s.sEmail ? chip('fa-envelope', s.sEmail) : '';
@@ -428,22 +430,22 @@ function renderTrackingResult(s, result) {
 
     // ── SENDER / RECIPIENT ──
     + '<div class="zc-fadein" style="display:flex;flex-wrap:wrap;border-bottom:1px solid #f1f5f9;animation-delay:.2s;">'
-    + '<div style="flex:1;min-width:140px;padding:18px 24px;border-right:1px solid #f1f5f9;">'
+    + '<div style="flex:1;min-width:0;width:50%;padding:18px 20px;border-right:1px solid #f1f5f9;overflow:hidden;box-sizing:border-box;">'
     + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">'
     + '<div style="width:26px;height:26px;border-radius:8px;background:#f0f9ff;display:flex;align-items:center;justify-content:center;">'
     + '<i class="fa-solid fa-user-tie" style="color:#0ea5e9;font-size:11px;"></i></div>'
     + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;font-weight:600;">Sender</div>'
     + '</div>'
-    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;">' + (s.sName || '&mdash;') + '</div>'
+    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (s.sName || '&mdash;') + '</div>'
     + sPhoneHTML + sEmailHTML
     + '</div>'
-    + '<div style="flex:1;min-width:140px;padding:18px 24px;">'
+    + '<div style="flex:1;min-width:0;width:50%;padding:18px 20px;overflow:hidden;box-sizing:border-box;">'
     + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">'
     + '<div style="width:26px;height:26px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;">'
     + '<i class="fa-solid fa-user-check" style="color:#16a34a;font-size:11px;"></i></div>'
     + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;font-weight:600;">Recipient</div>'
     + '</div>'
-    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;">' + (s.rName || '&mdash;') + '</div>'
+    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (s.rName || '&mdash;') + '</div>'
     + rPhoneHTML + rEmailHTML
     + '</div></div>'
 
