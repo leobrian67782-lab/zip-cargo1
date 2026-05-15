@@ -95,6 +95,7 @@ async function showSection(name, clickedEl) {
   if (name==='shipments')  await loadShipments();
   if (name==='inquiries')  await loadInquiries();
   if (name==='activity')   await loadActivity();
+  if (name==='settings')   loadContactSettings();
 }
 
 function toggleSidebar() {
@@ -350,88 +351,190 @@ async function quickReceipt(tracking) {
 
 // ===== BUILD RECEIPT HTML =====
 function buildReceiptHTML(s) {
-  const statusClassMap={'Delivered':'badge-delivered','In Transit':'badge-transit','Out for Delivery':'badge-out','On Hold':'badge-hold','Pending':'badge-pending'};
-  const steps=['Pending','In Transit','Out for Delivery','Delivered'];
-  const stepLabels=['Order Placed','Picked Up','Out for Delivery','Delivered'];
-  const curIdx=steps.indexOf(s.status);
-  const stepsHTML=steps.map((step,i)=>{
-    const done=i<=curIdx&&s.status!=='On Hold';
-    const lineColor=(i<curIdx&&s.status!=='On Hold')?'#27ae60':'#ddd';
-    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative;">
-      ${i<steps.length-1?`<div style="position:absolute;top:17px;left:50%;width:100%;height:3px;background:${lineColor};z-index:0;"></div>`:''}
-      <div style="width:34px;height:34px;border-radius:50%;background:${done?'#27ae60':'#e0e0e0'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;z-index:1;">${done?'<i class="fa-solid fa-check"></i>':(i+1)}</div>
-      <div style="font-size:.65rem;text-align:center;margin-top:6px;color:${i===curIdx&&s.status!=='On Hold'?'#0d1f35':'#999'};font-weight:${i===curIdx&&s.status!=='On Hold'?'700':'400'};line-height:1.3;max-width:70px;">${stepLabels[i]}</div></div>`;
-  }).join('');
-  const date=s.date||new Date(s.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+  var statusColors = {
+    'Delivered':        { bg:'#d1fae5', color:'#065f46', bar:'#10b981' },
+    'In Transit':       { bg:'#dbeafe', color:'#1e40af', bar:'#3b82f6' },
+    'Out for Delivery': { bg:'#dcfce7', color:'#14532d', bar:'#22c55e' },
+    'On Hold':          { bg:'#fee2e2', color:'#7f1d1d', bar:'#ef4444' },
+    'Pending':          { bg:'#fef9c3', color:'#854d0e', bar:'#f59e0b' }
+  };
+  var sc = statusColors[s.status] || statusColors['Pending'];
 
-  document.getElementById('receiptContent').innerHTML=`
-    <div style="background:#0d1f35;padding:32px 36px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
-      <div><div style="font-size:1.7rem;font-weight:800;color:white;"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
-        <div style="font-size:.74rem;color:#7a9ab8;margin-top:4px;">Global Logistics Solutions</div></div>
-      <div style="text-align:right;">
-        <div style="font-size:.64rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#e8820c;margin-bottom:6px;">Official Receipt</div>
-        <div style="font-size:1.1rem;font-weight:700;color:white;">${s.tracking}</div>
-        <div style="font-size:.79rem;color:#7a9ab8;margin-top:4px;">Issued: ${date}</div>
-        <div style="margin-top:10px;"><span class="badge ${statusClassMap[s.status]||'badge-pending'}">${s.status}</span></div></div></div>
-    <div style="padding:14px 36px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f9f8f5;border-bottom:1px solid #ebe8df;">
-      <div><div style="font-size:.64rem;text-transform:uppercase;color:#888;margin-bottom:3px;">Origin</div>
-        <div style="font-size:1.05rem;font-weight:800;color:#0d1f35;">${s.origin}</div></div>
-      <div style="font-size:1.5rem;color:#e8820c;"><i class="fa-solid fa-arrow-right"></i></div>
-      <div style="text-align:right;"><div style="font-size:.64rem;text-transform:uppercase;color:#888;margin-bottom:3px;">Destination</div>
-        <div style="font-size:1.05rem;font-weight:800;color:#0d1f35;">${s.dest}</div></div></div>
-    <div style="padding:20px 36px;border-bottom:1px solid #ebe8df;">
-      <div style="font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#e8820c;margin-bottom:14px;padding-bottom:6px;border-bottom:2px solid #e8820c;">Shipment Progress</div>
-      <div style="display:flex;align-items:flex-start;">${stepsHTML}</div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;">
-      <div style="padding:22px 26px;border-right:1px solid #ebe8df;border-bottom:1px solid #ebe8df;">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;color:#e8820c;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #e8820c;">Sender</div>
-        <div style="font-size:.87rem;display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Name</span><strong>${s.sName||'—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Phone</span><strong>${s.sPhone||'—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Origin</span><strong>${s.origin}</strong></div></div></div>
-      <div style="padding:22px 26px;border-bottom:1px solid #ebe8df;">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;color:#e8820c;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #e8820c;">Recipient</div>
-        <div style="font-size:.87rem;display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Name</span><strong>${s.rName}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Phone</span><strong>${s.rPhone||'—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Destination</span><strong>${s.dest}</strong></div></div></div>
-      <div style="padding:22px 26px;border-right:1px solid #ebe8df;">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;color:#e8820c;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #e8820c;">Package</div>
-        <div style="font-size:.87rem;display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Service</span><strong>${s.service}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Weight</span><strong>${s.weight?s.weight+' kg':'—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Value</span><strong>${s.value?'$'+parseFloat(s.value).toFixed(2):'—'}</strong></div></div></div>
-      <div style="padding:22px 26px;">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;color:#e8820c;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #e8820c;">Delivery</div>
-        <div style="font-size:.87rem;display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Est. Delivery</span><strong>${s.eta||'—'}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Location</span><strong>${s.location||s.origin}</strong></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:#888;">Issued</span><strong>${date}</strong></div></div></div></div>
-    <div style="background:#0d1f35;padding:20px 36px;display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-size:.74rem;color:#7a9ab8;">Total Shipping Cost</div>
-      <div style="font-size:2rem;font-weight:800;color:#e8820c;">${s.cost?'$'+parseFloat(s.cost).toFixed(2):'Contact Us'}</div></div>
-    ${s.notes?`<div style="padding:14px 36px;background:#fffbf5;border-top:2px solid #e8820c;font-size:.87rem;color:#5a6a7a;"><strong>Notes:</strong> ${s.notes}</div>`:''}
-    <div style="padding:16px 36px;display:flex;align-items:center;justify-content:space-between;background:white;border-top:1px solid #ebe8df;">
-      <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" style="opacity:0.85;">
-        <circle cx="45" cy="45" r="42" fill="none" stroke="#27ae60" stroke-width="2.5"/>
-        <circle cx="45" cy="45" r="35" fill="none" stroke="#27ae60" stroke-width="1"/>
-        <text x="45" y="30" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="2">ZIPCARGO</text>
-        <text x="45" y="44" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#27ae60">OFFICIAL</text>
-        <text x="45" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="1">RECEIPT</text>
-        <text x="45" y="69" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#27ae60">&#10022; VERIFIED &#10022;</text>
-      </svg>
-      <div style="text-align:center;flex:1;">
-        <div style="font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Document verified by</div>
-        <div style="font-size:.85rem;font-weight:700;color:#0d1f35;">ZipCargo Logistics</div>
-        <div style="font-size:.72rem;color:#aaa;margin-top:2px;">${s.tracking}</div>
-      </div>
-      <div style="text-align:right;font-size:.68rem;color:#ccc;line-height:1.8;">
-        Official ZipCargo receipt.<br/>Please retain for your records.
-      </div>
-    </div>
-    <div style="background:#f9f8f5;padding:20px 36px;text-align:center;border-top:1px solid #ebe8df;font-size:.79rem;color:#7a8a9a;line-height:2.2;">
-      <strong style="color:#0d1f35;">ZipCargo Logistics</strong><br/>info@zipcargo.com &bull; www.zipcargo.com<br/>
-      <em>Ship Smarter. Deliver Faster.</em></div>`;
+  var steps = ['Pending','In Transit','Out for Delivery','Delivered'];
+  var stepLabels = ['Order Placed','In Transit','Out for Delivery','Delivered'];
+  var stepIcons  = ['fa-file-circle-check','fa-plane-up','fa-truck-fast','fa-house-circle-check'];
+  var curIdx = s.status === 'On Hold' ? -1 : steps.indexOf(s.status);
+
+  var stepsHTML = '';
+  for (var i = 0; i < steps.length; i++) {
+    var done   = curIdx >= 0 && i <= curIdx;
+    var active = i === curIdx;
+    var lineW  = (curIdx >= 0 && i < curIdx) ? '100%' : '0%';
+    var lineHTML = '';
+    if (i < steps.length - 1) {
+      lineHTML = '<div style="position:absolute;top:20px;left:50%;width:100%;height:3px;background:#e5e7eb;z-index:0;">'
+               + '<div style="height:100%;width:'+lineW+';background:linear-gradient(90deg,#27ae60,#10b981);"></div></div>';
+    }
+    var bg = done ? (active ? 'linear-gradient(135deg,#e8820c,#f59e0b)' : 'linear-gradient(135deg,#27ae60,#10b981)') : '#f1f5f9';
+    var ic = done ? 'white' : '#cbd5e1';
+    var ring = active ? 'outline:3px solid rgba(232,130,12,.3);outline-offset:3px;' : '';
+    stepsHTML += '<div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;z-index:1;">'
+              + lineHTML
+              + '<div style="width:42px;height:42px;border-radius:50%;z-index:1;background:'+bg+';display:flex;align-items:center;justify-content:center;'+ring+'">'
+              + '<i class="fa-solid '+stepIcons[i]+'" style="font-size:15px;color:'+ic+';"></i></div>'
+              + '<div style="font-size:.6rem;text-align:center;margin-top:8px;line-height:1.35;max-width:66px;color:'+(active?'#0d1f35':(done?'#374151':'#94a3b8'))+';font-weight:'+(active?'700':(done?'600':'400'))+';">'+stepLabels[i]+'</div>'
+              + '</div>';
+  }
+
+  var date = s.date || new Date(s.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+  function fmt(v) { return v ? parseFloat(v).toLocaleString() : '—'; }
+
+  function row(label, val) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f8fafc;">'
+         + '<span style="font-size:.8rem;color:#64748b;font-weight:500;">'+label+'</span>'
+         + '<strong style="font-size:.85rem;color:#0d1f35;text-align:right;max-width:55%;">'+( val||'—')+'</strong>'
+         + '</div>';
+  }
+
+  function section(title, icon, content) {
+    return '<div style="padding:20px 28px;border-bottom:1px solid #f1f5f9;">'
+         + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
+         + '<div style="width:30px;height:30px;border-radius:8px;background:#fff7ed;display:flex;align-items:center;justify-content:center;">'
+         + '<i class="fa-solid '+icon+'" style="color:#e8820c;font-size:.85rem;"></i></div>'
+         + '<div style="font-size:.65rem;font-weight:700;color:#0d1f35;text-transform:uppercase;letter-spacing:.8px;">'+title+'</div>'
+         + '</div>' + content + '</div>';
+  }
+
+  var receiptNumber = 'ZCR-' + new Date().getFullYear() + '-' + s.tracking.replace(/[^A-Z0-9]/g,'').slice(-6);
+
+  document.getElementById('receiptContent').innerHTML =
+    '<div style="background:white;border-radius:18px;overflow:hidden;border:1px solid #f1f5f9;font-family:\'Outfit\',sans-serif;">'
+
+    // colour accent bar
+    + '<div style="height:5px;background:linear-gradient(90deg,'+sc.bar+','+sc.bar+'99);"></div>'
+
+    // header
+    + '<div style="background:linear-gradient(135deg,#0a1628 0%,#0d1f35 60%,#1a3a5c 100%);padding:28px 32px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">'
+    + '<div>'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'
+    + '<div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#e8820c,#f59e0b);display:flex;align-items:center;justify-content:center;">'
+    + '<i class="fa-solid fa-bolt" style="color:white;font-size:1rem;"></i></div>'
+    + '<div style="font-size:1.6rem;font-weight:900;color:white;letter-spacing:-1px;">ZipCargo</div>'
+    + '</div>'
+    + '<div style="font-size:.72rem;color:#4a6a88;">Global Logistics Solutions</div>'
+    + '</div>'
+    + '<div style="text-align:right;">'
+    + '<div style="font-size:.55rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#e8820c;margin-bottom:6px;">Official Receipt</div>'
+    + '<div style="font-size:.65rem;color:#4a6a88;margin-bottom:4px;">Receipt No: <span style="color:#7a9ab8;font-weight:600;">'+receiptNumber+'</span></div>'
+    + '<div style="font-size:1.1rem;font-weight:800;color:white;letter-spacing:1.5px;font-family:monospace;">'+s.tracking+'</div>'
+    + '<div style="font-size:.7rem;color:#4a6a88;margin-top:6px;"><i class="fa-regular fa-calendar-days" style="font-size:9px;"></i> Issued: '+date+'</div>'
+    + '<div style="margin-top:12px;">'
+    + '<span style="background:'+sc.bg+';color:'+sc.color+';padding:6px 14px;border-radius:20px;font-size:.72rem;font-weight:700;">'
+    + s.status+'</span></div>'
+    + '</div></div></div>'
+
+    // route bar
+    + '<div style="padding:18px 32px;background:#f8fafc;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;gap:12px;">'
+    + '<div style="flex:1;">'
+    + '<div style="font-size:.58rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;font-weight:600;">Origin</div>'
+    + '<div style="display:flex;align-items:center;gap:7px;">'
+    + '<div style="width:28px;height:28px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+    + '<i class="fa-solid fa-warehouse" style="color:#16a34a;font-size:11px;"></i></div>'
+    + '<div style="font-size:.95rem;font-weight:800;color:#0d1f35;">'+s.origin+'</div></div></div>'
+    + '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">'
+    + '<div style="width:32px;height:2px;background:linear-gradient(90deg,#e2e8f0,#e8820c,#e2e8f0);border-radius:2px;"></div>'
+    + '<i class="fa-solid fa-angles-right" style="color:#e8820c;font-size:.8rem;"></i>'
+    + '<div style="font-size:.5rem;color:#cbd5e1;font-weight:600;letter-spacing:.5px;">ROUTE</div>'
+    + '</div>'
+    + '<div style="flex:1;text-align:right;">'
+    + '<div style="font-size:.58rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;font-weight:600;">Destination</div>'
+    + '<div style="display:flex;align-items:center;justify-content:flex-end;gap:7px;">'
+    + '<div style="font-size:.95rem;font-weight:800;color:#0d1f35;">'+s.dest+'</div>'
+    + '<div style="width:28px;height:28px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+    + '<i class="fa-solid fa-flag-checkered" style="color:#ef4444;font-size:11px;"></i></div>'
+    + '</div></div></div>'
+
+    // progress
+    + '<div style="padding:22px 32px;border-bottom:1px solid #f1f5f9;background:white;">'
+    + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:18px;font-weight:600;display:flex;align-items:center;gap:6px;">'
+    + '<i class="fa-solid fa-route" style="color:#e8820c;font-size:10px;"></i> Shipment Progress</div>'
+    + '<div style="display:flex;align-items:flex-start;">'+stepsHTML+'</div>'
+    + (s.status==='On Hold'?'<div style="margin-top:14px;background:#fee2e2;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:.8rem;color:#991b1b;font-weight:600;"><i class="fa-solid fa-triangle-exclamation"></i> Shipment on hold — please contact support.</div>':'')
+    + '</div>'
+
+    // sender + recipient
+    + '<div style="display:flex;flex-wrap:wrap;border-bottom:1px solid #f1f5f9;">'
+    + '<div style="flex:1;min-width:200px;padding:20px 28px;border-right:1px solid #f8fafc;">'
+    + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">'
+    + '<div style="width:28px;height:28px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user-tie" style="color:#3b82f6;font-size:.8rem;"></i></div>'
+    + '<div style="font-size:.6rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;">Sender</div>'
+    + '</div>'
+    + row('Name', s.sName)
+    + row('Phone', s.sPhone)
+    + row('Email', s.sEmail)
+    + '</div>'
+    + '<div style="flex:1;min-width:200px;padding:20px 28px;">'
+    + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">'
+    + '<div style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user-check" style="color:#16a34a;font-size:.8rem;"></i></div>'
+    + '<div style="font-size:.6rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;">Recipient</div>'
+    + '</div>'
+    + row('Name', s.rName)
+    + row('Phone', s.rPhone)
+    + row('Email', s.rEmail)
+    + '</div></div>'
+
+    // package + delivery
+    + '<div style="display:flex;flex-wrap:wrap;border-bottom:1px solid #f1f5f9;">'
+    + '<div style="flex:1;min-width:200px;padding:20px 28px;border-right:1px solid #f8fafc;">'
+    + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">'
+    + '<div style="width:28px;height:28px;border-radius:8px;background:#fff7ed;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-box-open" style="color:#e8820c;font-size:.8rem;"></i></div>'
+    + '<div style="font-size:.6rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;">Package</div>'
+    + '</div>'
+    + row('Service', s.service)
+    + row('Weight', s.weight ? fmt(s.weight)+' kg' : null)
+    + row('Declared Value', s.value ? '$'+fmt(s.value) : null)
+    + row('Description', s.desc)
+    + '</div>'
+    + '<div style="flex:1;min-width:200px;padding:20px 28px;">'
+    + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">'
+    + '<div style="width:28px;height:28px;border-radius:8px;background:#fdf4ff;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-calendar-check" style="color:#9333ea;font-size:.8rem;"></i></div>'
+    + '<div style="font-size:.6rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;">Delivery</div>'
+    + '</div>'
+    + row('Est. Delivery', s.eta)
+    + row('Current Location', s.location || s.origin)
+    + row('Status', s.status)
+    + row('Date Issued', date)
+    + '</div></div>'
+
+    // cost bar
+    + '<div style="background:linear-gradient(135deg,#0a1628,#0d1f35);padding:22px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">'
+    + '<div>'
+    + '<div style="font-size:.6rem;color:#4a6a88;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600;">Total Shipping Cost</div>'
+    + '<div style="font-size:.72rem;color:#3a5478;">Inclusive of all applicable fees</div>'
+    + '</div>'
+    + '<div style="font-size:2.2rem;font-weight:900;color:#e8820c;letter-spacing:-1px;">'+(s.cost?'$'+parseFloat(s.cost).toFixed(2):'Contact Us')+'</div>'
+    + '</div>'
+
+    // notes
+    + (s.notes ? '<div style="padding:16px 32px;background:#fffbf5;border-top:none;border-bottom:1px solid #f1f5f9;display:flex;gap:10px;align-items:flex-start;">'
+    + '<i class="fa-solid fa-note-sticky" style="color:#e8820c;margin-top:2px;font-size:.9rem;flex-shrink:0;"></i>'
+    + '<div><div style="font-size:.62rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">Notes</div>'
+    + '<div style="font-size:.85rem;color:#374151;line-height:1.6;">'+s.notes+'</div></div></div>' : '')
+
+    // footer
+    + '<div style="padding:20px 32px;background:white;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;border-top:1px solid #f1f5f9;">'
+    + '<div style="display:flex;align-items:center;gap:10px;">'
+    + '<div style="width:40px;height:40px;border-radius:12px;background:#0d1f35;display:flex;align-items:center;justify-content:center;">'
+    + '<i class="fa-solid fa-bolt" style="color:#e8820c;font-size:1.1rem;"></i></div>'
+    + '<div><div style="font-size:.9rem;font-weight:800;color:#0d1f35;">ZipCargo Logistics</div>'
+    + '<div style="font-size:.7rem;color:#94a3b8;">Ship Smarter. Deliver Faster.</div></div>'
+    + '</div>'
+    + '<div style="text-align:right;">'
+    + '<div style="font-size:.68rem;color:#94a3b8;">Please retain for your records</div>'
+    + '<div style="font-size:.7rem;color:#cbd5e1;margin-top:2px;">'+s.tracking+' &bull; '+receiptNumber+'</div>'
+    + '</div></div>'
+    + '</div>';
 }
 
 // ===== PRINT RECEIPT =====
@@ -454,19 +557,72 @@ async function changePassword() {
   const newP = document.getElementById('newPass').value;
   const conP = document.getElementById('confirmPass').value;
   const msg  = document.getElementById('passMsg');
-  if (newP!==conP) { msg.style.color='#e74c3c'; msg.textContent='Passwords do not match.'; return; }
+  if (newP!==conP) { msg.style.color='#ef4444'; msg.textContent='Passwords do not match.'; return; }
   try {
     await api.post('/api/auth/change-password',{oldPassword:oldP,newPassword:newP});
-    msg.style.color='#27ae60'; msg.textContent='Password updated successfully!';
+    msg.style.color='#16a34a'; msg.textContent='\u2713 Password updated successfully!';
     ['oldPass','newPass','confirmPass'].forEach(id=>document.getElementById(id).value='');
     setTimeout(()=>msg.textContent='',4000);
-  } catch(e) { msg.style.color='#e74c3c'; msg.textContent=e.message; }
+  } catch(e) { msg.style.color='#ef4444'; msg.textContent=e.message; }
+}
+
+// ===== CONTACT INFO SETTINGS =====
+var _contactFields = {
+  phone:   { key:'zc_contact_phone',   inputId:'ciPhoneInput',   valId:'ciPhoneVal',   editId:'ciPhoneEdit'   },
+  email:   { key:'zc_contact_email',   inputId:'ciEmailInput',   valId:'ciEmailVal',   editId:'ciEmailEdit'   },
+  website: { key:'zc_contact_website', inputId:'ciWebsiteInput', valId:'ciWebsiteVal', editId:'ciWebsiteEdit' },
+  hours:   { key:'zc_contact_hours',   inputId:'ciHoursInput',   valId:'ciHoursVal',   editId:'ciHoursEdit'   }
+};
+
+function loadContactSettings() {
+  Object.keys(_contactFields).forEach(function(field) {
+    var cfg = _contactFields[field];
+    var val = localStorage.getItem(cfg.key) || '';
+    var el  = document.getElementById(cfg.valId);
+    if (el && val) el.textContent = val;
+  });
+}
+
+function editContactField(field) {
+  var cfg = _contactFields[field];
+  var input = document.getElementById(cfg.inputId);
+  var editDiv = document.getElementById(cfg.editId);
+  var val = localStorage.getItem(cfg.key) || document.getElementById(cfg.valId).textContent;
+  if (val === 'Not set' || val === '\u2014') val = '';
+  input.value = val;
+  editDiv.style.display = 'block';
+  input.focus();
+}
+
+function cancelContactField(field) {
+  var cfg = _contactFields[field];
+  document.getElementById(cfg.editId).style.display = 'none';
+}
+
+function saveContactField(field) {
+  var cfg   = _contactFields[field];
+  var input = document.getElementById(cfg.inputId);
+  var val   = input.value.trim();
+  var msg   = document.getElementById('settingsMsg');
+  if (!val) { msg.style.color='#ef4444'; msg.textContent='Value cannot be empty.'; setTimeout(function(){msg.textContent='';},3000); return; }
+  localStorage.setItem(cfg.key, val);
+  document.getElementById(cfg.valId).textContent = val;
+  document.getElementById(cfg.editId).style.display = 'none';
+  // Also update live on main page if in same window context
+  var siteEl   = document.getElementById('site'+field.charAt(0).toUpperCase()+field.slice(1));
+  var footerEl = document.getElementById('footer'+field.charAt(0).toUpperCase()+field.slice(1));
+  if (siteEl)   siteEl.textContent   = val;
+  if (footerEl) footerEl.textContent = val;
+  msg.style.color='#16a34a';
+  msg.textContent='\u2713 ' + field.charAt(0).toUpperCase()+field.slice(1) + ' updated on the site!';
+  showToast(field.charAt(0).toUpperCase()+field.slice(1)+' updated successfully!','success');
+  setTimeout(function(){msg.textContent='';},4000);
 }
 
 function saveSettings() {
-  const msg=document.getElementById('settingsMsg');
-  msg.style.color='#27ae60'; msg.textContent='Settings saved!';
-  setTimeout(()=>msg.textContent='',3000);
+  var msg=document.getElementById('settingsMsg');
+  msg.style.color='#16a34a'; msg.textContent='\u2713 Settings saved!';
+  setTimeout(function(){msg.textContent='';},3000);
 }
 
 // ===== BADGE HTML =====
