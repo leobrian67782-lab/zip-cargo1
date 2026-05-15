@@ -270,8 +270,9 @@
   <div class="contact-wrapper">
     <div class="contact-info animate-fade">
       <h3>Contact Details</h3>
-      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-solid fa-envelope"></i></div><div><strong>Email</strong><span>info@zipcargo.com</span></div></div>
-      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-regular fa-clock"></i></div><div><strong>Hours</strong><span>Mon–Fri: 8am – 8pm (GMT)</span></div></div>
+      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-solid fa-phone"></i></div><div><strong>Phone</strong><span id="sitePhone">—</span></div></div>
+      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-solid fa-envelope"></i></div><div><strong>Email</strong><span id="siteEmail">info@zipcargo.com</span></div></div>
+      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-regular fa-clock"></i></div><div><strong>Hours</strong><span id="siteHours">Mon–Fri: 8am – 8pm (GMT)</span></div></div>
       <div class="contact-social">
         <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
         <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
@@ -310,7 +311,7 @@
     </div>
     <div class="footer-links"><h4>Company</h4><a href="#home">Home</a><a href="#services">Our Services</a><a href="#about">About Us</a><a href="#testimonials">Testimonials</a></div>
     <div class="footer-links"><h4>Services</h4><a href="#services">Air Freight</a><a href="#services">Sea Freight</a><a href="#services">Road Transport</a><a href="#services">Warehousing</a><a href="#services">Customs Clearance</a></div>
-    <div class="footer-contact"><h4>Contact Us</h4><p><i class="fa-solid fa-envelope"></i> info@zipcargo.com</p><p style="margin-top:16px;"><i class="fa-regular fa-clock"></i> Mon–Fri: 8am – 8pm GMT</p></div>
+    <div class="footer-contact"><h4>Contact Us</h4><p><i class="fa-solid fa-phone"></i> <span id="footerPhone"></span></p><p style="margin-top:10px;"><i class="fa-solid fa-envelope"></i> <span id="footerEmail">info@zipcargo.com</span></p><p style="margin-top:10px;"><i class="fa-regular fa-clock"></i> <span id="footerHours">Mon–Fri: 8am – 8pm GMT</span></p></div>
   </div>
   <div class="footer-bottom">
     <p>&copy; 2026 ZipCargo Logistics. All rights reserved.</p>
@@ -332,8 +333,8 @@
       <h2>Admin Portal</h2>
       <p>Sign in to access the dashboard</p>
       <div class="login-form">
-        <input type="text" id="loginUser" placeholder="Username"/>
-        <input type="password" id="loginPass" placeholder="Password"/>
+        <div class="input-wrap"><i class="fa-solid fa-user"></i><input type="text" id="loginUser" placeholder="Username"/></div>
+        <div class="input-wrap"><i class="fa-solid fa-lock"></i><input type="password" id="loginPass" placeholder="Password"/></div>
         <button onclick="adminLogin()">Sign In</button>
         <div id="loginError" class="login-error"></div>
       </div>
@@ -344,7 +345,10 @@
   <div class="admin-panel" id="adminPanel" style="display:none;">
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar-logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon"><i class="fa-solid fa-bolt"></i></div>
+        <span class="sidebar-logo-text">ZipCargo</span>
+      </div>
       <nav class="sidebar-nav">
         <a href="#" class="nav-item active" onclick="showSection('dashboard',this)"><i class="fa-solid fa-gauge nav-icon"></i> Dashboard</a>
         <a href="#" class="nav-item" onclick="showSection('shipments',this)"><i class="fa-solid fa-boxes-stacked nav-icon"></i> Shipments</a>
@@ -374,14 +378,14 @@
 
       <section class="section active" id="sec-dashboard">
         <div class="stats-grid">
-          <div class="stat-card blue"><div class="stat-icon"><i class="fa-solid fa-boxes-stacked"></i></div><div class="stat-info"><h3 id="totalShipments">0</h3><p>Total Shipments</p></div></div>
-          <div class="stat-card green"><div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div><div class="stat-info"><h3 id="deliveredCount">0</h3><p>Delivered</p></div></div>
-          <div class="stat-card orange"><div class="stat-icon"><i class="fa-solid fa-truck-moving"></i></div><div class="stat-info"><h3 id="transitCount">0</h3><p>In Transit</p></div></div>
-          <div class="stat-card red"><div class="stat-icon"><i class="fa-solid fa-comments"></i></div><div class="stat-info"><h3 id="inquiryCount">0</h3><p>Inquiries</p></div></div>
+          <div class="stat-card blue"><div class="stat-icon-wrap"><i class="fa-solid fa-boxes-stacked"></i></div><div class="stat-info"><h3 id="totalShipments">0</h3><p>Total Shipments</p></div></div>
+          <div class="stat-card green"><div class="stat-icon-wrap"><i class="fa-solid fa-circle-check"></i></div><div class="stat-info"><h3 id="deliveredCount">0</h3><p>Delivered</p></div></div>
+          <div class="stat-card orange"><div class="stat-icon-wrap"><i class="fa-solid fa-truck-fast"></i></div><div class="stat-info"><h3 id="transitCount">0</h3><p>In Transit</p></div></div>
+          <div class="stat-card red"><div class="stat-icon-wrap"><i class="fa-solid fa-comments"></i></div><div class="stat-info"><h3 id="inquiryCount">0</h3><p>Inquiries</p></div></div>
         </div>
         <div class="dashboard-grid">
-          <div class="dash-card"><h3>Recent Shipments</h3><table class="mini-table"><thead><tr><th>Tracking #</th><th>Recipient</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentShipmentsBody"><tr><td colspan="4" class="empty-msg">No shipments yet</td></tr></tbody></table></div>
-          <div class="dash-card"><h3>Quick Actions</h3><div class="quick-actions">
+          <div class="dash-card"><h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Shipments</h3><table class="mini-table"><thead><tr><th>Tracking #</th><th>Recipient</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentShipmentsBody"><tr><td colspan="4" class="empty-msg">No shipments yet</td></tr></tbody></table></div>
+          <div class="dash-card"><h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3><div class="quick-actions">
             <button class="qa-btn" onclick="showSection('create',null)"><i class="fa-solid fa-plus"></i> New Shipment</button>
             <button class="qa-btn" onclick="showSection('shipments',null)"><i class="fa-solid fa-boxes-stacked"></i> View All Shipments</button>
             <button class="qa-btn" onclick="showSection('receipts',null)"><i class="fa-solid fa-receipt"></i> Generate Receipt</button>
@@ -474,31 +478,126 @@
       </section>
 
       <section class="section" id="sec-settings">
-        <div class="form-card">
-          <h3>Change Admin Password</h3>
-          <div class="form-grid" style="max-width:500px;">
-            <div class="form-group full-width"><label>Current Password</label><input type="password" id="oldPass" placeholder="Enter current password"/></div>
-            <div class="form-group full-width"><label>New Password</label><input type="password" id="newPass" placeholder="Enter new password (min 8 chars)"/></div>
-            <div class="form-group full-width"><label>Confirm New Password</label><input type="password" id="confirmPass" placeholder="Repeat new password"/></div>
+        <div class="settings-grid">
+
+          <!-- Password Card -->
+          <div class="setting-section">
+            <h3><i class="fa-solid fa-lock"></i> Security</h3>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Current Password</label>
+              <input type="password" id="oldPass" placeholder="Enter current password"/>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>New Password</label>
+              <input type="password" id="newPass" placeholder="Minimum 8 characters"/>
+            </div>
+            <div class="form-group" style="margin-bottom:20px;">
+              <label>Confirm New Password</label>
+              <input type="password" id="confirmPass" placeholder="Repeat new password"/>
+            </div>
+            <button class="btn-save" onclick="changePassword()"><i class="fa-solid fa-lock"></i> Update Password</button>
+            <div id="passMsg" class="create-msg" style="margin-top:12px;"></div>
           </div>
-          <button class="btn-save" onclick="changePassword()"><i class="fa-solid fa-lock"></i> Update Password</button>
-          <div id="passMsg" class="create-msg" style="margin-top:14px;"></div>
-        </div>
-        <div class="form-card" style="margin-top:24px;">
-          <h3>Company Information</h3>
-          <div class="form-grid">
-            <div class="form-group"><label>Company Name</label><input type="text" value="ZipCargo Logistics" id="companyName"/></div>
-            <div class="form-group"><label>Email</label><input type="text" value="info@zipcargo.com" id="companyEmail"/></div>
-            <div class="form-group"><label>Website</label><input type="text" value="www.zipcargo.com" id="companyWebsite"/></div>
+
+          <!-- Contact Info Card -->
+          <div class="setting-section">
+            <h3><i class="fa-solid fa-address-card"></i> Contact Information</h3>
+            <p style="font-size:.8rem;color:#94a3b8;margin-bottom:18px;">These details appear live on your website. Click Edit to update any field.</p>
+
+            <div class="contact-info-item" id="ciPhone">
+              <div class="contact-info-icon"><i class="fa-solid fa-phone"></i></div>
+              <div class="contact-info-details">
+                <div class="contact-info-label">Phone Number</div>
+                <div class="contact-info-value" id="ciPhoneVal">Not set</div>
+              </div>
+              <button class="contact-edit-btn" onclick="editContactField('phone')"><i class="fa-solid fa-pen"></i> Edit</button>
+            </div>
+            <div id="ciPhoneEdit" style="display:none;margin-bottom:12px;">
+              <div class="contact-edit-row">
+                <input type="text" id="ciPhoneInput" placeholder="+1 000 000 0000"/>
+                <button class="save-inline" onclick="saveContactField('phone')"><i class="fa-solid fa-check"></i> Save</button>
+                <button class="cancel-inline" onclick="cancelContactField('phone')">✕</button>
+              </div>
+            </div>
+
+            <div class="contact-info-item" id="ciEmail">
+              <div class="contact-info-icon"><i class="fa-solid fa-envelope"></i></div>
+              <div class="contact-info-details">
+                <div class="contact-info-label">Email Address</div>
+                <div class="contact-info-value" id="ciEmailVal">info@zipcargo.com</div>
+              </div>
+              <button class="contact-edit-btn" onclick="editContactField('email')"><i class="fa-solid fa-pen"></i> Edit</button>
+            </div>
+            <div id="ciEmailEdit" style="display:none;margin-bottom:12px;">
+              <div class="contact-edit-row">
+                <input type="email" id="ciEmailInput" placeholder="info@zipcargo.com"/>
+                <button class="save-inline" onclick="saveContactField('email')"><i class="fa-solid fa-check"></i> Save</button>
+                <button class="cancel-inline" onclick="cancelContactField('email')">✕</button>
+              </div>
+            </div>
+
+            <div class="contact-info-item" id="ciWebsite">
+              <div class="contact-info-icon"><i class="fa-solid fa-globe"></i></div>
+              <div class="contact-info-details">
+                <div class="contact-info-label">Website</div>
+                <div class="contact-info-value" id="ciWebsiteVal">www.zipcargo.com</div>
+              </div>
+              <button class="contact-edit-btn" onclick="editContactField('website')"><i class="fa-solid fa-pen"></i> Edit</button>
+            </div>
+            <div id="ciWebsiteEdit" style="display:none;margin-bottom:12px;">
+              <div class="contact-edit-row">
+                <input type="text" id="ciWebsiteInput" placeholder="www.zipcargo.com"/>
+                <button class="save-inline" onclick="saveContactField('website')"><i class="fa-solid fa-check"></i> Save</button>
+                <button class="cancel-inline" onclick="cancelContactField('website')">✕</button>
+              </div>
+            </div>
+
+            <div class="contact-info-item" id="ciHours">
+              <div class="contact-info-icon"><i class="fa-regular fa-clock"></i></div>
+              <div class="contact-info-details">
+                <div class="contact-info-label">Business Hours</div>
+                <div class="contact-info-value" id="ciHoursVal">Mon–Fri: 8am – 8pm (GMT)</div>
+              </div>
+              <button class="contact-edit-btn" onclick="editContactField('hours')"><i class="fa-solid fa-pen"></i> Edit</button>
+            </div>
+            <div id="ciHoursEdit" style="display:none;margin-bottom:12px;">
+              <div class="contact-edit-row">
+                <input type="text" id="ciHoursInput" placeholder="Mon–Fri: 8am – 8pm (GMT)"/>
+                <button class="save-inline" onclick="saveContactField('hours')"><i class="fa-solid fa-check"></i> Save</button>
+                <button class="cancel-inline" onclick="cancelContactField('hours')">✕</button>
+              </div>
+            </div>
+            <div id="settingsMsg" class="create-msg" style="margin-top:4px;"></div>
           </div>
-          <button class="btn-save" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
-          <div id="settingsMsg" class="create-msg" style="margin-top:14px;"></div>
+
         </div>
       </section>
     </main>
   </div>
 </div>
 
+
+<script>
+// Load dynamic contact info from localStorage (set by admin)
+(function loadContactInfo() {
+  var phone   = localStorage.getItem('zc_contact_phone')   || '';
+  var email   = localStorage.getItem('zc_contact_email')   || 'info@zipcargo.com';
+  var hours   = localStorage.getItem('zc_contact_hours')   || 'Mon–Fri: 8am – 8pm (GMT)';
+  var website = localStorage.getItem('zc_contact_website') || 'www.zipcargo.com';
+  var sPhone = document.getElementById('sitePhone');
+  var sEmail = document.getElementById('siteEmail');
+  var sHours = document.getElementById('siteHours');
+  var fPhone = document.getElementById('footerPhone');
+  var fEmail = document.getElementById('footerEmail');
+  var fHours = document.getElementById('footerHours');
+  if (sPhone) sPhone.textContent = phone || '—';
+  if (sEmail) sEmail.textContent = email;
+  if (sHours) sHours.textContent = hours;
+  if (fPhone) { fPhone.textContent = phone; if(!phone) fPhone.parentElement.style.display='none'; }
+  if (fEmail) fEmail.textContent = email;
+  if (fHours) fHours.textContent = hours;
+})();
+</script>
 <script src="script.js"></script>
 <script src="admin.js"></script>
 <script>
