@@ -200,47 +200,76 @@ async function trackShipment() {
 }
 
 function renderTrackingResult(s, result) {
-  var statusMap = {
-    'Pending':          { bg:'#fff3cd', color:'#856404', icon:'fa-clock',               bar:'#f0c040' },
-    'In Transit':       { bg:'#dbeafe', color:'#1e40af', icon:'fa-plane',               bar:'#3b82f6' },
-    'Out for Delivery': { bg:'#dcfce7', color:'#166534', icon:'fa-truck',               bar:'#22c55e' },
-    'Delivered':        { bg:'#dcfce7', color:'#166534', icon:'fa-circle-check',        bar:'#16a34a' },
-    'On Hold':          { bg:'#fee2e2', color:'#991b1b', icon:'fa-triangle-exclamation',bar:'#ef4444' }
-  };
-  var sc = statusMap[s.status] || { bg:'#fff3cd', color:'#856404', icon:'fa-clock', bar:'#f0c040' };
 
-  // Progress steps
-  var steps      = ['Pending','In Transit','Out for Delivery','Delivered'];
-  var stepLabels = ['Order Placed','In Transit','Out for Delivery','Delivered'];
-  var stepIcons  = ['fa-box-open','fa-plane-departure','fa-truck','fa-circle-check'];
+  // ── Inject animations once ────────────────────────────────────────────────
+  if (!document.getElementById('zcTrackStyles')) {
+    var st = document.createElement('style');
+    st.id = 'zcTrackStyles';
+    st.textContent = [
+      '@keyframes zcFadeUp   { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }',
+      '@keyframes zcSlideIn  { from { opacity:0; transform:translateX(-18px); } to { opacity:1; transform:translateX(0); } }',
+      '@keyframes zcPop      { 0%{transform:scale(.7);opacity:0} 70%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }',
+      '@keyframes zcPulse    { 0%,100%{box-shadow:0 0 0 0 rgba(232,130,12,.45)} 50%{box-shadow:0 0 0 8px rgba(232,130,12,0)} }',
+      '@keyframes zcBarFill  { from{width:0} to{width:var(--w)} }',
+      '@keyframes zcTruckRun { 0%{transform:translateX(-6px)} 50%{transform:translateX(4px)} 100%{transform:translateX(-6px)} }',
+      '@keyframes zcPlaneFly { 0%{transform:translateX(-4px) translateY(2px)} 50%{transform:translateX(4px) translateY(-2px)} 100%{transform:translateX(-4px) translateY(2px)} }',
+      '@keyframes zcBlink    { 0%,100%{opacity:1} 50%{opacity:.35} }',
+      '@keyframes zcRowIn    { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }',
+      '.zc-fadein  { animation: zcFadeUp  .5s ease both; }',
+      '.zc-slidein { animation: zcSlideIn .4s ease both; }',
+      '.zc-pop     { animation: zcPop     .45s cubic-bezier(.34,1.56,.64,1) both; }',
+    ].join('');
+    document.head.appendChild(st);
+  }
+
+  // ── Status config ─────────────────────────────────────────────────────────
+  var statusMap = {
+    'Pending':          { bg:'#fff8e1', color:'#92610a', icon:'fa-hourglass-half',          bar:'#f59e0b', pulse:false },
+    'In Transit':       { bg:'#e0f2fe', color:'#075985', icon:'fa-paper-plane',             bar:'#0ea5e9', pulse:false },
+    'Out for Delivery': { bg:'#dcfce7', color:'#14532d', icon:'fa-truck-fast',              bar:'#22c55e', pulse:true  },
+    'Delivered':        { bg:'#d1fae5', color:'#065f46', icon:'fa-circle-check',            bar:'#10b981', pulse:false },
+    'On Hold':          { bg:'#fee2e2', color:'#7f1d1d', icon:'fa-hand',                   bar:'#ef4444', pulse:false }
+  };
+  var sc = statusMap[s.status] || { bg:'#fff8e1', color:'#92610a', icon:'fa-hourglass-half', bar:'#f59e0b', pulse:false };
+
+  // ── Step config — realistic logistics icons ───────────────────────────────
+  var steps      = ['Pending', 'In Transit', 'Out for Delivery', 'Delivered'];
+  var stepLabels = ['Order Placed', 'In Transit', 'Out for Delivery', 'Delivered'];
+  var stepIcons  = ['fa-file-circle-check', 'fa-plane-up', 'fa-truck-fast', 'fa-house-circle-check'];
+  var stepAnims  = ['', 'zcPlaneFly', 'zcTruckRun', ''];
   var curIdx     = s.status === 'On Hold' ? -1 : steps.indexOf(s.status);
 
+  // ── Progress steps HTML ───────────────────────────────────────────────────
   var stepsHTML = '';
   for (var i = 0; i < steps.length; i++) {
     var done   = curIdx >= 0 && i <= curIdx;
     var active = i === curIdx;
+    var lineW  = (curIdx >= 0 && i < curIdx) ? '100%' : '0%';
     var lineHTML = '';
     if (i < steps.length - 1) {
-      var lineW = (curIdx >= 0 && i < curIdx) ? '100%' : '0%';
-      lineHTML = '<div style="position:absolute;top:19px;left:50%;width:100%;height:3px;background:#e5e7eb;z-index:0;">'
-               + '<div style="height:100%;width:' + lineW + ';background:#27ae60;"></div>'
+      lineHTML = '<div style="position:absolute;top:22px;left:50%;width:100%;height:3px;background:#e5e7eb;z-index:0;">'
+               + '<div style="height:100%;width:' + lineW + ';background:linear-gradient(90deg,#27ae60,#10b981);border-radius:2px;transition:width .8s ease;"></div>'
                + '</div>';
     }
-    var circleBg  = done ? (active ? '#e8820c' : '#27ae60') : '#e5e7eb';
-    var iconColor = done ? 'white' : '#aaa';
-    var shadow    = active ? '0 0 0 4px rgba(232,130,12,.25)' : '0 2px 6px rgba(0,0,0,.1)';
-    var labelColor  = active ? '#0d1f35' : '#9ca3af';
-    var labelWeight = active ? '700' : '500';
-    stepsHTML += '<div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;z-index:1;">'
+    var outerBg  = done ? (active ? 'linear-gradient(135deg,#e8820c,#f59e0b)' : 'linear-gradient(135deg,#27ae60,#10b981)') : '#f1f5f9';
+    var iconCol  = done ? 'white' : '#cbd5e1';
+    var ringStyle = active ? 'outline:3px solid rgba(232,130,12,.3);outline-offset:3px;' : '';
+    var animStyle = (active && stepAnims[i]) ? 'animation:' + stepAnims[i] + ' 1.6s ease-in-out infinite;' : '';
+    var pulseStyle = active ? 'animation:zcPulse 1.8s ease-in-out infinite;' : '';
+    var delay = 'animation-delay:' + (i * 0.1) + 's;';
+    stepsHTML += '<div class="zc-pop" style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;z-index:1;' + delay + '">'
               + lineHTML
-              + '<div style="width:38px;height:38px;border-radius:50%;z-index:1;background:' + circleBg + ';display:flex;align-items:center;justify-content:center;box-shadow:' + shadow + ';">'
-              + '<i class="fa-solid ' + stepIcons[i] + '" style="font-size:14px;color:' + iconColor + ';"></i>'
+              + '<div style="width:44px;height:44px;border-radius:50%;z-index:1;background:' + outerBg + ';display:flex;align-items:center;justify-content:center;' + ringStyle + pulseStyle + '">'
+              + '<i class="fa-solid ' + stepIcons[i] + '" style="font-size:16px;color:' + iconCol + ';' + animStyle + '"></i>'
               + '</div>'
-              + '<div style="font-size:.62rem;text-align:center;margin-top:8px;line-height:1.35;max-width:68px;color:' + labelColor + ';font-weight:' + labelWeight + ';">' + stepLabels[i] + '</div>'
+              + '<div style="font-size:.6rem;text-align:center;margin-top:9px;line-height:1.4;max-width:66px;'
+              + 'color:' + (active ? '#0d1f35' : (done ? '#374151' : '#94a3b8')) + ';'
+              + 'font-weight:' + (active ? '700' : (done ? '600' : '400')) + ';">'
+              + stepLabels[i] + '</div>'
               + '</div>';
   }
 
-  // Deduplicate timeline
+  // ── Timeline ──────────────────────────────────────────────────────────────
   var rawTimeline = s.timeline || [];
   var dedupedTimeline = rawTimeline.filter(function(t, i) {
     if (i === 0) return true;
@@ -248,165 +277,215 @@ function renderTrackingResult(s, result) {
     return !(t.status === prev.status && Math.abs(new Date(t.timestamp) - new Date(prev.timestamp)) < 60000);
   });
 
-  // Build timeline HTML
-  var statusDotMap = {
-    'Pending':          { dot:'#f59e0b', icon:'fa-clock' },
-    'In Transit':       { dot:'#3b82f6', icon:'fa-plane' },
-    'Out for Delivery': { dot:'#22c55e', icon:'fa-truck' },
-    'Delivered':        { dot:'#16a34a', icon:'fa-circle-check' },
-    'On Hold':          { dot:'#ef4444', icon:'fa-triangle-exclamation' }
+  var tlIconMap = {
+    'Pending':          { dot:'#f59e0b', icon:'fa-hourglass-half',    label:'Order received and pending dispatch' },
+    'In Transit':       { dot:'#0ea5e9', icon:'fa-paper-plane',        label:'Shipment picked up and in transit'   },
+    'Out for Delivery': { dot:'#22c55e', icon:'fa-truck-fast',         label:'Out for final delivery'              },
+    'Delivered':        { dot:'#10b981', icon:'fa-house-circle-check', label:'Successfully delivered'              },
+    'On Hold':          { dot:'#ef4444', icon:'fa-hand',               label:'Shipment placed on hold'             }
   };
+
   var reversed = dedupedTimeline.slice().reverse();
-  var tlItems = '';
+  var tlItems  = '';
   for (var j = 0; j < reversed.length; j++) {
-    var t = reversed[j];
-    var tsc = statusDotMap[t.status] || { dot:'#e8820c', icon:'fa-circle-dot' };
+    var t       = reversed[j];
+    var tsc     = tlIconMap[t.status] || { dot:'#e8820c', icon:'fa-circle-dot', label:'' };
     var isFirst = j === 0;
     var isLast  = j === reversed.length - 1;
-    var dotBg   = isFirst ? tsc.dot + '22' : '#f3f4f6';
-    var dotBorder = isFirst ? tsc.dot : '#e5e7eb';
-    var dotIconColor = isFirst ? tsc.dot : '#9ca3af';
-    var textColor = isFirst ? '#0d1f35' : '#374151';
-    var connector = isLast ? '' : '<div style="width:2px;flex:1;min-height:16px;background:#e5e7eb;margin:3px 0;"></div>';
-    var locHTML  = t.location ? '<div style="font-size:.75rem;color:#6b7280;margin-top:2px;"><i class="fa-solid fa-location-dot" style="font-size:10px;color:#e8820c;"></i> ' + t.location + '</div>' : '';
-    var noteHTML = t.note    ? '<div style="font-size:.73rem;color:#9ca3af;margin-top:3px;font-style:italic;">' + t.note + '</div>' : '';
-    var dateStr  = new Date(t.timestamp).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
-    tlItems += '<div style="display:flex;gap:14px;align-items:flex-start;">'
-             + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">'
-             + '<div style="width:34px;height:34px;border-radius:50%;background:' + dotBg + ';border:2px solid ' + dotBorder + ';display:flex;align-items:center;justify-content:center;">'
-             + '<i class="fa-solid ' + tsc.icon + '" style="font-size:12px;color:' + dotIconColor + ';"></i>'
+    var dotBg      = isFirst ? tsc.dot : '#f8fafc';
+    var dotBorder  = isFirst ? tsc.dot : '#e2e8f0';
+    var dotIconCol = isFirst ? 'white'  : '#94a3b8';
+    var textCol    = isFirst ? '#0d1f35' : '#475569';
+    var connector  = isLast ? '' : '<div style="width:2px;min-height:20px;background:linear-gradient(to bottom,#e2e8f0,#f1f5f9);margin:2px 0;flex:1;"></div>';
+    var locHTML    = t.location ? '<div style="font-size:.73rem;color:#64748b;margin-top:3px;display:flex;align-items:center;gap:4px;"><i class="fa-solid fa-location-dot" style="font-size:9px;color:#e8820c;"></i>' + t.location + '</div>' : '';
+    var noteHTML   = t.note     ? '<div style="font-size:.71rem;color:#94a3b8;margin-top:3px;font-style:italic;">' + t.note + '</div>' : '';
+    var dateStr    = new Date(t.timestamp).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+    var timeStr    = new Date(t.timestamp).toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+    var rowDelay   = 'animation-delay:' + (j * 0.08) + 's;';
+    tlItems += '<div class="zc-slidein" style="display:flex;gap:14px;align-items:flex-start;' + rowDelay + '">'
+             + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:36px;">'
+             + '<div style="width:36px;height:36px;border-radius:50%;background:' + dotBg + ';border:2px solid ' + dotBorder + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+             + '<i class="fa-solid ' + tsc.icon + '" style="font-size:13px;color:' + dotIconCol + ';"></i>'
              + '</div>' + connector + '</div>'
-             + '<div style="padding-bottom:' + (isLast ? '0' : '16px') + ';flex:1;">'
+             + '<div style="padding-bottom:' + (isLast ? '0' : '18px') + ';flex:1;min-width:0;">'
              + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:4px;">'
-             + '<div style="font-size:.83rem;font-weight:700;color:' + textColor + ';">' + t.status + '</div>'
-             + '<div style="font-size:.7rem;color:#9ca3af;white-space:nowrap;">' + dateStr + '</div>'
-             + '</div>' + locHTML + noteHTML + '</div></div>';
+             + '<div style="font-size:.84rem;font-weight:700;color:' + textCol + ';">' + t.status + '</div>'
+             + '<div style="font-size:.68rem;color:#94a3b8;text-align:right;">' + dateStr + ' &bull; ' + timeStr + '</div>'
+             + '</div>'
+             + locHTML + noteHTML
+             + '</div></div>';
   }
 
-  // Helpers
+  // ── Helpers ───────────────────────────────────────────────────────────────
   var date = s.date || new Date(s.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
   function fmt(v) { return v ? parseFloat(v).toLocaleString() : '\u2014'; }
 
-  function cell(label, icon, val, noLeftBorder) {
-    var border = noLeftBorder ? '' : 'border-right:1px solid #f0ede8;';
-    return '<div style="flex:1;min-width:130px;padding:14px 16px;' + border + '">'
-         + '<div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">'
-         + '<i class="fa-solid ' + icon + '" style="color:#e8820c;margin-right:4px;font-size:9px;"></i>' + label
+  function cell(label, icon, val, rightSide) {
+    var border = rightSide ? 'border-left:1px solid #f1f5f9;' : '';
+    return '<div style="flex:1;min-width:120px;padding:14px 18px;' + border + '">'
+         + '<div style="display:flex;align-items:center;gap:5px;font-size:.58rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-weight:600;">'
+         + '<i class="fa-solid ' + icon + '" style="color:#e8820c;font-size:11px;"></i>' + label
          + '</div>'
-         + '<div style="font-size:.88rem;font-weight:700;color:#0d1f35;">' + val + '</div>'
+         + '<div style="font-size:.9rem;font-weight:700;color:#0d1f35;">' + val + '</div>'
          + '</div>';
   }
 
-  // On Hold alert
-  var onHoldAlert = s.status === 'On Hold'
-    ? '<div style="margin-top:14px;background:#fee2e2;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:.8rem;color:#991b1b;font-weight:600;"><i class="fa-solid fa-triangle-exclamation"></i> This shipment is currently on hold. Please contact support.</div>'
-    : '';
+  // Contact chips
+  function chip(icon, val) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:3px 10px;font-size:.72rem;color:#475569;margin-top:5px;margin-right:4px;">'
+         + '<i class="fa-solid ' + icon + '" style="color:#e8820c;font-size:9px;"></i>' + val + '</span>';
+  }
+  var sPhoneHTML = s.sPhone ? chip('fa-phone', s.sPhone) : '';
+  var sEmailHTML = s.sEmail ? chip('fa-envelope', s.sEmail) : '';
+  var rPhoneHTML = s.rPhone ? chip('fa-phone', s.rPhone) : '';
+  var rEmailHTML = s.rEmail ? chip('fa-envelope', s.rEmail) : '';
 
-  // Current location strip
-  var locStrip = s.location
-    ? '<div style="padding:10px 22px;background:#fffbf5;border-bottom:1px solid #ebe8df;display:flex;align-items:center;gap:8px;">'
-    + '<i class="fa-solid fa-satellite-dish" style="color:#e8820c;font-size:12px;"></i>'
-    + '<span style="font-size:.78rem;color:#6b7280;">Current location:</span>'
-    + '<span style="font-size:.78rem;font-weight:700;color:#0d1f35;">' + s.location + '</span>'
+  // On Hold banner
+  var onHoldAlert = s.status === 'On Hold'
+    ? '<div style="margin-top:14px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:.82rem;color:#991b1b;font-weight:600;">'
+    + '<div style="width:32px;height:32px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+    + '<i class="fa-solid fa-hand" style="color:#ef4444;"></i></div>'
+    + '<div><div>Shipment on hold</div><div style="font-weight:400;font-size:.76rem;color:#b91c1c;margin-top:2px;">Please contact our support team for assistance.</div></div>'
     + '</div>'
     : '';
 
-  // Sender email/phone extras
-  var sPhoneHTML = s.sPhone ? '<div style="font-size:.75rem;color:#6b7280;margin-top:3px;"><i class="fa-solid fa-phone" style="font-size:9px;color:#e8820c;"></i> ' + s.sPhone + '</div>' : '';
-  var sEmailHTML = s.sEmail ? '<div style="font-size:.72rem;color:#6b7280;margin-top:2px;"><i class="fa-solid fa-envelope" style="font-size:9px;color:#e8820c;"></i> ' + s.sEmail + '</div>' : '';
-  var rPhoneHTML = s.rPhone ? '<div style="font-size:.75rem;color:#6b7280;margin-top:3px;"><i class="fa-solid fa-phone" style="font-size:9px;color:#e8820c;"></i> ' + s.rPhone + '</div>' : '';
-  var rEmailHTML = s.rEmail ? '<div style="font-size:.72rem;color:#6b7280;margin-top:2px;"><i class="fa-solid fa-envelope" style="font-size:9px;color:#e8820c;"></i> ' + s.rEmail + '</div>' : '';
-
+  // Live location strip
+  var locStrip = s.location
+    ? '<div style="padding:11px 22px;background:linear-gradient(90deg,#fffbf0,#fff);border-bottom:1px solid #fde68a;display:flex;align-items:center;gap:10px;">'
+    + '<div style="width:28px;height:28px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:zcBlink 2s ease-in-out infinite;">'
+    + '<i class="fa-solid fa-location-crosshairs" style="color:#d97706;font-size:12px;"></i></div>'
+    + '<div><div style="font-size:.6rem;color:#92400e;font-weight:600;text-transform:uppercase;letter-spacing:.6px;">Live Location</div>'
+    + '<div style="font-size:.82rem;font-weight:700;color:#0d1f35;">' + s.location + '</div></div>'
+    + '</div>'
+    : '';
 
   // Timeline section
   var tlSection = tlItems
-    ? '<div style="padding:18px 22px;border-bottom:1px solid #ebe8df;background:white;">'
-    + '<div style="font-size:.6rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;font-weight:600;">'
-    + '<i class="fa-solid fa-timeline" style="color:#e8820c;margin-right:5px;"></i>Tracking History</div>'
-    + tlItems + '</div>'
+    ? '<div style="padding:20px 22px;border-bottom:1px solid #f1f5f9;background:white;">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">'
+    + '<div style="width:28px;height:28px;border-radius:8px;background:#fff7ed;display:flex;align-items:center;justify-content:center;">'
+    + '<i class="fa-solid fa-list-check" style="color:#e8820c;font-size:13px;"></i></div>'
+    + '<div style="font-size:.7rem;color:#0d1f35;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Tracking History</div>'
+    + '</div>' + tlItems + '</div>'
     : '';
 
   var lastUpdated = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+  var statusPulse = sc.pulse ? 'animation:zcBlink 1.5s ease-in-out infinite;' : '';
 
+  // ── Final render ──────────────────────────────────────────────────────────
   result.className = 'track-result success';
   result.innerHTML =
-    '<div style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.14);font-family:\'Outfit\',sans-serif;max-width:700px;margin:0 auto;">'
+    '<div class="zc-fadein" style="background:white;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(13,31,53,.18);font-family:\'Outfit\',sans-serif;max-width:700px;margin:0 auto;">'
 
-    // colour bar
-    + '<div style="height:4px;background:' + sc.bar + ';"></div>'
+    // gradient top bar
+    + '<div style="height:5px;background:linear-gradient(90deg,' + sc.bar + ',' + sc.bar + '99);"></div>'
 
-    // header
-    + '<div style="background:#0d1f35;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">'
+    // ── HEADER ──
+    + '<div style="background:linear-gradient(135deg,#0d1f35 70%,#1a3a5c);padding:22px 24px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;">'
     + '<div>'
-    + '<div style="font-size:.6rem;color:#7a9ab8;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:5px;">Tracking Number</div>'
-    + '<div style="font-size:1.15rem;font-weight:800;color:white;letter-spacing:1.5px;">' + s.tracking + '</div>'
-    + '<div style="font-size:.72rem;color:#4a6a88;margin-top:4px;"><i class="fa-regular fa-calendar" style="font-size:10px;"></i> Created ' + date + '</div>'
+    + '<div style="font-size:.58rem;color:#4a6a88;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:600;">Tracking Number</div>'
+    + '<div style="font-size:1.2rem;font-weight:800;color:white;letter-spacing:2px;font-family:monospace;">' + s.tracking + '</div>'
+    + '<div style="font-size:.72rem;color:#4a6a88;margin-top:6px;display:flex;align-items:center;gap:5px;">'
+    + '<i class="fa-regular fa-calendar-days" style="font-size:10px;"></i> Created ' + date + '</div>'
     + '</div>'
-    + '<div style="background:' + sc.bg + ';color:' + sc.color + ';padding:9px 18px;border-radius:30px;font-weight:700;font-size:.82rem;display:flex;align-items:center;gap:7px;white-space:nowrap;">'
+    + '<div style="background:' + sc.bg + ';color:' + sc.color + ';padding:10px 18px;border-radius:30px;font-weight:700;font-size:.82rem;display:flex;align-items:center;gap:8px;white-space:nowrap;' + statusPulse + '">'
     + '<i class="fa-solid ' + sc.icon + '"></i> ' + s.status
     + '</div></div>'
 
-    // progress
-    + '<div style="padding:22px 22px 18px;background:#f9f8f5;border-bottom:1px solid #ebe8df;">'
-    + '<div style="font-size:.6rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:18px;font-weight:600;">Shipment Progress</div>'
+    // ── PROGRESS ──
+    + '<div style="padding:24px 22px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;">'
+    + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;font-weight:600;">Shipment Progress</div>'
     + '<div style="display:flex;align-items:flex-start;">' + stepsHTML + '</div>'
     + onHoldAlert
     + '</div>'
 
-    // route
-    + '<div style="padding:18px 22px;border-bottom:1px solid #ebe8df;display:flex;align-items:center;justify-content:space-between;gap:10px;background:white;">'
+    // ── ROUTE ──
+    + '<div class="zc-fadein" style="padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;gap:12px;background:white;animation-delay:.15s;">'
     + '<div style="flex:1;">'
-    + '<div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">Origin</div>'
-    + '<div style="font-size:.95rem;font-weight:700;color:#0d1f35;"><i class="fa-solid fa-circle-dot" style="color:#27ae60;font-size:12px;margin-right:5px;"></i>' + s.origin + '</div>'
-    + '</div>'
-    + '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;">'
-    + '<i class="fa-solid fa-arrow-right" style="color:#e8820c;font-size:1rem;"></i>'
-    + '<div style="font-size:.55rem;color:#d1d5db;font-weight:500;letter-spacing:.5px;">ROUTE</div>'
-    + '</div>'
-    + '<div style="flex:1;text-align:right;">'
-    + '<div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600;">Destination</div>'
-    + '<div style="font-size:.95rem;font-weight:700;color:#0d1f35;">' + s.dest + '<i class="fa-solid fa-location-dot" style="color:#ef4444;font-size:12px;margin-left:5px;"></i></div>'
+    + '<div style="font-size:.57rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-weight:600;">Origin</div>'
+    + '<div style="display:flex;align-items:center;gap:7px;">'
+    + '<div style="width:30px;height:30px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+    + '<i class="fa-solid fa-warehouse" style="color:#16a34a;font-size:12px;"></i></div>'
+    + '<div style="font-size:.92rem;font-weight:700;color:#0d1f35;">' + s.origin + '</div>'
     + '</div></div>'
 
-    // current location strip
+    + '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;">'
+    + '<div style="width:36px;height:2px;background:linear-gradient(90deg,#e2e8f0,#e8820c,#e2e8f0);border-radius:2px;"></div>'
+    + '<i class="fa-solid fa-angles-right" style="color:#e8820c;font-size:.85rem;"></i>'
+    + '<div style="font-size:.52rem;color:#cbd5e1;font-weight:600;letter-spacing:.5px;">ROUTE</div>'
+    + '</div>'
+
+    + '<div style="flex:1;text-align:right;">'
+    + '<div style="font-size:.57rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-weight:600;">Destination</div>'
+    + '<div style="display:flex;align-items:center;justify-content:flex-end;gap:7px;">'
+    + '<div style="font-size:.92rem;font-weight:700;color:#0d1f35;">' + s.dest + '</div>'
+    + '<div style="width:30px;height:30px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+    + '<i class="fa-solid fa-flag-checkered" style="color:#ef4444;font-size:12px;"></i></div>'
+    + '</div></div></div>'
+
+    // live location
     + locStrip
 
-    // sender / recipient
-    + '<div style="display:flex;flex-wrap:wrap;border-bottom:1px solid #ebe8df;">'
-    + '<div style="flex:1;min-width:140px;padding:16px 22px;border-right:1px solid #f0ede8;">'
-    + '<div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;font-weight:600;"><i class="fa-solid fa-user" style="color:#e8820c;font-size:9px;margin-right:4px;"></i>Sender</div>'
-    + '<div style="font-weight:700;color:#0d1f35;font-size:.88rem;">' + (s.sName || '&mdash;') + '</div>'
+    // ── SENDER / RECIPIENT ──
+    + '<div class="zc-fadein" style="display:flex;flex-wrap:wrap;border-bottom:1px solid #f1f5f9;animation-delay:.2s;">'
+    + '<div style="flex:1;min-width:140px;padding:18px 24px;border-right:1px solid #f1f5f9;">'
+    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">'
+    + '<div style="width:26px;height:26px;border-radius:8px;background:#f0f9ff;display:flex;align-items:center;justify-content:center;">'
+    + '<i class="fa-solid fa-user-tie" style="color:#0ea5e9;font-size:11px;"></i></div>'
+    + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;font-weight:600;">Sender</div>'
+    + '</div>'
+    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;">' + (s.sName || '&mdash;') + '</div>'
     + sPhoneHTML + sEmailHTML
     + '</div>'
-    + '<div style="flex:1;min-width:140px;padding:16px 22px;">'
-    + '<div style="font-size:.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;font-weight:600;"><i class="fa-solid fa-user-check" style="color:#e8820c;font-size:9px;margin-right:4px;"></i>Recipient</div>'
-    + '<div style="font-weight:700;color:#0d1f35;font-size:.88rem;">' + (s.rName || '&mdash;') + '</div>'
+    + '<div style="flex:1;min-width:140px;padding:18px 24px;">'
+    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">'
+    + '<div style="width:26px;height:26px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;">'
+    + '<i class="fa-solid fa-user-check" style="color:#16a34a;font-size:11px;"></i></div>'
+    + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;font-weight:600;">Recipient</div>'
+    + '</div>'
+    + '<div style="font-weight:700;color:#0d1f35;font-size:.9rem;">' + (s.rName || '&mdash;') + '</div>'
     + rPhoneHTML + rEmailHTML
     + '</div></div>'
 
-    // shipment details grid
-    + '<div style="border-bottom:1px solid #ebe8df;">'
-    + '<div style="padding:12px 22px 0;font-size:.6rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Shipment Details</div>'
-    + '<div style="display:flex;flex-wrap:wrap;">'
-    + cell('Service',      'fa-box',            s.service || '&mdash;', false)
-    + cell('Est. Delivery','fa-calendar',        s.eta     || '&mdash;', true)
+    // ── SHIPMENT DETAILS ──
+    + '<div class="zc-fadein" style="border-bottom:1px solid #f1f5f9;animation-delay:.25s;">'
+    + '<div style="padding:14px 24px 0;display:flex;align-items:center;gap:7px;">'
+    + '<div style="width:26px;height:26px;border-radius:8px;background:#fff7ed;display:flex;align-items:center;justify-content:center;">'
+    + '<i class="fa-solid fa-box-open" style="color:#e8820c;font-size:11px;"></i></div>'
+    + '<div style="font-size:.6rem;color:#0d1f35;text-transform:uppercase;letter-spacing:.8px;font-weight:700;">Shipment Details</div>'
     + '</div>'
-    + '<div style="display:flex;flex-wrap:wrap;border-top:1px solid #f0ede8;">'
-    + cell('Weight',      'fa-weight-hanging', s.weight ? fmt(s.weight) + ' kg' : '&mdash;', true)
+    + '<div style="display:flex;flex-wrap:wrap;">'
+    + cell('Service',       'fa-shipping-fast', s.service || '&mdash;', false)
+    + cell('Est. Delivery', 'fa-calendar-check', s.eta    || '&mdash;', true)
+    + '</div>'
+    + '<div style="display:flex;flex-wrap:wrap;border-top:1px solid #f1f5f9;">'
+    + cell('Package Weight','fa-scale-balanced', s.weight ? fmt(s.weight) + ' kg' : '&mdash;', false)
+    + cell('Shipment Type', 'fa-tags',           s.service || '&mdash;',                        true)
     + '</div>'
     + '</div>'
 
     // timeline
     + tlSection
 
-    // footer
-    + '<div style="padding:12px 22px;background:#f9f8f5;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
-    + '<div style="display:flex;align-items:center;gap:6px;font-size:.72rem;color:#9ca3af;">'
-    + '<i class="fa-solid fa-bolt" style="color:#e8820c;"></i>'
-    + '<span style="font-weight:700;color:#0d1f35;">ZipCargo</span> Logistics</div>'
-    + '<div style="font-size:.68rem;color:#bbb;">Last updated: ' + lastUpdated + '</div>'
+    // ── FOOTER ──
+    + '<div style="padding:14px 24px;background:#f8fafc;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:1px solid #f1f5f9;">'
+    + '<div style="display:flex;align-items:center;gap:8px;">'
+    + '<div style="width:28px;height:28px;border-radius:8px;background:#0d1f35;display:flex;align-items:center;justify-content:center;">'
+    + '<i class="fa-solid fa-bolt" style="color:#e8820c;font-size:12px;"></i></div>'
+    + '<div><div style="font-size:.78rem;font-weight:800;color:#0d1f35;">ZipCargo</div>'
+    + '<div style="font-size:.6rem;color:#94a3b8;">Global Logistics</div></div>'
+    + '</div>'
+    + '<div style="font-size:.67rem;color:#cbd5e1;display:flex;align-items:center;gap:4px;">'
+    + '<i class="fa-regular fa-clock" style="font-size:10px;"></i> Updated ' + lastUpdated
+    + '</div>'
     + '</div>'
     + '</div>';
+
+  // ── Animate rows in after render ──────────────────────────────────────────
+  setTimeout(function() {
+    var rows = result.querySelectorAll('.zc-fadein, .zc-pop, .zc-slidein');
+    rows.forEach(function(el) { el.style.animationPlayState = 'running'; });
+  }, 10);
 }
 
 
