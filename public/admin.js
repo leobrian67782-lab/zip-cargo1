@@ -660,189 +660,72 @@ async function downloadPDF(tracking) {
     var el = document.createElement('script'); el.src=src; el.onload=cb; document.head.appendChild(el);
   }
 
-  function generate() {
+  function generateFromHTML() {
     try {
       var jsPDF = window.jspdf.jsPDF;
-      var s = window._currentReceiptData;
-      if (!s) { alert('Please generate a receipt first.'); return; }
+      var el = document.getElementById('receiptContent');
+      if (!el) { alert('Please generate a receipt first.'); return; }
 
-      var doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
-      var W=210, H=297, L=15, R=195, MW=180;
-      var date = s.date || new Date(s.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-      var receiptNo = 'ZCR-'+new Date().getFullYear()+'-'+s.tracking.replace(/[^A-Z0-9]/g,'').slice(-6);
-
-      // ── helpers ──────────────────────────────────────────────────────────
-      function fillRect(x,y,w,h, r,g,b){ doc.setFillColor(r,g,b); doc.rect(x,y,w,h,'F'); }
-      function fillRR(x,y,w,h,rad, r,g,b){ doc.setFillColor(r,g,b); doc.roundedRect(x,y,w,h,rad,rad,'F'); }
-      function drawLine(x1,y1,x2,y2, r,g,b, lw){
-        doc.setDrawColor(r,g,b); doc.setLineWidth(lw||0.2); doc.line(x1,y1,x2,y2);
-      }
-      function bold(sz){ doc.setFont('helvetica','bold');   doc.setFontSize(sz); }
-      function norm(sz){ doc.setFont('helvetica','normal'); doc.setFontSize(sz); }
-      function ital(sz){ doc.setFont('helvetica','italic'); doc.setFontSize(sz); }
-      function color(r,g,b){ doc.setTextColor(r,g,b); }
-      function txt(str,x,y,opts){ doc.text(String(str||'—'),x,y,opts||{}); }
-      function safeVal(v){ return (v && String(v).trim()) ? String(v) : '—'; }
-
-      // status theme
-      var sBg  = {'Delivered':[209,250,229],'In Transit':[219,234,254],'Out for Delivery':[220,252,231],'On Hold':[254,226,226],'Pending':[254,249,195]}[s.status]||[254,249,195];
-      var sFg  = {'Delivered':[6,95,70],'In Transit':[30,64,175],'Out for Delivery':[20,83,52],'On Hold':[127,29,29],'Pending':[133,77,14]}[s.status]||[133,77,14];
-      var sBar = {'Delivered':[16,185,129],'In Transit':[59,130,246],'Out for Delivery':[34,197,94],'On Hold':[239,68,68],'Pending':[245,158,11]}[s.status]||[245,158,11];
-
-      // ── TOP COLOUR STRIPE ──────────────────────────────────────────────
-      fillRect(0,0,W,3, sBar[0],sBar[1],sBar[2]);
-
-      // ── HEADER ────────────────────────────────────────────────────────
-      fillRect(0,3,W,44, 10,22,40);
-
-      // icon box
-      fillRR(L,9,13,13,2, 232,130,12);
-      bold(10); color(255,255,255); txt('Z',L+3.8,18.2);
-
-      // brand
-      bold(18); color(255,255,255); txt('ZipCargo',L+17,18);
-      norm(7);  color(90,130,170);  txt('Global Logistics Solutions',L+17,24.5);
-
-      // right: receipt info
-      bold(6);  color(232,130,12);  txt('OFFICIAL RECEIPT',R,11,{align:'right'});
-      bold(13); color(255,255,255); txt(s.tracking,R,20,{align:'right'});
-      norm(6.5);color(80,110,150);  txt('No: '+receiptNo,R,26.5,{align:'right'});
-      norm(6.5);color(80,110,150);  txt('Issued: '+date,R,32.5,{align:'right'});
-
-      // status badge
-      fillRR(R-36,37,36,8,3, sBg[0],sBg[1],sBg[2]);
-      bold(7); color(sFg[0],sFg[1],sFg[2]); txt(s.status,R-18,43.2,{align:'center'});
-
-      // ── ROUTE BAR ────────────────────────────────────────────────────
-      fillRect(0,47,W,18, 248,250,252);
-      drawLine(0,65,W,65, 226,232,240);
-
-      norm(6.5); color(148,163,184); txt('ORIGIN',L,54); txt('DESTINATION',R,54,{align:'right'});
-      bold(10);  color(13,31,53);    txt(safeVal(s.origin),L,63); txt(safeVal(s.dest),R,63,{align:'right'});
-
-      // arrow
-      doc.setDrawColor(232,130,12); doc.setLineWidth(0.9);
-      var ax=105, ay=61;
-      doc.line(ax-9,ay,ax+8,ay);
-      doc.line(ax+3,ay-2.5,ax+8,ay);
-      doc.line(ax+3,ay+2.5,ax+8,ay);
-
-      // ── PROGRESS ────────────────────────────────────────────────────
-      fillRect(0,65,W,28, 255,255,255);
-      bold(6); color(232,130,12); txt('SHIPMENT PROGRESS',L,73);
-      drawLine(L,74.5,L+45,74.5, 232,130,12,0.4);
-
-      var steps=['Pending','In Transit','Out for Delivery','Delivered'];
-      var sLabels=['Order Placed','In Transit','Out for Delivery','Delivered'];
-      var curIdx = s.status==='On Hold' ? -1 : steps.indexOf(s.status);
-      var xs=[32,82,133,178], PY=83;
-
-      for(var i=0;i<steps.length;i++){
-        var done = curIdx>=0 && i<=curIdx;
-        var actv = i===curIdx && s.status!=='On Hold';
-        var cx=xs[i];
-        if(i<steps.length-1){
-          var lclr=(done&&i<curIdx)?[39,174,96]:[210,215,225];
-          drawLine(cx+6,PY,xs[i+1]-6,PY, lclr[0],lclr[1],lclr[2], 0.8);
+      // Use html2canvas to capture the preview exactly as rendered
+      html2canvas(el, {
+        scale: 2,           // 2x for crisp PDF quality
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        onclone: function(clonedDoc) {
+          // Ensure the cloned element is fully visible with no clipping
+          var clonedEl = clonedDoc.getElementById('receiptContent');
+          if (clonedEl) {
+            clonedEl.style.overflow = 'visible';
+            clonedEl.style.height   = 'auto';
+            clonedEl.style.maxHeight = 'none';
+          }
         }
-        doc.setFillColor.apply(doc, done?(actv?[232,130,12]:[39,174,96]):[210,215,225]);
-        doc.circle(cx,PY,5,'F');
-        bold(6.5); color(255,255,255);
-        txt(done?'✓':String(i+1), cx, PY+1.5, {align:'center'});
-        norm(5.5); color(actv?13:120, actv?31:130, actv?53:145);
-        // wrap label
-        var words=sLabels[i].split(' ');
-        if(words.length>1){
-          txt(words.slice(0,Math.ceil(words.length/2)).join(' '), cx, PY+8.5, {align:'center'});
-          txt(words.slice(Math.ceil(words.length/2)).join(' '),   cx, PY+12.5,{align:'center'});
+      }).then(function(canvas) {
+        var imgData  = canvas.toDataURL('image/png');
+        var imgW     = 210; // A4 width in mm
+        var pageH    = 297; // A4 height in mm
+        var imgH     = (canvas.height * imgW) / canvas.width;
+        var doc      = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+
+        var yOffset  = 0;
+        var remaining = imgH;
+
+        // If the receipt fits on one page, centre it; otherwise paginate
+        if (imgH <= pageH) {
+          doc.addImage(imgData, 'PNG', 0, 0, imgW, imgH);
         } else {
-          txt(words[0], cx, PY+9, {align:'center'});
+          // Multi-page: slice the canvas into A4-height pages
+          while (remaining > 0) {
+            doc.addImage(imgData, 'PNG', 0, yOffset > 0 ? -(imgH - remaining) : 0, imgW, imgH);
+            remaining -= pageH;
+            if (remaining > 0) {
+              doc.addPage();
+              yOffset += pageH;
+            }
+          }
         }
-      }
 
-      // ── DATA GRID ────────────────────────────────────────────────────
-      var y=97;
-      var c1=L, c2=110, cw1=90, cw2=85;
-
-      drawLine(L,y,R,y, 226,232,240);
-
-      function secHdr(title,x,yy,cw){
-        fillRR(x,yy,cw,7,1.5, 255,247,237);
-        bold(6.5); color(200,100,10); txt(title,x+3,yy+5);
-      }
-      function row(lbl,v,x,yy,cw){
-        norm(7.5); color(100,116,139); txt(lbl,x,yy);
-        bold(7.5); color(15,23,42);    txt(safeVal(v),x+cw,yy,{align:'right',maxWidth:cw-18});
-        drawLine(x,yy+2,x+cw,yy+2, 243,244,246, 0.15);
-      }
-
-      y+=3;
-      secHdr('SENDER',c1,y,cw1); secHdr('RECIPIENT',c2,y,cw2); y+=10;
-      row('Name',  s.sName, c1,y,cw1); row('Name',  s.rName, c2,y,cw2); y+=8;
-      row('Phone', s.sPhone,c1,y,cw1); row('Phone', s.rPhone,c2,y,cw2); y+=8;
-      row('Email', s.sEmail,c1,y,cw1); row('Email', s.rEmail,c2,y,cw2); y+=8;
-      row('From',  s.origin,c1,y,cw1); row('To',    s.dest,  c2,y,cw2); y+=12;
-
-      drawLine(L,y-2,R,y-2, 226,232,240);
-
-      secHdr('PACKAGE',c1,y,cw1); secHdr('DELIVERY',c2,y,cw2); y+=10;
-      row('Service', s.service,                               c1,y,cw1); row('Est. Delivery',s.eta,               c2,y,cw2); y+=8;
-      row('Weight',  s.weight?s.weight+' kg':null,            c1,y,cw1); row('Location',     s.location||s.origin,c2,y,cw2); y+=8;
-      row('Value',   s.value?'$'+parseFloat(s.value).toFixed(2):null,c1,y,cw1); row('Status',s.status,           c2,y,cw2); y+=8;
-      row('Desc.',   s.desc,                                  c1,y,cw1); row('Date Issued',  date,                c2,y,cw2); y+=12;
-
-      // ── COST BAR ────────────────────────────────────────────────────
-      fillRect(0,y,W,22, 10,22,40);
-      fillRR(L,y+3,MW,16,3, 18,32,55);
-      norm(8);  color(90,130,170); txt('Total Shipping Cost',L+6,y+10);
-      norm(6);  color(55,85,125);  txt('Inclusive of all fees',L+6,y+17);
-      bold(20); color(232,130,12); txt(s.cost?'$'+parseFloat(s.cost).toFixed(2):'Contact Us',R-3,y+17,{align:'right'});
-      y+=26;
-
-      // ── NOTES ───────────────────────────────────────────────────────
-      if(s.notes){
-        fillRR(L,y,MW,12,2, 255,251,235);
-        fillRect(L,y,2,12, 232,130,12);
-        bold(7); color(13,31,53); txt('Notes:',L+5,y+7);
-        norm(7); color(80,100,120); txt(s.notes,L+23,y+7,{maxWidth:MW-28});
-        y+=16;
-      }
-
-      // ── VERIFIED STAMP + INFO ────────────────────────────────────────
-      y+=6;
-      // stamp
-      doc.setDrawColor(39,174,96); doc.setLineWidth(1.4); doc.circle(L+14,y+14,13);
-      doc.setLineWidth(0.35); doc.circle(L+14,y+14,10);
-      bold(5.5); color(39,174,96);
-      txt('ZIPCARGO',    L+14,y+7.5, {align:'center'});
-      bold(7.5); txt('OFFICIAL', L+14,y+13,  {align:'center'});
-      txt('RECEIPT',     L+14,y+18.5,{align:'center'});
-      norm(5); txt('✓ VERIFIED',L+14,y+23,  {align:'center'});
-      // text beside stamp
-      norm(7);  color(100,116,139); txt('Document verified by',L+33,y+9);
-      bold(9);  color(13,31,53);    txt('ZipCargo Logistics',  L+33,y+16);
-      norm(6.5);color(148,163,184); txt(s.tracking+' • '+receiptNo,L+33,y+22);
-
-      // ── FOOTER ──────────────────────────────────────────────────────
-      fillRect(0,H-22,W,22, 248,250,252);
-      drawLine(0,H-22,W,H-22, 226,232,240);
-      fillRR(L,H-18,9,9,2, 13,31,53);
-      bold(7);  color(232,130,12); txt('⚡',L+1.8,H-11.5);
-      bold(8.5);color(13,31,53);   txt('ZipCargo Logistics',L+13,H-13);
-      norm(6.5);color(120,130,155);txt('info@zipcargo.com  |  www.zipcargo.com',105,H-7,{align:'center'});
-      ital(6);  color(148,163,184);txt('Ship Smarter. Deliver Faster. — Thank you for choosing ZipCargo.',105,H-2.5,{align:'center'});
-
-      doc.save('ZipCargo-Receipt-'+tracking+'.pdf');
-      if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
+        doc.save('ZipCargo-Receipt-'+tracking+'.pdf');
+        if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
+      }).catch(function(e) {
+        console.error('html2canvas error:', e);
+        alert('PDF generation failed: ' + e.message);
+        if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
+      });
 
     } catch(e) {
-      console.error('PDF error:',e);
-      alert('PDF generation failed: '+e.message);
+      console.error('PDF error:', e);
+      alert('PDF generation failed: ' + e.message);
       if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
     }
   }
 
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', generate);
+  // Load jsPDF first, then html2canvas, then generate
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', function() {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', generateFromHTML);
+  });
 }
 
 // ===== INVOICE GENERATOR =====
