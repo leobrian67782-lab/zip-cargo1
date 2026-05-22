@@ -539,16 +539,44 @@ function buildReceiptHTML(s) {
 
 // ===== PRINT RECEIPT =====
 function printReceipt() {
-  const el=document.getElementById('receiptContent'); if(!el) return;
-  const w=window.open('','_blank','width=900,height=700');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>ZipCargo Receipt</title>
+  const el = document.getElementById('receiptContent'); if (!el) return;
+  const w = window.open('', '_blank', 'width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+    <title>ZipCargo Receipt</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',sans-serif;background:white;}
-    .badge{padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:700;}
-    .badge-pending{background:#fff3cd;color:#856404;}.badge-transit{background:#cce5ff;color:#004085;}
-    .badge-out,.badge-delivered{background:#d4edda;color:#155724;}.badge-hold{background:#f8d7da;color:#721c24;}
-    </style></head><body>${el.innerHTML}</body></html>`);
-  w.document.close(); w.focus(); setTimeout(()=>{w.print();w.close();},700);
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      html, body { width:210mm; background:white; font-family:'Outfit',sans-serif; }
+      body { padding: 0; }
+      /* Force ALL backgrounds and colors to print */
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
+      .receipt-wrap { width:190mm; margin:0 auto; }
+      @media print {
+        html, body { width:210mm; height:297mm; overflow:hidden; }
+        @page { size:A4 portrait; margin:10mm; }
+        .receipt-wrap { transform-origin:top center; }
+      }
+    </style>
+  </head><body>
+    <div class="receipt-wrap">${el.innerHTML}</div>
+    <script>
+      window.onload = function() {
+        // Scale to fit one page if too tall
+        var wrap = document.querySelector('.receipt-wrap');
+        var pageH = 277; // mm (297 - 20mm margins)
+        var elH = wrap.scrollHeight * 0.2646; // px to mm (1px = 0.2646mm)
+        if (elH > pageH) {
+          var scale = pageH / elH;
+          wrap.style.transform = 'scale(' + scale + ')';
+          wrap.style.transformOrigin = 'top center';
+        }
+        setTimeout(function(){ window.print(); window.close(); }, 800);
+      };
+    <\/script>
+  </body></html>`);
+  w.document.close();
 }
 
 // ===== SETTINGS =====
@@ -666,50 +694,54 @@ async function downloadPDF(tracking) {
       var el = document.getElementById('receiptContent');
       if (!el) { alert('Please generate a receipt first.'); return; }
 
-      // Use html2canvas to capture the preview exactly as rendered
-      html2canvas(el, {
-        scale: 2,           // 2x for crisp PDF quality
+      // ── Build a full-width off-screen clone so html2canvas captures everything ──
+      var wrapper = document.createElement('div');
+      wrapper.style.cssText = [
+        'position:fixed', 'top:0', 'left:-9999px',
+        'width:794px',        // ~A4 at 96dpi
+        'background:white',
+        'overflow:visible',
+        'z-index:-1',
+        'font-family:Outfit,sans-serif',
+      ].join(';');
+      wrapper.innerHTML = el.innerHTML;
+      document.body.appendChild(wrapper);
+
+      html2canvas(wrapper, {
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        onclone: function(clonedDoc) {
-          // Ensure the cloned element is fully visible with no clipping
-          var clonedEl = clonedDoc.getElementById('receiptContent');
-          if (clonedEl) {
-            clonedEl.style.overflow = 'visible';
-            clonedEl.style.height   = 'auto';
-            clonedEl.style.maxHeight = 'none';
-          }
-        }
+        width:  794,
+        height: wrapper.scrollHeight,
+        windowWidth: 794,
       }).then(function(canvas) {
-        var imgData  = canvas.toDataURL('image/png');
-        var imgW     = 210; // A4 width in mm
-        var pageH    = 297; // A4 height in mm
-        var imgH     = (canvas.height * imgW) / canvas.width;
-        var doc      = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+        document.body.removeChild(wrapper);
 
-        var yOffset  = 0;
-        var remaining = imgH;
+        var imgData = canvas.toDataURL('image/png');
+        var pdfW    = 210;                                     // A4 mm
+        var pdfH    = Math.round((canvas.height / canvas.width) * pdfW);
+        var pageH   = 297;
 
-        // If the receipt fits on one page, centre it; otherwise paginate
-        if (imgH <= pageH) {
-          doc.addImage(imgData, 'PNG', 0, 0, imgW, imgH);
+        var doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+
+        if (pdfH <= pageH) {
+          // Fits on one page — add top margin to centre vertically
+          var topMargin = Math.max(0, (pageH - pdfH) / 2);
+          doc.addImage(imgData, 'PNG', 0, topMargin, pdfW, pdfH);
         } else {
-          // Multi-page: slice the canvas into A4-height pages
-          while (remaining > 0) {
-            doc.addImage(imgData, 'PNG', 0, yOffset > 0 ? -(imgH - remaining) : 0, imgW, imgH);
-            remaining -= pageH;
-            if (remaining > 0) {
-              doc.addPage();
-              yOffset += pageH;
-            }
-          }
+          // Taller than one page — scale to fit
+          var scale  = pageH / pdfH;
+          var scaledW = pdfW * scale;
+          var xOffset = (pdfW - scaledW) / 2;
+          doc.addImage(imgData, 'PNG', xOffset, 0, scaledW, pageH);
         }
 
         doc.save('ZipCargo-Receipt-'+tracking+'.pdf');
         if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
       }).catch(function(e) {
+        document.body.removeChild(wrapper);
         console.error('html2canvas error:', e);
         alert('PDF generation failed: ' + e.message);
         if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
