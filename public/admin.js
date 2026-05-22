@@ -335,7 +335,7 @@ async function generateReceipt() {
     const actDiv = output.querySelector('.receipt-actions');
     if (actDiv) actDiv.innerHTML=`
       <button class="btn-save" onclick="printReceipt()"><i class="fa-solid fa-print"></i> Print</button>
-      <button class="btn-save" style="background:#27ae60;" onclick="downloadPDF('${s.tracking}')"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+      <button class="btn-save" style="background:#27ae60;" onclick="downloadPDF('${s.tracking}')"><i class="fa-solid fa-file-arrow-down"></i> Download Receipt</button>
       <button class="btn-clear" onclick="document.getElementById('receiptOutput').style.display='none'"><i class="fa-solid fa-xmark"></i> Close</button>`;
   } catch(e) {
     error.textContent=e.message; setTimeout(()=>error.textContent='',4000);
@@ -678,86 +678,93 @@ function badgeHTML(status) {
   return `<span class="badge ${m[status]||'badge-pending'}">${status}</span>`;
 }
 
-// ===== DOWNLOAD PDF =====
+// ===== DOWNLOAD RECEIPT AS HTML =====
 async function downloadPDF(tracking) {
-  const btn = document.querySelector('button[onclick="downloadPDF(\''+tracking+'\')"]');
-  if (btn) { btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Generating...'; }
+  var s = window._currentReceiptData;
+  if (!s) { alert('Please generate a receipt first.'); return; }
 
-  function loadScript(src, cb) {
-    if (document.querySelector('script[src="'+src+'"]')) { cb(); return; }
-    var el = document.createElement('script'); el.src=src; el.onload=cb; document.head.appendChild(el);
-  }
+  var el = document.getElementById('receiptContent');
+  if (!el) { alert('Please generate a receipt first.'); return; }
 
-  function generateFromHTML() {
-    try {
-      var jsPDF = window.jspdf.jsPDF;
-      var el = document.getElementById('receiptContent');
-      if (!el) { alert('Please generate a receipt first.'); return; }
-
-      // ── Build a full-width off-screen clone so html2canvas captures everything ──
-      var wrapper = document.createElement('div');
-      wrapper.style.cssText = [
-        'position:fixed', 'top:0', 'left:-9999px',
-        'width:794px',        // ~A4 at 96dpi
-        'background:white',
-        'overflow:visible',
-        'z-index:-1',
-        'font-family:Outfit,sans-serif',
-      ].join(';');
-      wrapper.innerHTML = el.innerHTML;
-      document.body.appendChild(wrapper);
-
-      html2canvas(wrapper, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width:  794,
-        height: wrapper.scrollHeight,
-        windowWidth: 794,
-      }).then(function(canvas) {
-        document.body.removeChild(wrapper);
-
-        var imgData = canvas.toDataURL('image/png');
-        var pdfW    = 210;                                     // A4 mm
-        var pdfH    = Math.round((canvas.height / canvas.width) * pdfW);
-        var pageH   = 297;
-
-        var doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
-
-        if (pdfH <= pageH) {
-          // Fits on one page — add top margin to centre vertically
-          var topMargin = Math.max(0, (pageH - pdfH) / 2);
-          doc.addImage(imgData, 'PNG', 0, topMargin, pdfW, pdfH);
-        } else {
-          // Taller than one page — scale to fit
-          var scale  = pageH / pdfH;
-          var scaledW = pdfW * scale;
-          var xOffset = (pdfW - scaledW) / 2;
-          doc.addImage(imgData, 'PNG', xOffset, 0, scaledW, pageH);
-        }
-
-        doc.save('ZipCargo-Receipt-'+tracking+'.pdf');
-        if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
-      }).catch(function(e) {
-        document.body.removeChild(wrapper);
-        console.error('html2canvas error:', e);
-        alert('PDF generation failed: ' + e.message);
-        if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
-      });
-
-    } catch(e) {
-      console.error('PDF error:', e);
-      alert('PDF generation failed: ' + e.message);
-      if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
+  // Build a fully self-contained HTML file with all fonts & icons embedded via CDN
+  var html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZipCargo Receipt - ${s.tracking}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: #f1f5f9;
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
     }
-  }
+    .page {
+      width: 720px;
+      background: white;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.15);
+    }
 
-  // Load jsPDF first, then html2canvas, then generate
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', function() {
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', generateFromHTML);
-  });
+    /* ── Print styles: fills A4, one page, keeps backgrounds ── */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      html, body { background: white; padding: 0; display: block; }
+      .page { width: 100%; box-shadow: none; border-radius: 0; }
+      .no-print { display: none !important; }
+      @page { size: A4 portrait; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Save to PDF tip banner (hidden on print) -->
+  <div class="no-print" style="
+    position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+    background: #0d1f35; color: white; text-align: center;
+    padding: 12px 20px; font-family: 'Outfit', sans-serif;
+    font-size: .88rem; display: flex; align-items: center;
+    justify-content: center; gap: 16px;
+  ">
+    <span>
+      <i class="fa-solid fa-circle-info" style="color:#e8820c;margin-right:6px;"></i>
+      To save as PDF: press <strong>Ctrl + P</strong> (or ⌘ P on Mac) &rarr; change destination to <strong>"Save as PDF"</strong> &rarr; set margins to <strong>None</strong> &rarr; Save
+    </span>
+    <button onclick="window.print()" style="
+      background: #e8820c; color: white; border: none; border-radius: 8px;
+      padding: 7px 18px; font-size: .85rem; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+    ">
+      <i class="fa-solid fa-print"></i> Print / Save PDF
+    </button>
+  </div>
+
+  <div class="page" style="margin-top: 56px;">
+    ${el.innerHTML}
+  </div>
+
+</body>
+</html>`;
+
+  // Trigger download of the HTML file
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'ZipCargo-Receipt-' + tracking + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ===== INVOICE GENERATOR =====
