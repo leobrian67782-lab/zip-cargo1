@@ -330,6 +330,12 @@ async function generateReceipt() {
     window._currentReceiptData = s; // store for PDF generation
     error.textContent='';
     buildReceiptHTML(s);
+    // Generate QR code pointing to tracking URL
+    var qrImg = document.getElementById('qr-'+s.tracking);
+    if (qrImg) {
+      var trackUrl = encodeURIComponent(window.location.origin + '/#tracking?t=' + s.tracking);
+      qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' + trackUrl;
+    }
     output.style.display='block';
     output.scrollIntoView({ behavior:'smooth' });
     const actDiv = output.querySelector('.receipt-actions');
@@ -522,17 +528,23 @@ function buildReceiptHTML(s) {
     + '<div><div style="font-size:.62rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">Notes</div>'
     + '<div style="font-size:.85rem;color:#374151;line-height:1.6;">'+s.notes+'</div></div></div>' : '')
 
-    // footer
-    + '<div style="padding:20px 32px;background:white;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;border-top:1px solid #f1f5f9;">'
+    // footer with QR code
+    + '<div style="padding:18px 32px;background:white;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;border-top:1px solid #f1f5f9;">'
     + '<div style="display:flex;align-items:center;gap:10px;">'
     + '<div style="width:40px;height:40px;border-radius:12px;background:#0d1f35;display:flex;align-items:center;justify-content:center;">'
     + '<i class="fa-solid fa-bolt" style="color:#e8820c;font-size:1.1rem;"></i></div>'
     + '<div><div style="font-size:.9rem;font-weight:800;color:#0d1f35;">ZipCargo Logistics</div>'
     + '<div style="font-size:.7rem;color:#94a3b8;">Ship Smarter. Deliver Faster.</div></div>'
     + '</div>'
+    + '<div style="display:flex;align-items:center;gap:14px;">'
     + '<div style="text-align:right;">'
+    + '<div style="font-size:.62rem;color:#94a3b8;margin-bottom:2px;">Scan to track shipment</div>'
     + '<div style="font-size:.68rem;color:#94a3b8;">Please retain for your records</div>'
     + '<div style="font-size:.7rem;color:#cbd5e1;margin-top:2px;">'+s.tracking+' &bull; '+receiptNumber+'</div>'
+    + '</div>'
+    + '<div style="flex-shrink:0;">'
+    + '<img id="qr-'+s.tracking+'" style="width:70px;height:70px;border-radius:8px;border:1px solid #e2e8f0;" src="" alt="QR Code"/>'
+    + '</div>'
     + '</div></div>'
     + '</div>';
 }
@@ -686,7 +698,16 @@ async function downloadPDF(tracking) {
   var el = document.getElementById('receiptContent');
   if (!el) { alert('Please generate a receipt first.'); return; }
 
-  // Build a fully self-contained HTML file with all fonts & icons embedded via CDN
+  // Grab the live QR image src so it's baked into the download
+  var qrImg = document.getElementById('qr-' + tracking);
+  var qrSrc = qrImg ? qrImg.src : '';
+
+  // Clone the receipt HTML and fix the QR src to the live URL
+  var receiptHTML = el.innerHTML.replace(
+    /(<img[^>]*id="qr-[^"]*"[^>]*src=")[^"]*(")/,
+    '$1' + qrSrc + '$2'
+  );
+
   var html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -698,15 +719,16 @@ async function downloadPDF(tracking) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     html, body {
       background: #f1f5f9;
       font-family: 'Outfit', sans-serif;
-      min-height: 100vh;
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: 40px 20px;
+      padding: 24px 20px 40px;
     }
+
     .page {
       width: 720px;
       background: white;
@@ -715,47 +737,89 @@ async function downloadPDF(tracking) {
       box-shadow: 0 8px 48px rgba(0,0,0,0.15);
     }
 
-    /* ── Print styles: fills A4, one page, keeps backgrounds ── */
+    .tip-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      background: #0d1f35; color: white;
+      padding: 10px 20px; font-family: 'Outfit', sans-serif;
+      font-size: .85rem; display: flex; align-items: center;
+      justify-content: center; gap: 16px;
+    }
+
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-      html, body { background: white; padding: 0; display: block; }
-      .page { width: 100%; box-shadow: none; border-radius: 0; }
-      .no-print { display: none !important; }
+
+      html, body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+        width: 210mm;
+        height: 297mm;
+        overflow: hidden;
+      }
+
+      .tip-bar { display: none !important; }
+
+      /* Scale the receipt to fit exactly one A4 page */
+      .page {
+        position: absolute;
+        top: 0; left: 0;
+        width: 210mm !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        transform-origin: top left;
+        /* JS will set the scale below */
+      }
+
       @page { size: A4 portrait; margin: 0; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Save to PDF tip banner (hidden on print) -->
-  <div class="no-print" style="
-    position: fixed; top: 0; left: 0; right: 0; z-index: 999;
-    background: #0d1f35; color: white; text-align: center;
-    padding: 12px 20px; font-family: 'Outfit', sans-serif;
-    font-size: .88rem; display: flex; align-items: center;
-    justify-content: center; gap: 16px;
-  ">
+  <div class="tip-bar">
     <span>
       <i class="fa-solid fa-circle-info" style="color:#e8820c;margin-right:6px;"></i>
-      To save as PDF: press <strong>Ctrl + P</strong> (or ⌘ P on Mac) &rarr; change destination to <strong>"Save as PDF"</strong> &rarr; set margins to <strong>None</strong> &rarr; Save
+      Save as PDF: click the button &rarr; set Destination to <strong>"Save as PDF"</strong> &rarr; Margins: <strong>None</strong> &rarr; enable <strong>Background graphics</strong> &rarr; Save
     </span>
     <button onclick="window.print()" style="
-      background: #e8820c; color: white; border: none; border-radius: 8px;
-      padding: 7px 18px; font-size: .85rem; font-weight: 700;
-      cursor: pointer; font-family: inherit;
+      background:#e8820c;color:white;border:none;border-radius:8px;
+      padding:7px 18px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;
+      white-space:nowrap;flex-shrink:0;
     ">
-      <i class="fa-solid fa-print"></i> Print / Save PDF
+      <i class="fa-solid fa-file-pdf"></i> Save as PDF
     </button>
   </div>
 
-  <div class="page" style="margin-top: 56px;">
-    ${el.innerHTML}
+  <div class="page" id="receipt-page" style="margin-top:52px;">
+    ${receiptHTML}
   </div>
+
+  <script>
+    // Before printing, calculate the scale needed to fit the receipt on one A4 page
+    window.addEventListener('beforeprint', function() {
+      var page   = document.getElementById('receipt-page');
+      var a4H    = 297;   // mm
+      var a4W    = 210;   // mm
+      var mmToPx = 96 / 25.4;  // 96dpi
+      var maxH   = a4H * mmToPx;
+      var maxW   = a4W * mmToPx;
+      var elH    = page.scrollHeight;
+      var elW    = page.scrollWidth;
+      var scale  = Math.min(maxH / elH, maxW / elW, 1);
+      page.style.transform = 'scale(' + scale + ')';
+      page.style.width = (100 / scale) + '%';
+    });
+    window.addEventListener('afterprint', function() {
+      var page = document.getElementById('receipt-page');
+      page.style.transform = '';
+      page.style.width = '';
+    });
+  <\/script>
 
 </body>
 </html>`;
 
-  // Trigger download of the HTML file
   var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
