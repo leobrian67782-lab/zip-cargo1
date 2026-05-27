@@ -639,3 +639,101 @@ async function submitForm(e) {
     if (btn) { btn.disabled=false; btn.innerHTML='Send Message <i class="fa-solid fa-paper-plane"></i>'; }
   }
 }
+
+// ===== SUBSCRIPTION SECTION =====
+let selectedPlan = 'basic';
+const planPrices = { basic: '$2.99', premium: '$4.99' };
+
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.getElementById('subPlan').value = plan;
+  document.getElementById('subPriceLabel').textContent = planPrices[plan];
+
+  document.querySelectorAll('.subscribe-plan').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.plan-select-btn').forEach(el => el.classList.remove('active'));
+
+  const card = document.querySelector(`.subscribe-plan[data-plan="${plan}"]`);
+  const btn  = card?.querySelector('.plan-select-btn');
+  if (card) card.classList.add('selected');
+  if (btn)  btn.classList.add('active');
+
+  // Scroll to form
+  document.querySelector('.subscribe-form-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitSubscription() {
+  const tracking = document.getElementById('subTracking').value.trim();
+  const name     = document.getElementById('subName').value.trim();
+  const email    = document.getElementById('subEmail').value.trim();
+  const phone    = document.getElementById('subPhone').value.trim();
+  const plan     = document.getElementById('subPlan').value || 'basic';
+
+  const errEl = document.getElementById('subscribeError');
+  errEl.style.display = 'none';
+
+  if (!tracking || !name || !email) {
+    errEl.textContent = 'Please fill in tracking number, name and email.';
+    errEl.style.display = 'flex';
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'flex';
+    return;
+  }
+
+  const btn = document.querySelector('.subscribe-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = 'Processing… <i class="fa-solid fa-spinner fa-spin"></i>';
+
+  try {
+    const res  = await fetch('/api/subscriptions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tracking, name, email, phone, plan }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Could not create subscription.';
+      errEl.style.display = 'flex';
+      return;
+    }
+
+    document.getElementById('subscribeForm').style.display = 'none';
+    document.getElementById('subscribeSuccessMsg').textContent =
+      `Subscription for ${data.tracking} created. Complete payment of ${planPrices[plan]} to activate your alerts.`;
+    document.getElementById('subscribeSuccess').style.display = 'flex';
+
+    // TODO: redirect to payment page when provider is ready:
+    // if (data.paymentUrl) window.location.href = data.paymentUrl;
+
+  } catch {
+    errEl.textContent = 'Network error. Please try again.';
+    errEl.style.display = 'flex';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fa-solid fa-lock"></i> Subscribe & Pay <span id="subPriceLabel">${planPrices[plan]}</span>`;
+  }
+}
+
+// ===== FAQ ACCORDION =====
+function toggleFaq(btn) {
+  const item   = btn.closest('.faq-item');
+  const answer = item.querySelector('.faq-answer');
+  const icon   = btn.querySelector('i');
+  const isOpen = item.classList.contains('open');
+
+  // Close all others in the same column
+  btn.closest('.faq-col').querySelectorAll('.faq-item.open').forEach(el => {
+    el.classList.remove('open');
+    el.querySelector('.faq-answer').style.maxHeight = '0';
+    el.querySelector('i').style.transform = 'rotate(0deg)';
+  });
+
+  if (!isOpen) {
+    item.classList.add('open');
+    answer.style.maxHeight = answer.scrollHeight + 'px';
+    icon.style.transform = 'rotate(180deg)';
+  }
+}
