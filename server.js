@@ -17,6 +17,7 @@ const xss          = require('xss-clean');
 const path         = require('path');
 const https        = require('https');
 
+const morgan     = require('morgan');
 const connectDB = require('./config/db');
 const Admin     = require('./models/Admin');
 
@@ -41,6 +42,9 @@ async function seedAdmin() {
 seedAdmin();
 
 const app = express();
+
+// ── HTTP request logging ──────────────────────────────────────────────────
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // ── Trust Render proxy ────────────────────────────────────────────────────
 app.set('trust proxy', 1);
@@ -104,10 +108,12 @@ app.use(mongoSanitize());
 app.use(xss());
 
 // ── Routes ────────────────────────────────────────────────────────────────
-app.use('/api/auth',      require('./routes/auth'));
-app.use('/api/shipments', require('./routes/shipments'));
-app.use('/api/inquiries', require('./routes/inquiries'));
-app.use('/api/activity',  require('./routes/activity'));
+app.use('/api/auth',          require('./routes/auth'));
+app.use('/api/shipments',     require('./routes/shipments'));
+app.use('/api/inquiries',     require('./routes/inquiries'));
+app.use('/api/activity',      require('./routes/activity'));
+app.use('/api/settings',      require('./routes/settings'));
+app.use('/api/subscriptions', require('./routes/subscriptions'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
