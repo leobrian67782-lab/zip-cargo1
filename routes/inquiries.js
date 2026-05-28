@@ -26,8 +26,45 @@ router.use(protect);
 
 router.get('/', async (req, res) => {
   try {
+    const { page = 1, limit = 50, search = '' } = req.query;
+    const filter = search
+      ? { $or: [
+          { name:    { $regex: search, $options: 'i' } },
+          { email:   { $regex: search, $options: 'i' } },
+          { message: { $regex: search, $options: 'i' } },
+        ]}
+      : {};
+
+    const total = await Inquiry.countDocuments(filter);
+    const items = await Inquiry.find(filter)
+      .sort({ date: -1 })
+      .skip((+page - 1) * +limit)
+      .limit(+limit);
+
+    res.json({ total, page: +page, pages: Math.ceil(total / +limit), items });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// CSV export of all inquiries
+router.get('/export/csv', async (req, res) => {
+  try {
     const items = await Inquiry.find().sort({ date: -1 });
-    res.json({ total: items.length, items });
+    const header = ['Date', 'Name', 'Email', 'Company', 'Service', 'Message', 'Read'];
+    const rows = items.map(i => [
+      new Date(i.date).toISOString(),
+      `"${(i.name    || '').replace(/"/g, '""')}"`,
+      `"${(i.email   || '').replace(/"/g, '""')}"`,
+      `"${(i.company || '').replace(/"/g, '""')}"`,
+      `"${(i.service || '').replace(/"/g, '""')}"`,
+      `"${(i.message || '').replace(/"/g, '""')}"`,
+      i.read ? 'Yes' : 'No',
+    ]);
+    const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="inquiries-${Date.now()}.csv"`);
+    res.send(csv);
   } catch (err) {
     res.status(500).json({ error: 'Server error.' });
   }
