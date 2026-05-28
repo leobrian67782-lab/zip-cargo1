@@ -16,7 +16,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 9999;
+      z-index: 999999;
       background: #f0f2f7;
       overflow-y: auto;
       overflow-x: hidden;
@@ -29,9 +29,6 @@
     /* Lock main site completely when admin or loader is open */
     body.no-scroll {
       overflow: hidden !important;
-      position: fixed !important;
-      width: 100% !important;
-      height: 100% !important;
     }
 
     /* ── RESPONSIVE FIXES ── */
@@ -690,21 +687,16 @@
   function checkAdminHash() {
     if (window.location.hash === '#admin') {
       document.getElementById('adminWrapper').classList.add('visible');
-      document.body.classList.add('no-scroll');
     } else {
       document.getElementById('adminWrapper').classList.remove('visible');
-      document.body.classList.remove('no-scroll');
     }
   }
   function closeAdminPanel() {
-    // Temporarily remove listener so clearing the hash doesn't re-trigger checkAdminHash
     window.removeEventListener('hashchange', checkAdminHash);
     history.pushState('', document.title, window.location.pathname + window.location.search);
     document.getElementById('adminWrapper').classList.remove('visible');
-    document.body.classList.remove('no-scroll');
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
-    // Re-attach listener after a tick
     setTimeout(() => window.addEventListener('hashchange', checkAdminHash), 100);
   }
   window.addEventListener('hashchange', checkAdminHash);
