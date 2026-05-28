@@ -110,6 +110,8 @@ function closeSidebar() {
 }
 
 // ===== DASHBOARD =====
+let _statusChart = null, _volumeChart = null;
+
 async function loadDashboard() {
   try {
     const [stats, inqData] = await Promise.all([
@@ -123,15 +125,76 @@ async function loadDashboard() {
 
     const tbody = document.getElementById('recentShipmentsBody');
     if (!stats.recent.length) {
-      tbody.innerHTML='<tr><td colspan="4" class="empty-msg">No shipments yet</td></tr>'; return;
+      tbody.innerHTML='<tr><td colspan="4" class="empty-msg">No shipments yet</td></tr>';
+    } else {
+      tbody.innerHTML = stats.recent.map(s => `
+        <tr>
+          <td><strong>${s.tracking}</strong></td>
+          <td>${s.rName}</td>
+          <td>${badgeHTML(s.status)}</td>
+          <td>${new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+        </tr>`).join('');
     }
-    tbody.innerHTML = stats.recent.map(s => `
-      <tr>
-        <td><strong>${s.tracking}</strong></td>
-        <td>${s.rName}</td>
-        <td>${badgeHTML(s.status)}</td>
-        <td>${new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
-      </tr>`).join('');
+
+    // ── Status donut chart ──
+    const statusCtx = document.getElementById('statusChart')?.getContext('2d');
+    if (statusCtx) {
+      if (_statusChart) _statusChart.destroy();
+      _statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Delivered', 'In Transit', 'Pending', 'On Hold'],
+          datasets: [{
+            data: [stats.delivered, stats.inTransit, stats.pending, stats.onHold],
+            backgroundColor: ['#10b981','#0ea5e9','#f59e0b','#ef4444'],
+            borderWidth: 2, borderColor: '#fff',
+          }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: 'Outfit', size: 12 }, padding: 14 } },
+          },
+          cutout: '65%',
+        },
+      });
+    }
+
+    // ── Monthly volume bar chart ──
+    const volumeCtx = document.getElementById('volumeChart')?.getContext('2d');
+    if (volumeCtx && stats.monthly) {
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      // Build last-6-months labels
+      const labels = [], counts = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(); d.setMonth(d.getMonth() - i);
+        labels.push(monthNames[d.getMonth()]);
+        const entry = stats.monthly.find(m => m._id.month === d.getMonth()+1 && m._id.year === d.getFullYear());
+        counts.push(entry ? entry.count : 0);
+      }
+      if (_volumeChart) _volumeChart.destroy();
+      _volumeChart = new Chart(volumeCtx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Shipments',
+            data: counts,
+            backgroundColor: 'rgba(232,130,12,0.85)',
+            borderRadius: 6, borderSkipped: false,
+          }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0, font: { family: 'Outfit' } }, grid: { color: '#f1f5f9' } },
+            x: { ticks: { font: { family: 'Outfit' } }, grid: { display: false } },
+          },
+        },
+      });
+    }
+
   } catch(e) { showToast('Dashboard load failed: '+e.message,'error'); }
 }
 

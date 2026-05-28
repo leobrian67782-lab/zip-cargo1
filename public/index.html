@@ -64,6 +64,7 @@
       .footer-bottom-links { justify-content: center !important; }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -292,6 +293,83 @@
   <div id="formSuccess" class="form-success" style="display:none;"><i class="fa-solid fa-circle-check"></i> Thank you! Your message has been sent. We'll be in touch within 24 hours.</div>
 </section>
 
+<section class="faq-section" id="faq">
+  <div class="section-header animate-fade">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+    <p class="section-subtitle">Everything you need to know about shipping with ZipCargo</p>
+  </div>
+  <div class="faq-wrapper">
+    <div class="faq-col">
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          <span>How do I track my shipment?</span><i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>Enter your ZipCargo tracking number (e.g. ZC-2026-00123) in the <a href="#tracking">Track Shipment</a> section on this page. You'll see real-time status, live map, and full timeline history instantly.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          <span>What countries do you ship to?</span><i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>ZipCargo operates in 150+ countries across every major continent, including hubs in North America, Europe, Africa, Asia, the Middle East, and Oceania. <a href="#map">View our global network</a>.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          <span>How long does shipping take?</span><i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>Transit times vary by service: <strong>Air Freight</strong> typically takes 1–5 business days, <strong>Express Delivery</strong> 24–72 hours, <strong>Sea Freight</strong> 10–40 days depending on route, and <strong>Road Transport</strong> 1–7 days within regions.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          <span>Do you offer cargo insurance?</span><i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>Yes. ZipCargo offers optional shipment protection on all services. Coverage is based on the declared value of your cargo. Contact us when requesting a quote to add insurance to your shipment.</p>
+        </div>
+      </div>
+    </div>
+    <div class="faq-col">
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          <span>What is the maximum weight/size I can ship?</span><i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>We handle everything from small parcels to full container loads (FCL). For oversized or heavy cargo, please <a href="#contact">contact our team</a> for a custom quote tailored to your needs.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          <span>Do you handle customs clearance?</span><i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>Yes. Our customs clearance experts handle all necessary documentation, duties, and compliance requirements for international shipments, ensuring smooth border crossings with minimal delays.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          <span>How do I get a shipping quote?</span><i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>Fill in the <a href="#contact">Get In Touch</a> form with your shipment details — origin, destination, weight, and service type. Our team will respond within 24 hours with a competitive quote.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          <span>What happens if my shipment is delayed?</span><i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer">
+          <p>We proactively notify recipients of any delays. You can always check the live status via your tracking number. If your shipment is placed "On Hold," contact our 24/7 support team for immediate assistance.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="testimonials" id="testimonials">
   <div class="section-header animate-fade"><h2 class="section-title">What Our Clients Say</h2><p class="section-subtitle">Trusted by businesses and individuals across 150+ countries</p></div>
   <div class="testimonials-grid">
@@ -391,6 +469,8 @@
             <button class="qa-btn" onclick="showSection('receipts',null)"><i class="fa-solid fa-receipt"></i> Generate Receipt</button>
             <button class="qa-btn" onclick="showSection('inquiries',null)"><i class="fa-solid fa-comments"></i> View Inquiries</button>
           </div></div>
+          <div class="dash-card"><h3><i class="fa-solid fa-chart-pie"></i> Shipments by Status</h3><div style="position:relative;height:220px;display:flex;align-items:center;justify-content:center;"><canvas id="statusChart"></canvas></div></div>
+          <div class="dash-card"><h3><i class="fa-solid fa-chart-bar"></i> Monthly Volume</h3><div style="position:relative;height:220px;"><canvas id="volumeChart"></canvas></div></div>
         </div>
       </section>
 
