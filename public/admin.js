@@ -38,6 +38,23 @@ function showToast(msg, type='success') {
   toast._t = setTimeout(() => toast.style.display='none', 3500);
 }
 
+// ===== SESSION RESTORE =====
+document.addEventListener('DOMContentLoaded', async function() {
+  const token = TokenStore.get();
+  if (token) {
+    try {
+      await api.get('/api/auth/me'); // verify token is still valid
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminPanel').style.display  = 'flex';
+      document.getElementById('adminWrapper').classList.add('visible');
+      setCurrentDate();
+      await showSection('dashboard', null);
+    } catch {
+      TokenStore.clear(); // token expired — show login
+    }
+  }
+});
+
 // ===== STATE =====
 let shipments=[], inquiries=[], currentPage=1, totalPages=1;
 
@@ -52,6 +69,7 @@ async function adminLogin() {
     if (data.token) TokenStore.set(data.token);
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminPanel').style.display  = 'flex';
+    document.getElementById('adminWrapper').classList.add('visible');
     setCurrentDate();
     await showSection('dashboard', null);
   } catch(e) {
