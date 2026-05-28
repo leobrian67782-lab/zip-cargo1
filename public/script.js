@@ -505,10 +505,11 @@ function renderTrackingResult(s, result) {
 }
 
 
-document.getElementById('trackBtn')?.addEventListener('click', trackShipment);
-
-document.getElementById('trackInput')?.addEventListener('keypress', e => {
-  if (e.key === 'Enter') trackShipment();
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('trackBtn')?.addEventListener('click', trackShipment);
+  document.getElementById('trackInput')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') trackShipment();
+  });
 });
 
 // ===== ROUTE MAP =====

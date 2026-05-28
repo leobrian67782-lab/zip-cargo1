@@ -59,9 +59,11 @@ async function adminLogin() {
     setTimeout(() => error.textContent='', 4000);
   }
 }
-document.getElementById('loginBtn')?.addEventListener('click', adminLogin);
-document.getElementById('loginPass')?.addEventListener('keypress', e => { if(e.key==='Enter') adminLogin(); });
-document.getElementById('loginUser')?.addEventListener('keypress', e => { if(e.key==='Enter') adminLogin(); });
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('loginBtn')?.addEventListener('click', adminLogin);
+  document.getElementById('loginPass')?.addEventListener('keypress', function(e) { if(e.key==='Enter') adminLogin(); });
+  document.getElementById('loginUser')?.addEventListener('keypress', function(e) { if(e.key==='Enter') adminLogin(); });
+});
 
 // ===== LOGOUT =====
 async function adminLogout() {
