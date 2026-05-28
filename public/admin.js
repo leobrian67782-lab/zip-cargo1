@@ -59,6 +59,7 @@ async function adminLogin() {
     setTimeout(() => error.textContent='', 4000);
   }
 }
+document.getElementById('loginBtn')?.addEventListener('click', adminLogin);
 document.getElementById('loginPass')?.addEventListener('keypress', e => { if(e.key==='Enter') adminLogin(); });
 document.getElementById('loginUser')?.addEventListener('keypress', e => { if(e.key==='Enter') adminLogin(); });
 

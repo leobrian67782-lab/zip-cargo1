@@ -187,7 +187,7 @@
     <p>Enter your ZipCargo tracking number for real-time updates on your delivery status.</p>
     <div class="tracking-form">
       <input type="text" id="trackInput" placeholder="e.g. ZC-2026-00123"/>
-      <button onclick="trackShipment()">Track Now</button>
+      <button type="button" id="trackBtn">Track Now</button>
     </div>
     <div id="trackResult" class="track-result"></div>
   </div>
@@ -301,7 +301,7 @@
   <div class="faq-wrapper">
     <div class="faq-col">
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>How do I track my shipment?</span><i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="faq-answer">
@@ -309,7 +309,7 @@
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>What countries do you ship to?</span><i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="faq-answer">
@@ -317,7 +317,7 @@
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>How long does shipping take?</span><i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="faq-answer">
@@ -325,7 +325,7 @@
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>Do you offer cargo insurance?</span><i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="faq-answer">
@@ -335,7 +335,7 @@
     </div>
     <div class="faq-col">
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>What is the maximum weight/size I can ship?</span><i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="faq-answer">
@@ -343,7 +343,7 @@
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>Do you handle customs clearance?</span><i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="faq-answer">
@@ -351,7 +351,7 @@
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>How do I get a shipping quote?</span><i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="faq-answer">
@@ -359,7 +359,7 @@
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>What happens if my shipment is delayed?</span><i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="faq-answer">
@@ -413,7 +413,7 @@
       <div class="login-form">
         <div class="input-wrap"><i class="fa-solid fa-user"></i><input type="text" id="loginUser" placeholder="Username"/></div>
         <div class="input-wrap"><i class="fa-solid fa-lock"></i><input type="password" id="loginPass" placeholder="Password"/></div>
-        <button onclick="adminLogin()">Sign In</button>
+        <button type="button" id="loginBtn">Sign In</button>
         <div id="loginError" class="login-error"></div>
       </div>
       <div style="margin-top:20px;"><button onclick="closeAdminPanel()" style="background:none;border:none;color:#aaa;font-size:.85rem;cursor:pointer;text-decoration:underline;">← Back to main site</button></div>

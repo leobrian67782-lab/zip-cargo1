@@ -505,6 +505,8 @@ function renderTrackingResult(s, result) {
 }
 
 
+document.getElementById('trackBtn')?.addEventListener('click', trackShipment);
+
 document.getElementById('trackInput')?.addEventListener('keypress', e => {
   if (e.key === 'Enter') trackShipment();
 });
