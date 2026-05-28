@@ -141,6 +141,40 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// CSV export of all shipments
+router.get('/export/csv', async (req, res) => {
+  try {
+    const { status = '', search = '' } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    if (search) {
+      filter.$or = [
+        { tracking: { $regex: search, $options: 'i' } },
+        { sName:    { $regex: search, $options: 'i' } },
+        { rName:    { $regex: search, $options: 'i' } },
+      ];
+    }
+    const items = await Shipment.find(filter).sort({ createdAt: -1 }).select('-__v -timeline');
+
+    const header = ['Tracking','Status','Service','Sender','Sender Email','Sender Phone','Origin','Recipient','Recipient Email','Recipient Phone','Destination','Weight (kg)','Value ($)','Cost ($)','ETA','Location','Description','Notes','Created'];
+    const esc = v => `"${(v || '').toString().replace(/"/g, '""')}"`;
+    const rows = items.map(s => [
+      esc(s.tracking), esc(s.status),   esc(s.service),
+      esc(s.sName),    esc(s.sEmail),    esc(s.sPhone),   esc(s.origin),
+      esc(s.rName),    esc(s.rEmail),    esc(s.rPhone),   esc(s.dest),
+      s.weight || 0,   s.value  || 0,    s.cost   || 0,
+      esc(s.eta),      esc(s.location),  esc(s.desc),     esc(s.notes),
+      new Date(s.createdAt).toISOString(),
+    ]);
+    const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="shipments-${Date.now()}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
 router.delete('/:id', async (req, res) => {
   try {
     const s = await Shipment.findByIdAndDelete(req.params.id);
