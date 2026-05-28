@@ -74,8 +74,21 @@ app.use(cors({
 
 // ── Helmet security headers ───────────────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:     ["'self'"],
+      scriptSrc:      ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://fonts.googleapis.com"],
+      styleSrc:       ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://unpkg.com"],
+      fontSrc:        ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+      imgSrc:         ["'self'", "data:", "https:", "blob:"],
+      connectSrc:     ["'self'", "https://nominatim.openstreetmap.org", "https://router.project-osrm.org", "https://api.qrserver.com"],
+      frameSrc:       ["'self'", "https://www.google.com"],
+      workerSrc:      ["'self'", "blob:"],
+      objectSrc:      ["'none'"],
+      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
+    },
+  },
 }));
 
 // ── Rate limiting ─────────────────────────────────────────────────────────
