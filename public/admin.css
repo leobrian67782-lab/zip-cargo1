@@ -88,8 +88,8 @@
 .date-badge { color:#94a3b8; font-size:.78rem; font-weight:500; }
 
 /* ===== SECTIONS ===== */
-#adminWrapper .section { display:none; padding:32px; flex:1; animation:fadeUp .35s ease both; }
-#adminWrapper .section.active { display:block; }
+.section { display:none; padding:32px; flex:1; animation:fadeUp .35s ease both; }
+.section.active { display:block; }
 
 /* ===== STAT CARDS ===== */
 .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:20px; margin-bottom:28px; }
@@ -119,7 +119,7 @@
 .qa-btn:hover { background:#fff7ed; border-color:#e8820c; color:#e8820c; transform:translateX(3px); }
 
 /* ===== TOOLBAR ===== */
-#adminWrapper .section-toolbar { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+.section-toolbar { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
 .search-wrap { position:relative; flex:1; min-width:240px; }
 .search-wrap i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:.9rem; pointer-events:none; }
 .section-toolbar input { padding:11px 16px 11px 40px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:.9rem; font-family:inherit; outline:none; transition:all .25s; background:white; color:#0d1f35; width:100%; }
@@ -222,7 +222,7 @@
   .dashboard-grid { grid-template-columns:1fr; }
   .stats-grid { grid-template-columns:repeat(2,1fr); }
   .topbar { padding:0 18px; }
-  #adminWrapper .section { padding:20px 16px; }
+  .section { padding:20px 16px; }
   .date-badge { display:none; }
   .settings-grid { grid-template-columns:1fr; }
 }

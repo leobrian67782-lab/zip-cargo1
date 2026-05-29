@@ -16,7 +16,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 999999;
+      z-index: 9999;
       background: #f0f2f7;
       overflow-y: auto;
       overflow-x: hidden;
@@ -29,6 +29,9 @@
     /* Lock main site completely when admin or loader is open */
     body.no-scroll {
       overflow: hidden !important;
+      position: fixed !important;
+      width: 100% !important;
+      height: 100% !important;
     }
 
     /* ── RESPONSIVE FIXES ── */
@@ -184,7 +187,7 @@
     <p>Enter your ZipCargo tracking number for real-time updates on your delivery status.</p>
     <div class="tracking-form">
       <input type="text" id="trackInput" placeholder="e.g. ZC-2026-00123"/>
-      <button type="button" id="trackBtn" onclick="trackShipment()">Track Now</button>
+      <button type="button" id="trackBtn">Track Now</button>
     </div>
     <div id="trackResult" class="track-result"></div>
   </div>
@@ -410,7 +413,7 @@
       <div class="login-form">
         <div class="input-wrap"><i class="fa-solid fa-user"></i><input type="text" id="loginUser" placeholder="Username"/></div>
         <div class="input-wrap"><i class="fa-solid fa-lock"></i><input type="password" id="loginPass" placeholder="Password"/></div>
-        <button type="button" id="loginBtn" onclick="adminLogin()">Sign In</button>
+        <button type="button" id="loginBtn">Sign In</button>
         <div id="loginError" class="login-error"></div>
       </div>
       <div style="margin-top:20px;"><button onclick="closeAdminPanel()" style="background:none;border:none;color:#aaa;font-size:.85rem;cursor:pointer;text-decoration:underline;">← Back to main site</button></div>
@@ -425,16 +428,16 @@
         <span class="sidebar-logo-text">ZipCargo</span>
       </div>
       <nav class="sidebar-nav">
-        <a href="#admin" class="nav-item active" onclick="showSection('dashboard',this);return false;"><i class="fa-solid fa-gauge nav-icon"></i> Dashboard</a>
-        <a href="#admin" class="nav-item" onclick="showSection('shipments',this);return false;"><i class="fa-solid fa-boxes-stacked nav-icon"></i> Shipments</a>
-        <a href="#admin" class="nav-item" onclick="showSection('create',this);return false;"><i class="fa-solid fa-plus nav-icon"></i> New Shipment</a>
-        <a href="#admin" class="nav-item" onclick="showSection('receipts',this);return false;"><i class="fa-solid fa-receipt nav-icon"></i> Receipts</a>
-        <a href="#admin" class="nav-item" onclick="showSection('inquiries',this);return false;"><i class="fa-solid fa-comments nav-icon"></i> Inquiries</a>
-        <a href="#admin" class="nav-item" onclick="showSection('activity',this);return false;"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Activity Log</a>
-        <a href="#admin" class="nav-item" onclick="showSection('settings',this);return false;"><i class="fa-solid fa-gear nav-icon"></i> Settings</a>
+        <a href="#" class="nav-item active" onclick="showSection('dashboard',this)"><i class="fa-solid fa-gauge nav-icon"></i> Dashboard</a>
+        <a href="#" class="nav-item" onclick="showSection('shipments',this)"><i class="fa-solid fa-boxes-stacked nav-icon"></i> Shipments</a>
+        <a href="#" class="nav-item" onclick="showSection('create',this)"><i class="fa-solid fa-plus nav-icon"></i> New Shipment</a>
+        <a href="#" class="nav-item" onclick="showSection('receipts',this)"><i class="fa-solid fa-receipt nav-icon"></i> Receipts</a>
+        <a href="#" class="nav-item" onclick="showSection('inquiries',this)"><i class="fa-solid fa-comments nav-icon"></i> Inquiries</a>
+        <a href="#" class="nav-item" onclick="showSection('activity',this)"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Activity Log</a>
+        <a href="#" class="nav-item" onclick="showSection('settings',this)"><i class="fa-solid fa-gear nav-icon"></i> Settings</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#admin" onclick="closeAdminPanel();return false;" class="back-to-site-btn"><i class="fa-solid fa-arrow-left"></i> Back to Site</a>
+        <a href="#" onclick="closeAdminPanel();return false;" class="back-to-site-btn"><i class="fa-solid fa-arrow-left"></i> Back to Site</a>
         <button class="logout-btn" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
       </div>
     </aside>
@@ -461,10 +464,10 @@
         <div class="dashboard-grid">
           <div class="dash-card"><h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Shipments</h3><table class="mini-table"><thead><tr><th>Tracking #</th><th>Recipient</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentShipmentsBody"><tr><td colspan="4" class="empty-msg">No shipments yet</td></tr></tbody></table></div>
           <div class="dash-card"><h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3><div class="quick-actions">
-            <button type="button" class="qa-btn" onclick="showSection('create',null)"><i class="fa-solid fa-plus"></i> New Shipment</button>
-            <button type="button" class="qa-btn" onclick="showSection('shipments',null)"><i class="fa-solid fa-boxes-stacked"></i> View All Shipments</button>
-            <button type="button" class="qa-btn" onclick="showSection('receipts',null)"><i class="fa-solid fa-receipt"></i> Generate Receipt</button>
-            <button type="button" class="qa-btn" onclick="showSection('inquiries',null)"><i class="fa-solid fa-comments"></i> View Inquiries</button>
+            <button class="qa-btn" onclick="showSection('create',null)"><i class="fa-solid fa-plus"></i> New Shipment</button>
+            <button class="qa-btn" onclick="showSection('shipments',null)"><i class="fa-solid fa-boxes-stacked"></i> View All Shipments</button>
+            <button class="qa-btn" onclick="showSection('receipts',null)"><i class="fa-solid fa-receipt"></i> Generate Receipt</button>
+            <button class="qa-btn" onclick="showSection('inquiries',null)"><i class="fa-solid fa-comments"></i> View Inquiries</button>
           </div></div>
           <div class="dash-card"><h3><i class="fa-solid fa-chart-pie"></i> Shipments by Status</h3><div style="position:relative;height:220px;display:flex;align-items:center;justify-content:center;"><canvas id="statusChart"></canvas></div></div>
           <div class="dash-card"><h3><i class="fa-solid fa-chart-bar"></i> Monthly Volume</h3><div style="position:relative;height:220px;"><canvas id="volumeChart"></canvas></div></div>
@@ -687,17 +690,18 @@
   function checkAdminHash() {
     if (window.location.hash === '#admin') {
       document.getElementById('adminWrapper').classList.add('visible');
+      document.body.classList.add('no-scroll');
     } else {
       document.getElementById('adminWrapper').classList.remove('visible');
+      document.body.classList.remove('no-scroll');
     }
   }
   function closeAdminPanel() {
-    window.removeEventListener('hashchange', checkAdminHash);
     history.pushState('', document.title, window.location.pathname + window.location.search);
     document.getElementById('adminWrapper').classList.remove('visible');
+    document.body.classList.remove('no-scroll');
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
-    setTimeout(() => window.addEventListener('hashchange', checkAdminHash), 100);
   }
   window.addEventListener('hashchange', checkAdminHash);
   checkAdminHash();
