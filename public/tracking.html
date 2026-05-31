@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Shipment – ZipCargo</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body.no-scroll{overflow:hidden!important;position:fixed!important;width:100%!important;height:100%!important;}
+    .page-hero{background:linear-gradient(135deg,#0d1f35 0%,#1a3a5c 100%);padding:140px 24px 80px;text-align:center;position:relative;overflow:hidden;}
+    .page-hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=60') center/cover no-repeat;opacity:.1;}
+    .page-hero-content{position:relative;z-index:1;}
+    .page-hero h1{font-size:3rem;font-weight:800;color:white;margin-bottom:16px;}
+    .page-hero p{font-size:1.1rem;color:#aac4e0;max-width:560px;margin:0 auto;}
+    .breadcrumb{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:20px;font-size:.85rem;color:#4a6a88;}
+    .breadcrumb a{color:#aac4e0;text-decoration:none;} .breadcrumb a:hover{color:#e8820c;} .breadcrumb span{color:#e8820c;}
+    @media(max-width:768px){
+      .page-hero h1{font-size:2rem;}
+      .tracking{padding:60px 16px!important;}
+      .tracking-form{flex-direction:column!important;}
+      .tracking-form input{min-width:unset!important;width:100%!important;}
+      .tracking-form button{width:100%!important;}
+      .footer{padding:50px 16px 20px!important;}
+      .footer-content{flex-direction:column!important;}
+      .footer-bottom{flex-direction:column!important;text-align:center!important;}
+      .footer-bottom-links{justify-content:center!important;}
+    }
+  </style>
+</head>
+<body>
+
+<div id="progressBar"></div>
+<button id="backToTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="tracking.html" class="nav-active">Tracking</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn-quote">Get a Quote</a>
+    <div class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-content">
+    <span class="hero-badge"><i class="fa-solid fa-satellite-dish"></i> Live Tracking</span>
+    <h1>Track Your Shipment</h1>
+    <p>Enter your ZipCargo tracking number for real-time updates on your delivery status.</p>
+    <nav class="breadcrumb"><a href="index.html">Home</a> <i class="fa-solid fa-chevron-right" style="font-size:.6rem;"></i> <span>Tracking</span></nav>
+  </div>
+</div>
+
+<section class="tracking" id="tracking" style="padding-top:60px;">
+  <div class="tracking-content animate-fade">
+    <div class="tracking-form">
+      <input type="text" id="trackInput" placeholder="e.g. ZC-2026-00123"/>
+      <button onclick="trackShipment()">Track Now</button>
+    </div>
+    <div id="trackResult" class="track-result"></div>
+  </div>
+</section>
+
+<section id="trackMapSection" style="display:none;background:#0d1f35;padding:0 0 50px;">
+  <div style="max-width:900px;margin:0 auto;padding:0 24px;">
+    <div style="display:flex;align-items:center;gap:10px;padding:20px 0 14px;">
+      <i class="fa-solid fa-map-location-dot" style="color:#e8820c;font-size:1.2rem;"></i>
+      <span style="color:white;font-weight:700;">Live Route Map</span>
+      <span id="trackMapStatus" style="color:#7a9ab8;font-size:.82rem;margin-left:8px;"></span>
+    </div>
+    <div id="trackMap" style="width:100%;height:420px;border-radius:14px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.4);border:2px solid rgba(232,130,12,.3);"></div>
+    <div style="margin-top:12px;display:flex;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:#7a9ab8;"><span style="width:12px;height:12px;border-radius:50%;background:#27ae60;display:inline-block;"></span> Origin</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:#7a9ab8;"><span style="width:12px;height:12px;border-radius:50%;background:#e74c3c;display:inline-block;"></span> Destination</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:#7a9ab8;"><span style="width:12px;height:12px;border-radius:50%;background:#e8820c;display:inline-block;"></span> Package</div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <div class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
+      <span class="footer-tagline">Global Logistics Solutions</span>
+      <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
+      <div class="social-links"><a href="#"><i class="fa-brands fa-linkedin-in"></i></a><a href="#"><i class="fa-brands fa-x-twitter"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a><a href="#"><i class="fa-brands fa-whatsapp"></i></a></div>
+    </div>
+    <div class="footer-links"><h4>Company</h4><a href="index.html">Home</a><a href="services.html">Our Services</a><a href="about.html">About Us</a><a href="testimonials.html">Testimonials</a></div>
+    <div class="footer-links"><h4>Services</h4><a href="services.html">Air Freight</a><a href="services.html">Sea Freight</a><a href="services.html">Road Transport</a><a href="services.html">Warehousing</a><a href="services.html">Customs Clearance</a></div>
+    <div class="footer-contact"><h4>Contact Us</h4><p><i class="fa-solid fa-phone"></i> <span id="footerPhone"></span></p><p style="margin-top:10px;"><i class="fa-solid fa-envelope"></i> <span id="footerEmail">info@zipcargo.com</span></p><p style="margin-top:10px;"><i class="fa-regular fa-clock"></i> <span id="footerHours">Mon–Fri: 8am – 8pm GMT</span></p></div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 ZipCargo Logistics. All rights reserved.</p>
+    <div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Cookie Policy</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var fPhone=document.getElementById('footerPhone');
+  var fEmail=document.getElementById('footerEmail');
+  var fHours=document.getElementById('footerHours');
+  var phone=localStorage.getItem('zc_contact_phone')||'';
+  var email=localStorage.getItem('zc_contact_email')||'info@zipcargo.com';
+  var hours=localStorage.getItem('zc_contact_hours')||'Mon–Fri: 8am – 8pm (GMT)';
+  if(fPhone){fPhone.textContent=phone;if(!phone)fPhone.parentElement.style.display='none';}
+  if(fEmail)fEmail.textContent=email;
+  if(fHours)fHours.textContent=hours;
+  // Auto-fill tracking number from URL param
+  var urlParams=new URLSearchParams(window.location.search);
+  var tn=urlParams.get('id');
+  if(tn){
+    var ti=document.getElementById('trackInput');
+    if(ti){ti.value=tn;window.addEventListener('load',function(){trackShipment();});}
+  }
+})();
+</script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -348,3 +348,58 @@ body.no-scroll { overflow: hidden !important; position: fixed !important; width:
 @media (max-width: 600px) {
   #trackResult > div { border-radius: 10px !important; }
 }
+
+/* ── MULTI-PAGE ADDITIONS ── */
+
+/* Logo as link */
+a.logo {
+  text-decoration: none;
+  color: inherit;
+}
+.navbar:not(.scrolled) a.logo { color: white; }
+.navbar.scrolled a.logo { color: #0d1f35; }
+
+/* Inner pages always have scrolled navbar */
+.navbar.scrolled {
+  background: white;
+  box-shadow: 0 2px 20px rgba(0,0,0,.08);
+}
+
+/* Page hero section */
+.page-hero {
+  background: linear-gradient(135deg, #0d1f35 0%, #1a3a5c 100%);
+  padding: 140px 24px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: .12;
+  background-size: cover;
+  background-position: center;
+}
+.page-hero-content { position: relative; z-index: 1; }
+.page-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  color: white;
+  margin: 16px 0;
+}
+.page-hero p { font-size: 1.05rem; color: #aac4e0; max-width: 560px; margin: 0 auto; }
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 20px;
+  font-size: .85rem;
+  color: #4a6a88;
+}
+.breadcrumb a { color: #aac4e0; text-decoration: none; }
+.breadcrumb a:hover { color: #e8820c; }
+.breadcrumb span { color: #e8820c; font-weight: 600; }

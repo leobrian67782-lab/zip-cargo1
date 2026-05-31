@@ -737,3 +737,13 @@ function toggleFaq(btn) {
     icon.style.transform = 'rotate(180deg)';
   }
 }
+
+// ===== MULTI-PAGE: Fix navbar on inner pages (always scrolled) =====
+(function(){
+  var path = window.location.pathname.split('/').pop() || 'index.html';
+  var navbar = document.getElementById('navbar');
+  // On non-home pages, keep navbar always scrolled (dark bg)
+  if (path !== 'index.html' && path !== '') {
+    if (navbar) navbar.classList.add('scrolled');
+  }
+})();

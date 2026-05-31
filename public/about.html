@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us – ZipCargo</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    body.no-scroll{overflow:hidden!important;position:fixed!important;width:100%!important;height:100%!important;}
+    .page-hero{background:linear-gradient(135deg,#0d1f35 0%,#1a3a5c 100%);padding:140px 24px 80px;text-align:center;position:relative;overflow:hidden;}
+    .page-hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1600&q=60') center/cover no-repeat;opacity:.12;}
+    .page-hero-content{position:relative;z-index:1;}
+    .page-hero h1{font-size:3rem;font-weight:800;color:white;margin-bottom:16px;}
+    .page-hero p{font-size:1.1rem;color:#aac4e0;max-width:560px;margin:0 auto;}
+    .breadcrumb{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:20px;font-size:.85rem;color:#4a6a88;}
+    .breadcrumb a{color:#aac4e0;text-decoration:none;} .breadcrumb a:hover{color:#e8820c;} .breadcrumb span{color:#e8820c;}
+    @media(max-width:768px){
+      .page-hero h1{font-size:2rem;}
+      .about{padding:60px 16px!important;}
+      .map-section{padding:60px 16px!important;}
+      .footer{padding:50px 16px 20px!important;}
+      .footer-content{flex-direction:column!important;}
+      .footer-bottom{flex-direction:column!important;text-align:center!important;}
+      .footer-bottom-links{justify-content:center!important;}
+      .hubs-grid{grid-template-columns:repeat(2,1fr)!important;}
+    }
+  </style>
+</head>
+<body>
+
+<div id="progressBar"></div>
+<button id="backToTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="tracking.html">Tracking</a></li>
+      <li><a href="about.html" class="nav-active">About</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn-quote">Get a Quote</a>
+    <div class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-content">
+    <span class="hero-badge" style="background:rgba(255,255,255,0.15);color:white;"><i class="fa-solid fa-users"></i> Our Story</span>
+    <h1>About ZipCargo</h1>
+    <p>Trusted by businesses worldwide for over 15 years of reliable global logistics.</p>
+    <nav class="breadcrumb"><a href="index.html">Home</a> <i class="fa-solid fa-chevron-right" style="font-size:.6rem;"></i> <span>About</span></nav>
+  </div>
+</div>
+
+<section class="about" id="about">
+  <div class="about-content">
+    <div class="about-image animate-fade"><img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" alt="ZipCargo Team"/></div>
+    <div class="about-text animate-fade">
+      <span class="hero-badge" style="background:#e8f4ff;color:#1a2e4a;">About ZipCargo</span>
+      <h2>Trusted by Businesses Worldwide</h2>
+      <p>Founded with a mission to make global shipping simple, ZipCargo has grown into a world-class logistics provider serving businesses of all sizes.</p>
+      <p>Our technology-first approach means you get real-time visibility, smart routing and 24/7 support no matter where in the world your cargo is headed.</p>
+      <a href="contact.html" class="btn-primary">Work With Us</a>
+    </div>
+    <div class="about-stats animate-fade">
+      <div class="about-stat"><i class="fa-solid fa-circle-check"></i> ISO 9001 Certified</div>
+      <div class="about-stat"><i class="fa-solid fa-circle-check"></i> 24/7 Customer Support</div>
+      <div class="about-stat"><i class="fa-solid fa-circle-check"></i> Real-time GPS Tracking</div>
+      <div class="about-stat"><i class="fa-solid fa-circle-check"></i> Customs Clearance Experts</div>
+      <div class="about-stat"><i class="fa-solid fa-circle-check"></i> Cargo Insurance Available</div>
+      <div class="about-stat"><i class="fa-solid fa-circle-check"></i> Dedicated Account Managers</div>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stat-item animate-slide"><h2 data-target="150" data-suffix="+">150+</h2><p>Countries Served</p></div>
+  <div class="stat-item animate-slide"><h2 data-target="80000" data-suffix="+">80,000+</h2><p>Deliveries Monthly</p></div>
+  <div class="stat-item animate-slide"><h2 data-target="99.8" data-suffix="%" data-decimal="true">99.8%</h2><p>On-Time Rate</p></div>
+  <div class="stat-item animate-slide"><h2 data-target="15" data-suffix="+">15+</h2><p>Years Experience</p></div>
+</section>
+
+<section class="map-section" id="map">
+  <div class="section-header animate-fade"><h2 class="section-title">Our Global Network</h2><p class="section-subtitle">ZipCargo operates across every major continent</p></div>
+  <div class="map-container">
+    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d50000000!2d-50!3d35!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus" width="100%" height="450" style="border:0;border-radius:12px;" allowfullscreen="" loading="lazy"></iframe>
+  </div>
+  <div class="hubs-grid">
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> New York</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Los Angeles</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Toronto</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> London</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Manchester</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Sydney</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Melbourne</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Miami</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Chicago</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Vancouver</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Houston</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Auckland</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Lagos</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Nairobi</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Accra</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Johannesburg</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Cairo</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Dubai</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Riyadh</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Mumbai</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Singapore</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Shanghai</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Tokyo</div>
+    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Bangkok</div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <div class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
+      <span class="footer-tagline">Global Logistics Solutions</span>
+      <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
+      <div class="social-links"><a href="#"><i class="fa-brands fa-linkedin-in"></i></a><a href="#"><i class="fa-brands fa-x-twitter"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a><a href="#"><i class="fa-brands fa-whatsapp"></i></a></div>
+    </div>
+    <div class="footer-links"><h4>Company</h4><a href="index.html">Home</a><a href="services.html">Our Services</a><a href="about.html">About Us</a><a href="testimonials.html">Testimonials</a></div>
+    <div class="footer-links"><h4>Services</h4><a href="services.html">Air Freight</a><a href="services.html">Sea Freight</a><a href="services.html">Road Transport</a><a href="services.html">Warehousing</a><a href="services.html">Customs Clearance</a></div>
+    <div class="footer-contact"><h4>Contact Us</h4><p><i class="fa-solid fa-phone"></i> <span id="footerPhone"></span></p><p style="margin-top:10px;"><i class="fa-solid fa-envelope"></i> <span id="footerEmail">info@zipcargo.com</span></p><p style="margin-top:10px;"><i class="fa-regular fa-clock"></i> <span id="footerHours">Mon–Fri: 8am – 8pm GMT</span></p></div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 ZipCargo Logistics. All rights reserved.</p>
+    <div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Cookie Policy</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var fPhone=document.getElementById('footerPhone');
+  var fEmail=document.getElementById('footerEmail');
+  var fHours=document.getElementById('footerHours');
+  var phone=localStorage.getItem('zc_contact_phone')||'';
+  var email=localStorage.getItem('zc_contact_email')||'info@zipcargo.com';
+  var hours=localStorage.getItem('zc_contact_hours')||'Mon–Fri: 8am – 8pm (GMT)';
+  if(fPhone){fPhone.textContent=phone;if(!phone)fPhone.parentElement.style.display='none';}
+  if(fEmail)fEmail.textContent=email;
+  if(fHours)fHours.textContent=hours;
+})();
+</script>
+<script src="script.js"></script>
+</body>
+</html>

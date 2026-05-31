@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Services – ZipCargo</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    body.no-scroll{overflow:hidden!important;position:fixed!important;width:100%!important;height:100%!important;}
+    .page-hero{background:linear-gradient(135deg,#0d1f35 0%,#1a3a5c 100%);padding:140px 24px 80px;text-align:center;position:relative;overflow:hidden;}
+    .page-hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1600&q=60') center/cover no-repeat;opacity:.12;}
+    .page-hero-content{position:relative;z-index:1;}
+    .page-hero h1{font-size:3rem;font-weight:800;color:white;margin-bottom:16px;}
+    .page-hero p{font-size:1.1rem;color:#aac4e0;max-width:560px;margin:0 auto;}
+    .breadcrumb{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:20px;font-size:.85rem;color:#4a6a88;}
+    .breadcrumb a{color:#aac4e0;text-decoration:none;}
+    .breadcrumb a:hover{color:#e8820c;}
+    .breadcrumb span{color:#e8820c;}
+    @media(max-width:768px){
+      .page-hero h1{font-size:2rem;}
+      .services{padding:60px 16px!important;}
+      .footer{padding:50px 16px 20px!important;}
+      .footer-content{flex-direction:column!important;}
+      .footer-bottom{flex-direction:column!important;text-align:center!important;}
+      .footer-bottom-links{justify-content:center!important;}
+    }
+  </style>
+</head>
+<body>
+
+<div id="progressBar"></div>
+<button id="backToTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html" class="nav-active">Services</a></li>
+      <li><a href="tracking.html">Tracking</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn-quote">Get a Quote</a>
+    <div class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-content">
+    <span class="hero-badge"><i class="fa-solid fa-boxes-stacked"></i> What We Offer</span>
+    <h1>Our Services</h1>
+    <p>End-to-end logistics solutions built for global businesses of every size.</p>
+    <nav class="breadcrumb"><a href="index.html">Home</a> <i class="fa-solid fa-chevron-right" style="font-size:.6rem;"></i> <span>Services</span></nav>
+  </div>
+</div>
+
+<section class="services" id="services">
+  <div class="services-grid">
+    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80" alt="Air Freight"/></div><div class="service-icon"><i class="fa-solid fa-plane-departure"></i></div><h3>Air Freight</h3><p>Express worldwide delivery for urgent shipments to over 200 international destinations.</p><a href="contact.html" class="card-link">Get a Quote <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=600&q=80" alt="Sea Freight"/></div><div class="service-icon"><i class="fa-solid fa-ship"></i></div><h3>Sea Freight</h3><p>Cost-effective ocean shipping for large cargo with full container and groupage options.</p><a href="contact.html" class="card-link">Get a Quote <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80" alt="Road Transport"/></div><div class="service-icon"><i class="fa-solid fa-truck-moving"></i></div><h3>Road Transport</h3><p>Cross-border trucking with real-time GPS tracking and dedicated fleet management.</p><a href="contact.html" class="card-link">Get a Quote <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1586528116493-a029325540fa?w=600&q=80" alt="Warehousing"/></div><div class="service-icon"><i class="fa-solid fa-warehouse"></i></div><h3>Warehousing</h3><p>Secure, climate-controlled storage with smart inventory and fulfilment systems.</p><a href="contact.html" class="card-link">Get a Quote <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80" alt="Customs"/></div><div class="service-icon"><i class="fa-solid fa-file-shield"></i></div><h3>Customs Clearance</h3><p>Expert handling of all import/export documentation and compliance requirements.</p><a href="contact.html" class="card-link">Get a Quote <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80" alt="Supply Chain"/></div><div class="service-icon"><i class="fa-solid fa-chart-line"></i></div><h3>Supply Chain</h3><p>End-to-end supply chain consulting to optimise costs and improve delivery times.</p><a href="contact.html" class="card-link">Get a Quote <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1568515387631-8b650bbcdb90?w=600&q=80" alt="Express Delivery"/></div><div class="service-icon"><i class="fa-solid fa-bolt"></i></div><h3>Express Delivery</h3><p>Same-day and next-day delivery options for time-critical shipments anywhere in the world.</p><a href="contact.html" class="card-link">Get a Quote <i class="fa-solid fa-arrow-right"></i></a></div>
+  </div>
+</section>
+
+<section class="how-it-works">
+  <div class="section-header animate-fade"><h2 class="section-title">How It Works</h2><p class="section-subtitle">Shipping globally in four simple steps</p></div>
+  <div class="steps-grid">
+    <div class="step-card animate-card"><div class="step-number">01</div><div class="step-icon"><i class="fa-solid fa-file-pen"></i></div><h3>Request a Quote</h3><p>Fill in your shipment details and get a competitive quote within minutes.</p></div>
+    <div class="step-connector"><i class="fa-solid fa-chevron-right"></i></div>
+    <div class="step-card animate-card"><div class="step-number">02</div><div class="step-icon"><i class="fa-solid fa-box-open"></i></div><h3>Package &amp; Book</h3><p>We arrange collection, handle documentation, and book the fastest route.</p></div>
+    <div class="step-connector"><i class="fa-solid fa-chevron-right"></i></div>
+    <div class="step-card animate-card"><div class="step-number">03</div><div class="step-icon"><i class="fa-solid fa-satellite-dish"></i></div><h3>Track Live</h3><p>Monitor every movement in real time from pickup to final delivery.</p></div>
+    <div class="step-connector"><i class="fa-solid fa-chevron-right"></i></div>
+    <div class="step-card animate-card"><div class="step-number">04</div><div class="step-icon"><i class="fa-solid fa-circle-check"></i></div><h3>Delivered</h3><p>Your cargo arrives safely, on time, with a digital receipt sent instantly.</p></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <div class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
+      <span class="footer-tagline">Global Logistics Solutions</span>
+      <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
+      <div class="social-links"><a href="#"><i class="fa-brands fa-linkedin-in"></i></a><a href="#"><i class="fa-brands fa-x-twitter"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a><a href="#"><i class="fa-brands fa-whatsapp"></i></a></div>
+    </div>
+    <div class="footer-links"><h4>Company</h4><a href="index.html">Home</a><a href="services.html">Our Services</a><a href="about.html">About Us</a><a href="testimonials.html">Testimonials</a></div>
+    <div class="footer-links"><h4>Services</h4><a href="services.html">Air Freight</a><a href="services.html">Sea Freight</a><a href="services.html">Road Transport</a><a href="services.html">Warehousing</a><a href="services.html">Customs Clearance</a></div>
+    <div class="footer-contact"><h4>Contact Us</h4><p><i class="fa-solid fa-phone"></i> <span id="footerPhone"></span></p><p style="margin-top:10px;"><i class="fa-solid fa-envelope"></i> <span id="footerEmail">info@zipcargo.com</span></p><p style="margin-top:10px;"><i class="fa-regular fa-clock"></i> <span id="footerHours">Mon–Fri: 8am – 8pm GMT</span></p></div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 ZipCargo Logistics. All rights reserved.</p>
+    <div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Cookie Policy</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var fPhone=document.getElementById('footerPhone');
+  var fEmail=document.getElementById('footerEmail');
+  var fHours=document.getElementById('footerHours');
+  var phone=localStorage.getItem('zc_contact_phone')||'';
+  var email=localStorage.getItem('zc_contact_email')||'info@zipcargo.com';
+  var hours=localStorage.getItem('zc_contact_hours')||'Mon–Fri: 8am – 8pm (GMT)';
+  if(fPhone){fPhone.textContent=phone;if(!phone)fPhone.parentElement.style.display='none';}
+  if(fEmail)fEmail.textContent=email;
+  if(fHours)fHours.textContent=hours;
+})();
+</script>
+<script src="script.js"></script>
+</body>
+</html>
