@@ -118,46 +118,93 @@ app.get('/api/chat/config', (req, res) => {
 
 // ── AI Chat proxy — keeps API key secret on server ────────
 app.use('/api/chat', rateLimit({
-  windowMs: 60_000, max: 30,
-  message: { error: 'Too many messages. Please slow down.' },
+  windowMs: 60_000, max: 40,
+  message: { reply: 'Too many messages — please slow down a moment.' },
 }));
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { messages, system } = req.body;
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: 'Invalid request.' });
+    const { message, history, adminContext } = req.body;
+    if (!message) return res.status(400).json({ reply: 'No message received.' });
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.json({ reply: "Our AI assistant is being configured. Please contact us at info@zipcargo.com or visit the Contact page — we respond within 24 hours!" });
     }
-    // Limit message history to last 10 to save tokens
-    const trimmed = messages.slice(-10);
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) return res.status(503).json({ error: 'AI service not configured. Please add ANTHROPIC_API_KEY to your environment variables on Render.' });
+    const systemText = `You are Zara, the ZipCargo AI Assistant. You are professional, warm, intelligent, and genuinely helpful. You work for ZipCargo — a premium global logistics and freight company.
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
-        system: system || '',
-        messages: trimmed,
-      }),
-    });
+ABOUT ZIPCARGO:
+- Serves 150+ countries worldwide
+- 80,000+ shipments per month, 99.8% on-time delivery rate
+- 15+ years of experience, ISO 9001 Certified, 24/7 customer support
+- Major hubs: New York, London, Dubai, Singapore, Lagos, Nairobi, Sydney, Tokyo, Mumbai, Toronto, Miami, Shanghai, Johannesburg, Cairo, Vancouver
 
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('Anthropic API error:', data);
-      return res.status(502).json({ error: 'AI service error.' });
+SERVICES & TRANSIT TIMES:
+- Air Freight: Express worldwide, 1-5 business days, ideal for urgent/high-value cargo
+- Sea Freight: Cost-effective for large cargo, FCL and LCL, 2-6 weeks by route
+- Road Transport: Cross-border trucking with GPS, 1-10 days, great for regional
+- Express Delivery: Same-day and next-day options for time-critical shipments
+- Warehousing: Secure climate-controlled storage, smart inventory, fulfilment
+- Customs Clearance: Import/export documentation and compliance handled fully
+- Supply Chain Consulting: End-to-end optimization to cut costs and improve times
+
+INSURANCE & PAYMENTS — mention proactively whenever relevant:
+- ALL cargo insurance fees are FULLY REFUNDABLE if no claim is made
+- Customer pays the premium — if shipment arrives safely they get 100% back
+- Zero risk to taking insurance — always recommend it strongly
+- All ZipCargo payments follow a transparent refund policy
+
+PRICING:
+- Rates depend on: service, weight, dimensions, origin, destination, special requirements
+- Always invite customers to request a FREE quote — team responds within 24 hours
+- Never give exact prices — always direct to the quote form
+
+YOUR PERSONALITY:
+- You are knowledgeable, confident, and always helpful
+- Answer ANY question — shipping routes, customs rules, packaging tips, country regulations, documentation, tariffs, anything logistics-related
+- Never say "I don't know" — always give your best answer
+- Never say "I'm an AI" — you are Zara, the ZipCargo Assistant
+- Be natural and conversational, not robotic
+- Use line breaks for readability
+- For complex issues offer to connect with the human team
+- Always end with a helpful next step
+
+${adminContext ? `
+MANAGEMENT INSTRUCTIONS (highest priority, follow exactly):
+${adminContext}` : ''}`;
+
+    const safeHistory = (Array.isArray(history) ? history : []).slice(-10).map(m => ({
+      role: m.r === 'assistant' ? 'model' : 'user',
+      parts: [{ text: String(m.t || '') }]
+    }));
+
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemText }] },
+          contents: [...safeHistory, { role: 'user', parts: [{ text: message }] }],
+          generationConfig: { maxOutputTokens: 600, temperature: 0.8, topP: 0.95 }
+        })
+      }
+    );
+
+    const data = await geminiRes.json();
+
+    if (!geminiRes.ok || !data.candidates) {
+      console.error('Gemini API error:', JSON.stringify(data).slice(0, 300));
+      return res.json({ reply: "I'm having a moment — please try again! Or reach us at info@zipcargo.com." });
     }
-    res.json({ reply: data.content?.[0]?.text || '' });
+
+    const reply = data.candidates[0]?.content?.parts?.[0]?.text || "Could you rephrase that? I want to make sure I help you properly.";
+    res.json({ reply });
+
   } catch (err) {
-    console.error('Chat proxy error:', err.message);
-    res.status(500).json({ error: 'Server error.' });
+    console.error('Chat error:', err.message);
+    res.json({ reply: "Something went wrong on my end. Please try again or contact info@zipcargo.com." });
   }
 });
 
