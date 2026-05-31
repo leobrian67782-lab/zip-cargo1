@@ -126,107 +126,125 @@ app.post('/api/email/shipment', async (req, res) => {
 
     const PDFDocument = require('pdfkit');
 
-    // Generate PDF receipt
+    // Get site settings passed from admin
+    const siteUrl    = (req.body.settings && req.body.settings.website) || process.env.SITE_URL || 'https://zipcargo-app.onrender.com';
+    const siteEmail  = (req.body.settings && req.body.settings.email)   || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
+    const sitePhone  = (req.body.settings && req.body.settings.phone)   || '';
+
+    // Clean URL for display
+    const displayUrl = siteUrl.replace(/^https?:\/\//, '');
+
+    // Generate PDF receipt — single page A4
     const pdfBuffer = await new Promise((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const doc = new PDFDocument({ margin: 0, size: 'A4', autoFirstPage: true });
       const chunks = [];
       doc.on('data', chunk => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      // ── PDF Header ──
-      doc.rect(0, 0, 612, 120).fill('#0d1f35');
-      doc.fill('white').fontSize(28).font('Helvetica-Bold').text('⚡ ZipCargo', 50, 35);
-      doc.fontSize(11).font('Helvetica').text('Global Logistics Solutions', 50, 70);
-      doc.fontSize(10).text('zipcargo99@gmail.com', 50, 88);
+      const W = 595, H = 842;
+      const pad = 40;
 
-      doc.fill('#e8820c').fontSize(18).font('Helvetica-Bold')
-        .text('SHIPMENT RECEIPT', 350, 45, { align: 'right', width: 212 });
-      doc.fill('white').fontSize(10).font('Helvetica')
-        .text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 350, 72, { align: 'right', width: 212 });
+      // ── Header ──
+      doc.rect(0, 0, W, 90).fill('#0d1f35');
+      doc.fill('#e8820c').fontSize(22).font('Helvetica-Bold').text('ZipCargo', pad, 20);
+      doc.fill('white').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad, 48);
+      doc.fill('#7a9ab8').fontSize(8).text(siteEmail, pad, 63);
+      doc.fill('white').fontSize(14).font('Helvetica-Bold')
+         .text('SHIPMENT RECEIPT', 0, 22, { align: 'right', width: W - pad });
+      doc.fill('#aac4e0').fontSize(8).font('Helvetica')
+         .text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 0, 44, { align: 'right', width: W - pad });
 
-      // ── Tracking Number Box ──
-      doc.moveDown(4);
-      doc.rect(50, 140, 512, 50).fill('#e8f4ff').stroke('#0d1f35');
-      doc.fill('#0d1f35').fontSize(11).font('Helvetica').text('TRACKING NUMBER', 60, 150);
-      doc.fill('#e8820c').fontSize(16).font('Helvetica-Bold').text(shipment.tracking, 60, 165);
+      // ── Tracking + Status row ──
+      doc.rect(pad, 105, W - pad*2, 44).fill('#f0f7ff').stroke('#c5daf5');
+      doc.fill('#64748b').fontSize(8).font('Helvetica').text('TRACKING NUMBER', pad + 10, 113);
+      doc.fill('#e8820c').fontSize(17).font('Helvetica-Bold').text(shipment.tracking, pad + 10, 124);
 
-      // ── Status Badge ──
       const statusColors = { 'Delivered':'#16a34a','In Transit':'#2563eb','Pending':'#d97706','On Hold':'#dc2626','Out for Delivery':'#7c3aed' };
       const sc = statusColors[shipment.status] || '#64748b';
-      doc.roundedRect(370, 148, 150, 34, 5).fill(sc);
-      doc.fill('white').fontSize(12).font('Helvetica-Bold')
-        .text(shipment.status || 'Pending', 370, 158, { width: 150, align: 'center' });
+      doc.roundedRect(W - pad - 100, 112, 100, 28, 4).fill(sc);
+      doc.fill('white').fontSize(9).font('Helvetica-Bold')
+         .text(shipment.status || 'Pending', W - pad - 100, 122, { width: 100, align: 'center' });
 
-      // ── Section: Shipment Details ──
-      let y = 215;
-      const drawSection = (title, fields) => {
-        doc.rect(50, y, 512, 28).fill('#0d1f35');
-        doc.fill('white').fontSize(11).font('Helvetica-Bold').text(title, 60, y + 8);
-        y += 35;
-        fields.forEach(([label, value]) => {
-          if (!value) return;
-          doc.rect(50, y, 512, 24).fill(y % 48 === 0 ? '#f8fafc' : 'white').stroke('#e2e8f0');
-          doc.fill('#64748b').fontSize(9).font('Helvetica').text(label, 60, y + 7);
-          doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text(String(value), 200, y + 7, { width: 350 });
-          y += 24;
-        });
-        y += 10;
+      // ── Two column layout ──
+      let y = 165;
+      const col1x = pad, col2x = W/2 + 5, colW = W/2 - pad - 5;
+
+      const sectionHeader = (title, x, w, yy) => {
+        doc.rect(x, yy, w, 20).fill('#0d1f35');
+        doc.fill('white').fontSize(8).font('Helvetica-Bold').text(title, x + 8, yy + 6);
+        return yy + 20;
       };
 
-      drawSection('SHIPMENT DETAILS', [
-        ['Service Type', shipment.service],
-        ['Current Status', shipment.status],
+      const row = (label, value, x, w, yy, shade) => {
+        if (!value) return yy;
+        doc.rect(x, yy, w, 18).fill(shade ? '#f8fafc' : 'white').stroke('#e8edf2');
+        doc.fill('#94a3b8').fontSize(7).font('Helvetica').text(label, x + 6, yy + 5);
+        doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold')
+           .text(String(value).substring(0, 35), x + 6, yy + 12, { width: w - 12 });
+        return yy + 18;
+      };
+
+      // LEFT: Shipment Details
+      let ly = sectionHeader('SHIPMENT DETAILS', col1x, colW, y);
+      let shade = false;
+      const shipFields = [
+        ['Service', shipment.service],
+        ['Origin', shipment.origin],
+        ['Destination', shipment.dest],
+        ['Est. Delivery', shipment.eta || 'TBD'],
         ['Current Location', shipment.location || 'Processing'],
-        ['Estimated Delivery', shipment.eta || 'TBD'],
         ['Weight', shipment.weight ? shipment.weight + ' kg' : null],
         ['Declared Value', shipment.value ? '$' + shipment.value : null],
         ['Description', shipment.description],
-      ]);
+      ];
+      shipFields.forEach(([l,v]) => { ly = row(l, v, col1x, colW, ly, shade); shade = !shade; });
 
-      drawSection('SENDER INFORMATION', [
-        ['Name', shipment.sName],
-        ['Phone', shipment.sPhone],
-        ['Email', shipment.sEmail],
-        ['Origin', shipment.origin],
-      ]);
+      // RIGHT: Sender + Recipient
+      let ry = sectionHeader('SENDER', col2x, colW, y);
+      shade = false;
+      [['Name',shipment.sName],['Phone',shipment.sPhone],['Email',shipment.sEmail],['From',shipment.origin]]
+        .forEach(([l,v]) => { ry = row(l, v, col2x, colW, ry, shade); shade=!shade; });
 
-      drawSection('RECIPIENT INFORMATION', [
-        ['Name', shipment.rName],
-        ['Phone', shipment.rPhone],
-        ['Email', shipment.rEmail],
-        ['Destination', shipment.dest],
-      ]);
+      ry += 6;
+      ry = sectionHeader('RECIPIENT', col2x, colW, ry);
+      shade = false;
+      [['Name',shipment.rName],['Phone',shipment.rPhone],['Email',shipment.rEmail],['To',shipment.dest]]
+        .forEach(([l,v]) => { ry = row(l, v, col2x, colW, ry, shade); shade=!shade; });
 
-      // ── Notes ──
+      // ── Notes (if any) ──
+      const bottomY = Math.max(ly, ry) + 14;
+      let ny = bottomY;
       if (shipment.notes) {
-        doc.rect(50, y, 512, 28).fill('#0d1f35');
-        doc.fill('white').fontSize(11).font('Helvetica-Bold').text('NOTES', 60, y + 8);
-        y += 35;
-        doc.fill('#1e293b').fontSize(10).font('Helvetica').text(shipment.notes, 60, y, { width: 492 });
-        y += 30;
+        ny = sectionHeader('NOTES', pad, W - pad*2, bottomY);
+        doc.rect(pad, ny, W - pad*2, 28).fill('#fffbeb').stroke('#fde68a');
+        doc.fill('#92400e').fontSize(8).font('Helvetica')
+           .text(shipment.notes, pad + 8, ny + 8, { width: W - pad*2 - 16 });
+        ny += 34;
       }
 
-      // ── Tracking Instructions ──
-      y += 10;
-      doc.rect(50, y, 512, 55).fill('#fff7ed').stroke('#e8820c');
-      doc.fill('#e8820c').fontSize(10).font('Helvetica-Bold').text('TRACK YOUR SHIPMENT', 60, y + 10);
-      doc.fill('#0d1f35').fontSize(9).font('Helvetica')
-        .text('Visit our website and enter your tracking number to see real-time updates:', 60, y + 24)
-        .text('https://zipcargo-app.onrender.com/tracking.html', 60, y + 37, { link: 'https://zipcargo-app.onrender.com/tracking.html' });
+      // ── Track box ──
+      const trackY = ny + 6;
+      doc.rect(pad, trackY, W - pad*2, 42).fill('#fff7ed').stroke('#e8820c');
+      doc.fill('#e8820c').fontSize(9).font('Helvetica-Bold').text('TRACK YOUR SHIPMENT', pad + 10, trackY + 8);
+      doc.fill('#0d1f35').fontSize(8).font('Helvetica')
+         .text(`Visit ${displayUrl} and enter your tracking number: ${shipment.tracking}`, pad + 10, trackY + 22, { width: W - pad*2 - 20 });
 
-      // ── Footer ──
-      doc.rect(0, 780, 612, 62).fill('#0d1f35');
-      doc.fill('white').fontSize(9).font('Helvetica')
-        .text('ZipCargo Logistics — Delivering trust, one shipment at a time', 50, 795, { align: 'center', width: 512 })
-        .text('zipcargo99@gmail.com  |  zipcargo-app.onrender.com  |  Available 24/7', 50, 812, { align: 'center', width: 512 });
-      doc.fill('#e8820c').fontSize(8).text('This is an official ZipCargo document. Please keep for your records.', 50, 828, { align: 'center', width: 512 });
+      // ── Footer — anchored to bottom ──
+      const footerY = H - 52;
+      doc.rect(0, footerY, W, 52).fill('#0d1f35');
+      doc.fill('white').fontSize(8).font('Helvetica-Bold')
+         .text('ZipCargo Logistics — Delivering trust, one shipment at a time', 0, footerY + 10, { align: 'center', width: W });
+      const footerLine2 = [siteEmail, displayUrl, sitePhone].filter(Boolean).join('  |  ');
+      doc.fill('#aac4e0').fontSize(7).font('Helvetica')
+         .text(footerLine2, 0, footerY + 26, { align: 'center', width: W });
+      doc.fill('#e8820c').fontSize(7)
+         .text('This is an official ZipCargo document. Please keep for your records.', 0, footerY + 40, { align: 'center', width: W });
 
       doc.end();
     });
 
     // ── Email content ──
-    const siteUrl = process.env.SITE_URL || 'https://zipcargo-app.onrender.com';
     const emailHtml = `
 <!DOCTYPE html>
 <html>
