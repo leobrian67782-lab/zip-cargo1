@@ -1,15 +1,15 @@
 // ===== PAGE LOADER =====
-document.body.classList.add('no-scroll');
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    const loader = document.getElementById('loader');
-    if (loader) {
+const loader = document.getElementById('loader');
+if (loader) {
+  document.body.classList.add('no-scroll');
+  window.addEventListener('load', () => {
+    setTimeout(() => {
       loader.classList.add('hidden');
       document.body.classList.remove('no-scroll');
       setTimeout(() => loader.remove(), 700);
-    }
-  }, 1800);
-});
+    }, 1800);
+  });
+}
 
 // ===== NAVBAR SCROLL =====
 window.addEventListener('scroll', () => {
