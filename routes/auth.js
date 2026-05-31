@@ -14,12 +14,8 @@ const cookieOpts = {
   maxAge:   24 * 60 * 60 * 1000,
 };
 
-function signToken(admin) {
-  return jwt.sign(
-    { id: admin._id, username: admin.username, role: admin.role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
-  );
+function signToken(id) {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '24h' });
 }
 
 router.post('/login',
@@ -35,7 +31,7 @@ router.post('/login',
         return res.status(401).json({ error: 'Incorrect username or password.' });
       admin.lastLogin = new Date();
       await admin.save();
-      const token = signToken(admin);
+      const token = signToken(admin._id);
       res.cookie('zc_token', token, cookieOpts);
       await log(req, 'LOGIN', admin.username);
       res.json({ ok: true, token: token, admin: { username: admin.username, role: admin.role } });
