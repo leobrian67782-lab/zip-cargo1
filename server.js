@@ -266,8 +266,8 @@ app.post('/api/email/shipment', async (req, res) => {
 
       // ── PACKAGE / DELIVERY ──
       y += 80;
-      const hasDeliveryAddr = shipment.deliveryAddress && shipment.deliveryAddress.trim();
-      const cardH = hasDeliveryAddr ? 100 : 84;
+      const hasDeliveryAddr = !!(shipment.deliveryAddress && String(shipment.deliveryAddress).trim());
+      const cardH = hasDeliveryAddr ? 106 : 84;
       doc.roundedRect(pad, y, cW, cardH, 6).fill('white').stroke('#e2e8f0');
 
       // Left: Package
@@ -287,19 +287,19 @@ app.post('/api/email/shipment', async (req, res) => {
       // Right: Delivery
       doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('DELIVERY', rx, y + 10);
       doc.moveTo(rx, y + 22).lineTo(pad + cW - 8, y + 22).lineWidth(0.5).stroke('#f1f5f9');
-      const delRows = [
-        ['Est. Delivery', shipment.eta],
-        ['Current Location', shipment.location],
-        ['Status', shipment.status],
-        ['Date Issued', issueDate],
-      ];
-      if (hasDeliveryAddr) delRows.splice(2, 0, ['Delivery Address', shipment.deliveryAddress]);
+      const delRows = [];
+      if (hasDeliveryAddr) delRows.push(['Delivery Addr.', String(shipment.deliveryAddress).trim()]);
+      delRows.push(['Est. Delivery', shipment.eta]);
+      delRows.push(['Current Location', shipment.location]);
+      delRows.push(['Status', shipment.status]);
+      delRows.push(['Date Issued', issueDate]);
+
       delRows.slice(0, 5).forEach(([l, v], i) => {
         if (!v) return;
         doc.fill('#94a3b8').fontSize(7).font('Helvetica').text(l, rx, y + 28 + i * 14);
-        // Wrap long delivery address
-        const valStr = String(v).substring(0, 40);
-        doc.fill('#0d1f35').fontSize(l === 'Delivery Address' ? 7 : 8).font('Helvetica-Bold')
+        const valStr = String(v).substring(0, 28);
+        doc.fill(l === 'Delivery Addr.' ? '#e8820c' : '#0d1f35')
+           .fontSize(l === 'Delivery Addr.' ? 7.5 : 8).font('Helvetica-Bold')
            .text(valStr, rx + 72, y + 28 + i * 14, { width: cW/2 - 86, lineBreak: false });
       });
 
