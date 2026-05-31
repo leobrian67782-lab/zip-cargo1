@@ -1,51 +1,37 @@
 // ============================================================
-//  ZipCargo AI Chat Widget
-//  Powered by Claude — fully self-contained
+//  ZipCargo AI Chat Widget — Clean Fixed Version
 // ============================================================
-
 (function () {
   'use strict';
 
-  // ── Inject styles ────────────────────────────────────────
-  const style = document.createElement('style');
-  style.textContent = `
-    /* ── Chat bubble ── */
-    #zc-chat-bubble {
-      position: fixed;
-      bottom: 50%;
-      transform: translateY(50%);
-      right: 0;
-      width: 52px;
-      height: 52px;
-      border-radius: 14px 0 0 14px;
-      background: linear-gradient(135deg, #e8820c, #cf6a00);
-      color: white;
-      border: none;
-      cursor: pointer;
-      z-index: 9000;
-      box-shadow: -4px 4px 20px rgba(232,130,12,.55);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      font-size: 1.2rem;
-      transition: width .2s, box-shadow .2s;
-      animation: zcBubblePop .4s cubic-bezier(.34,1.56,.64,1) both;
+  // ── Styles ──────────────────────────────────────────────
+  const css = `
+    #zc-bubble {
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      width: 60px !important;
+      height: 60px !important;
+      border-radius: 50% !important;
+      background: linear-gradient(135deg, #e8820c, #cf6a00) !important;
+      color: white !important;
+      border: none !important;
+      cursor: pointer !important;
+      z-index: 999999 !important;
+      box-shadow: 0 4px 20px rgba(232,130,12,.6) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 1.5rem !important;
+      transition: transform .2s !important;
+      padding: 0 !important;
+      margin: 0 !important;
     }
-    #zc-chat-bubble .zc-label {
-      font-size: 8px;
-      font-weight: 800;
-      letter-spacing: .5px;
-      font-family: 'Outfit', sans-serif;
-      line-height: 1;
-    }
-    #zc-chat-bubble:hover { width: 60px; box-shadow: -6px 4px 24px rgba(232,130,12,.7); }
-    #zc-chat-bubble:hover { transform: scale(1.08); box-shadow: 0 8px 32px rgba(232,130,12,.7); }
-    #zc-chat-bubble .zc-notif {
+    #zc-bubble:hover { transform: scale(1.1) !important; }
+    #zc-bubble .zc-badge {
       position: absolute;
       top: -4px; right: -4px;
-      width: 18px; height: 18px;
+      width: 20px; height: 20px;
       background: #ef4444;
       border-radius: 50%;
       border: 2px solid white;
@@ -54,557 +40,349 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      font-family: sans-serif;
     }
-    @keyframes zcBubblePop {
-      from { transform: scale(0); opacity: 0; }
-      to   { transform: scale(1); opacity: 1; }
+    #zc-box {
+      position: fixed !important;
+      bottom: 96px !important;
+      right: 24px !important;
+      width: 340px !important;
+      max-width: calc(100vw - 40px) !important;
+      height: 480px !important;
+      max-height: calc(100vh - 120px) !important;
+      background: white !important;
+      border-radius: 18px !important;
+      box-shadow: 0 8px 40px rgba(0,0,0,.18) !important;
+      z-index: 999998 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      transition: opacity .2s, transform .25s !important;
+      transform-origin: bottom right !important;
     }
-
-    /* ── Chat window ── */
-    #zc-chat-window {
-      position: fixed;
-      top: 50%;
-      transform: translateY(-50%) translateX(20px);
-      right: 60px;
-      width: 370px;
-      max-width: calc(100vw - 80px);
-      height: 560px;
-      max-height: calc(100vh - 40px);
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.08);
-      display: flex;
-      flex-direction: column;
-      z-index: 9001;
-      overflow: hidden;
-      opacity: 0;
-      pointer-events: none;
-      transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
+    #zc-box.zc-hidden {
+      opacity: 0 !important;
+      transform: scale(0.85) translateY(10px) !important;
+      pointer-events: none !important;
     }
-    #zc-chat-window.open {
-      transform: translateY(-50%) translateX(0);
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    /* ── Header ── */
-    #zc-chat-header {
+    #zc-head {
       background: linear-gradient(135deg, #0d1f35, #1a3a5c);
-      padding: 16px 18px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-shrink: 0;
     }
-    .zc-avatar {
-      width: 40px; height: 40px;
+    #zc-head .zc-av {
+      width: 38px; height: 38px;
       border-radius: 50%;
       background: linear-gradient(135deg,#e8820c,#f59e0b);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(232,130,12,.4);
+      font-size: 1rem; flex-shrink: 0;
     }
-    .zc-header-info { flex: 1; }
-    .zc-header-name { color: white; font-weight: 800; font-size: .95rem; font-family: 'Outfit', sans-serif; }
-    .zc-header-status {
-      display: flex; align-items: center; gap: 5px;
-      font-size: .72rem; color: #7a9ab8; margin-top: 2px;
-    }
-    .zc-status-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #22c55e;
-      animation: zcStatusPulse 2s ease-in-out infinite;
-    }
-    @keyframes zcStatusPulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,.5); }
-      50%      { box-shadow: 0 0 0 5px rgba(34,197,94,0); }
-    }
-    #zc-chat-close {
+    #zc-head .zc-info { flex: 1; }
+    #zc-head .zc-name { color: white; font-weight: 800; font-size: .9rem; font-family:'Outfit',sans-serif; }
+    #zc-head .zc-status { color: #7a9ab8; font-size: .7rem; display:flex; align-items:center; gap:4px; margin-top:2px; }
+    #zc-head .zc-dot { width:6px; height:6px; border-radius:50%; background:#22c55e; }
+    #zc-close-btn {
       background: rgba(255,255,255,.1);
       border: none; color: white;
-      width: 30px; height: 30px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: .9rem;
-      display: flex; align-items: center; justify-content: center;
-      transition: background .2s;
-    }
-    #zc-chat-close:hover { background: rgba(255,255,255,.2); }
-
-    /* ── Messages ── */
-    #zc-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background: #f8fafc;
-    }
-    #zc-messages::-webkit-scrollbar { width: 4px; }
-    #zc-messages::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
-
-    .zc-msg {
-      display: flex;
-      gap: 8px;
-      align-items: flex-end;
-      animation: zcMsgIn .3s ease both;
-    }
-    @keyframes zcMsgIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .zc-msg.user { flex-direction: row-reverse; }
-    .zc-msg-avatar {
       width: 28px; height: 28px;
       border-radius: 50%;
-      background: linear-gradient(135deg,#e8820c,#f59e0b);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .75rem; color: white; flex-shrink: 0;
-      font-weight: 800;
-    }
-    .zc-msg-avatar.user-av {
-      background: linear-gradient(135deg,#0d1f35,#1a3a5c);
-    }
-    .zc-bubble {
-      max-width: 78%;
-      padding: 10px 14px;
-      border-radius: 16px;
-      font-size: .855rem;
-      line-height: 1.6;
-      font-family: 'Outfit', sans-serif;
-    }
-    .zc-bubble.bot {
-      background: white;
-      color: #1e293b;
-      border-bottom-left-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.07);
-      border: 1px solid #f1f5f9;
-    }
-    .zc-bubble.user {
-      background: linear-gradient(135deg, #e8820c, #cf6a00);
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
-    .zc-bubble a { color: #e8820c; text-decoration: underline; }
-    .zc-bubble.user a { color: white; }
-
-    /* Typing indicator */
-    .zc-typing {
-      display: flex; gap: 5px;
-      align-items: center;
-      padding: 12px 16px;
-    }
-    .zc-typing span {
-      width: 7px; height: 7px;
-      background: #cbd5e1;
-      border-radius: 50%;
-      animation: zcTypeBounce .9s ease-in-out infinite;
-    }
-    .zc-typing span:nth-child(2) { animation-delay: .15s; }
-    .zc-typing span:nth-child(3) { animation-delay: .3s; }
-    @keyframes zcTypeBounce {
-      0%,60%,100% { transform: translateY(0); }
-      30%          { transform: translateY(-6px); }
-    }
-
-    /* Quick replies */
-    #zc-quick-replies {
-      padding: 8px 12px 4px;
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      background: #f8fafc;
-      border-top: 1px solid #f1f5f9;
-    }
-    .zc-qr {
-      background: white;
-      border: 1px solid #e2e8f0;
-      color: #0d1f35;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: .75rem;
-      font-weight: 600;
       cursor: pointer;
-      font-family: 'Outfit', sans-serif;
-      transition: all .15s;
-      white-space: nowrap;
+      font-size: .85rem;
+      display: flex; align-items:center; justify-content:center;
     }
-    .zc-qr:hover { background: #e8820c; color: white; border-color: #e8820c; }
-
-    /* Input area */
-    #zc-input-area {
-      padding: 12px 14px;
-      display: flex;
-      gap: 8px;
-      align-items: flex-end;
-      background: white;
-      border-top: 1px solid #f1f5f9;
-      flex-shrink: 0;
-    }
-    #zc-input {
+    #zc-close-btn:hover { background: rgba(255,255,255,.2); }
+    #zc-msgs {
       flex: 1;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: .875rem;
-      font-family: 'Outfit', sans-serif;
-      resize: none;
-      outline: none;
-      max-height: 100px;
-      line-height: 1.5;
-      color: #1e293b;
-      transition: border-color .2s;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #f8fafc;
     }
-    #zc-input:focus { border-color: #e8820c; }
-    #zc-send {
-      width: 40px; height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #e8820c, #cf6a00);
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: .95rem;
-      display: flex; align-items: center; justify-content: center;
-      transition: transform .15s, box-shadow .15s;
-      flex-shrink: 0;
+    #zc-msgs::-webkit-scrollbar { width: 3px; }
+    #zc-msgs::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
+    .zcm { display:flex; gap:8px; align-items:flex-end; }
+    .zcm.u { flex-direction:row-reverse; }
+    .zcm-av {
+      width:26px; height:26px; border-radius:50%;
+      background:linear-gradient(135deg,#e8820c,#f59e0b);
+      display:flex; align-items:center; justify-content:center;
+      font-size:.65rem; color:white; flex-shrink:0; font-weight:800;
     }
-    #zc-send:hover { transform: scale(1.08); box-shadow: 0 4px 12px rgba(232,130,12,.5); }
-    #zc-send:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-
-    /* Timestamp */
-    .zc-time {
-      font-size: .65rem;
-      color: #94a3b8;
-      text-align: center;
-      margin: 4px 0;
+    .zcm-av.u { background:linear-gradient(135deg,#0d1f35,#1a3a5c); }
+    .zcm-bbl {
+      max-width:80%; padding:9px 13px; border-radius:14px;
+      font-size:.83rem; line-height:1.55; font-family:'Outfit',sans-serif;
     }
-
-    @media (max-width: 600px) {
-      #zc-chat-window {
-        top: auto;
-        bottom: 0;
-        right: 0;
-        left: 0;
-        width: 100%;
-        max-width: 100%;
-        height: 80vh;
-        max-height: 80vh;
-        border-radius: 20px 20px 0 0;
-        transform: translateY(100%);
-      }
-      #zc-chat-window.open {
-        transform: translateY(0);
-      }
-      #zc-chat-bubble {
-        bottom: 50%;
-        right: 0;
-        transform: translateY(50%);
-        border-radius: 14px 0 0 14px;
-      }
+    .zcm-bbl.b { background:white; color:#1e293b; border-bottom-left-radius:3px; box-shadow:0 1px 6px rgba(0,0,0,.07); border:1px solid #f1f5f9; }
+    .zcm-bbl.u { background:linear-gradient(135deg,#e8820c,#cf6a00); color:white; border-bottom-right-radius:3px; }
+    .zc-dots { display:flex; gap:4px; padding:4px 2px; }
+    .zc-dots span { width:6px; height:6px; background:#cbd5e1; border-radius:50%; animation:zcDot .9s ease-in-out infinite; }
+    .zc-dots span:nth-child(2){animation-delay:.15s}
+    .zc-dots span:nth-child(3){animation-delay:.3s}
+    @keyframes zcDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+    .zc-qrs { padding:8px 12px 4px; display:flex; gap:5px; flex-wrap:wrap; background:#f8fafc; border-top:1px solid #f1f5f9; flex-shrink:0; }
+    .zc-qr {
+      background:white; border:1px solid #e2e8f0; color:#0d1f35;
+      padding:4px 11px; border-radius:20px; font-size:.73rem; font-weight:600;
+      cursor:pointer; font-family:'Outfit',sans-serif; transition:all .15s;
+    }
+    .zc-qr:hover { background:#e8820c; color:white; border-color:#e8820c; }
+    #zc-foot {
+      padding:10px 12px;
+      display:flex; gap:8px; align-items:flex-end;
+      background:white; border-top:1px solid #f1f5f9; flex-shrink:0;
+    }
+    #zc-inp {
+      flex:1; border:1.5px solid #e2e8f0; border-radius:10px;
+      padding:9px 12px; font-size:.83rem; font-family:'Outfit',sans-serif;
+      resize:none; outline:none; max-height:80px; line-height:1.5; color:#1e293b;
+    }
+    #zc-inp:focus { border-color:#e8820c; }
+    #zc-send-btn {
+      width:38px; height:38px; border-radius:10px;
+      background:linear-gradient(135deg,#e8820c,#cf6a00);
+      color:white; border:none; cursor:pointer; font-size:.9rem;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    #zc-send-btn:hover { opacity:.9; }
+    #zc-send-btn:disabled { opacity:.4; cursor:not-allowed; }
+    @media(max-width:480px){
+      #zc-box { bottom:90px !important; right:12px !important; width:calc(100vw - 24px) !important; }
+      #zc-bubble { bottom:20px !important; right:16px !important; }
     }
   `;
-  document.head.appendChild(style);
+  const styleEl = document.createElement('style');
+  styleEl.textContent = css;
+  document.head.appendChild(styleEl);
 
-  // ── Build DOM ────────────────────────────────────────────
+  // ── DOM ──────────────────────────────────────────────────
   const bubble = document.createElement('button');
-  bubble.id = 'zc-chat-bubble';
-  bubble.innerHTML = '<i class="fa-solid fa-comment-dots"></i><span class="zc-label">CHAT</span><span class="zc-notif">1</span>';
-  bubble.title = 'Chat with ZipCargo AI';
+  bubble.id = 'zc-bubble';
+  bubble.innerHTML = '<i class="fa-solid fa-comment-dots"></i><span class="zc-badge">1</span>';
 
-  const win = document.createElement('div');
-  win.id = 'zc-chat-window';
-  win.innerHTML = `
-    <div id="zc-chat-header">
-      <div class="zc-avatar"><i class="fa-solid fa-bolt"></i></div>
-      <div class="zc-header-info">
-        <div class="zc-header-name">ZipCargo Assistant</div>
-        <div class="zc-header-status">
-          <span class="zc-status-dot"></span> Online — typically replies instantly
-        </div>
+  const box = document.createElement('div');
+  box.id = 'zc-box';
+  box.classList.add('zc-hidden');
+  box.innerHTML = `
+    <div id="zc-head">
+      <div class="zc-av"><i class="fa-solid fa-bolt"></i></div>
+      <div class="zc-info">
+        <div class="zc-name">ZipCargo Assistant</div>
+        <div class="zc-status"><span class="zc-dot"></span> Online · replies instantly</div>
       </div>
-      <button id="zc-chat-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <button id="zc-close-btn"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div id="zc-messages"></div>
-    <div id="zc-quick-replies"></div>
-    <div id="zc-input-area">
-      <textarea id="zc-input" placeholder="Ask about your shipment, services, pricing…" rows="1"></textarea>
-      <button id="zc-send"><i class="fa-solid fa-paper-plane"></i></button>
+    <div id="zc-msgs"></div>
+    <div class="zc-qrs" id="zc-qrs"></div>
+    <div id="zc-foot">
+      <textarea id="zc-inp" placeholder="Type your message…" rows="1"></textarea>
+      <button id="zc-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
   `;
 
   document.body.appendChild(bubble);
-  document.body.appendChild(win);
+  document.body.appendChild(box);
 
   // ── State ────────────────────────────────────────────────
-  const msgs = [];
-  let isOpen = false;
-  let isThinking = false;
-  let thinkingEl = null;
-  let adminContext = '';
+  let open = false, busy = false;
+  const history = []; // {role, content}
 
-  // ── Load admin context from localStorage ─────────────────
-  function loadAdminContext() {
-    try {
-      adminContext = localStorage.getItem('zc_ai_context') || '';
-    } catch(e) { adminContext = ''; }
+  // ── Toggle ───────────────────────────────────────────────
+  function toggle() {
+    open = !open;
+    box.classList.toggle('zc-hidden', !open);
+    const icon = bubble.querySelector('i');
+    if (icon) icon.className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-comment-dots';
+    const badge = bubble.querySelector('.zc-badge');
+    if (badge) badge.remove();
+    if (open && history.length === 0) showWelcome();
+  }
+
+  // ── Add message to UI ─────────────────────────────────────
+  function addMsg(role, text) {
+    const wrap = document.createElement('div');
+    wrap.className = `zcm ${role === 'user' ? 'u' : ''}`;
+    const av = document.createElement('div');
+    av.className = `zcm-av ${role === 'user' ? 'u' : ''}`;
+    av.innerHTML = role === 'user'
+      ? '<i class="fa-solid fa-user" style="font-size:.6rem"></i>'
+      : '<i class="fa-solid fa-bolt" style="font-size:.6rem"></i>';
+    const bbl = document.createElement('div');
+    bbl.className = `zcm-bbl ${role === 'user' ? 'u' : 'b'}`;
+    bbl.innerHTML = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\n/g,'<br>');
+    wrap.appendChild(av);
+    wrap.appendChild(bbl);
+    document.getElementById('zc-msgs').appendChild(wrap);
+    scroll();
+    return wrap;
+  }
+
+  function addTyping() {
+    const wrap = document.createElement('div');
+    wrap.className = 'zcm';
+    wrap.innerHTML = `<div class="zcm-av"><i class="fa-solid fa-bolt" style="font-size:.6rem"></i></div><div class="zcm-bbl b"><div class="zc-dots"><span></span><span></span><span></span></div></div>`;
+    document.getElementById('zc-msgs').appendChild(wrap);
+    scroll();
+    return wrap;
+  }
+
+  function setQRs(list) {
+    const el = document.getElementById('zc-qrs');
+    el.innerHTML = '';
+    list.forEach(t => {
+      const b = document.createElement('button');
+      b.className = 'zc-qr'; b.textContent = t;
+      b.onclick = () => send(t);
+      el.appendChild(b);
+    });
+  }
+
+  function scroll() {
+    const m = document.getElementById('zc-msgs');
+    m.scrollTop = m.scrollHeight;
+  }
+
+  // ── Welcome ──────────────────────────────────────────────
+  function showWelcome() {
+    const msg = `👋 **Welcome to ZipCargo!**\n\nI'm your logistics assistant. I can help you:\n• **Track a shipment** — share your tracking number\n• **Learn about our services** — air, sea, road, express\n• **Insurance & payments** — all fully refundable\n• **Get a quote** — we'll respond within 24 hours\n\nHow can I help you today?`;
+    history.push({ role: 'assistant', content: msg });
+    addMsg('assistant', msg);
+    setQRs(['Track my shipment', 'Our services', 'Insurance info', 'Get a quote']);
   }
 
   // ── System prompt ────────────────────────────────────────
-  function buildSystemPrompt() {
-    const base = `You are the ZipCargo AI Assistant — a professional, warm, and knowledgeable logistics support agent for ZipCargo, a global freight and logistics company operating in 150+ countries.
+  function systemPrompt() {
+    const ctx = (() => { try { return localStorage.getItem('zc_ai_context') || ''; } catch(e) { return ''; } })();
+    return `You are the ZipCargo AI Assistant — professional, warm, and knowledgeable. You help customers of ZipCargo, a global freight company serving 150+ countries.
 
-Your personality: Professional yet friendly. Concise but thorough. Always reassuring and solution-focused. You represent a trusted global brand.
+SERVICES: Air Freight, Sea Freight, Road Transport, Warehousing, Customs Clearance, Supply Chain, Express Delivery.
+STATS: 99.8% on-time rate, 80,000+ deliveries/month, 15+ years experience, ISO 9001 certified.
 
-CORE KNOWLEDGE:
-- ZipCargo services: Air Freight, Sea Freight, Road Transport, Warehousing, Customs Clearance, Supply Chain Consulting, Express Delivery
-- Coverage: 150+ countries, major hubs in New York, London, Dubai, Singapore, Lagos, Sydney and more
-- On-time rate: 99.8% | 80,000+ deliveries monthly | 15+ years in operation | ISO 9001 Certified
-- 24/7 live customer support | Real-time GPS tracking on all shipments
+INSURANCE & PAYMENTS — always mention when relevant:
+- All insurance fees are FULLY REFUNDABLE if no claim is made
+- All service payments follow ZipCargo's refund policy
+- Encourage customers to insure their cargo — zero risk since they get the fee back if unused
 
-INSURANCE & PAYMENTS — ALWAYS MENTION THIS WHEN RELEVANT:
-- All insurance fees are FULLY REFUNDABLE if a claim is not made
-- All payments and service fees are REFUNDABLE in accordance with ZipCargo's refund policy
-- Customers should not hesitate to pay for insurance as it protects their cargo and the fee comes back if unused
-- Payment methods and exact pricing are provided by our team — direct customers to the contact page or tell them to ask for a quote
+TRACKING: When a customer gives a tracking number (ZC-YYYY-NNNNN), you will receive live shipment data and can explain status clearly.
 
-TRACKING:
-- When a customer provides a tracking number (format: ZC-YYYY-NNNNN), you will receive the shipment data and can explain the status, route, timeline, and estimated delivery clearly
-- Always explain what each status means: Pending = order received, In Transit = shipment moving, Out for Delivery = arriving soon, Delivered = completed, On Hold = requires attention
+STYLE: Keep replies short (2-4 sentences). Use line breaks. Be reassuring and solution-focused. Never say "I'm just an AI".
 
-WHAT YOU CANNOT DO:
-- You cannot process payments, make bookings, or access private account information beyond what's provided
-- For complex customs questions, direct to our team via the contact page
-- Never make up tracking numbers or shipment data
-
-TONE RULES:
-- Never say "I'm just an AI" — you are the ZipCargo Assistant
-- Keep responses under 4 sentences unless the customer needs detailed help
-- Use line breaks to keep things readable
-- End with a helpful follow-up question or next step when appropriate
-- If someone asks about pricing, say rates depend on weight, distance, and service type and invite them to get a free quote
-
-${adminContext ? `\nSPECIAL ADMIN INSTRUCTIONS (highest priority — follow these exactly):\n${adminContext}` : ''}`;
-    return base;
+${ctx ? `\nSPECIAL INSTRUCTIONS (highest priority):\n${ctx}` : ''}`;
   }
 
-  // ── Fetch shipment data ──────────────────────────────────
-  async function fetchShipment(trackingNum) {
+  // ── Get tracking data ─────────────────────────────────────
+  async function getShipment(tn) {
     try {
-      const res = await fetch(`/api/shipments/track/${encodeURIComponent(trackingNum.toUpperCase().trim())}`);
-      if (!res.ok) return null;
-      return await res.json();
+      const r = await fetch(`/api/shipments/track/${encodeURIComponent(tn.toUpperCase().trim())}`);
+      if (!r.ok) return null;
+      return await r.json();
     } catch { return null; }
   }
 
-  // ── Extract tracking number from message ─────────────────
-  function extractTracking(text) {
-    const match = text.match(/\b(ZC[-\s]?\d{4}[-\s]?\d{4,6})\b/i);
-    return match ? match[1].replace(/\s/g, '-').toUpperCase() : null;
+  function extractTN(text) {
+    const m = text.match(/\b(ZC[-\s]?\d{4}[-\s]?\d{3,6})\b/i);
+    return m ? m[1].replace(/\s/g,'-').toUpperCase() : null;
   }
 
-  // ── Format shipment for AI context ──────────────────────
   function formatShipment(s) {
-    const tl = (s.timeline || []).slice(-3).map(t =>
-      `  • ${t.status} — ${t.location || 'N/A'} (${new Date(t.timestamp).toLocaleDateString()})`
-    ).join('\n');
-    return `SHIPMENT DATA FOR ${s.tracking}:
-- Status: ${s.status}
-- Service: ${s.service}
-- From: ${s.sName} (${s.origin})
-- To: ${s.rName} (${s.dest})
-- Current Location: ${s.location || 'Not updated'}
-- Est. Delivery: ${s.eta || 'TBD'}
-- Weight: ${s.weight ? s.weight + ' kg' : 'N/A'}
-- Recent Timeline:
-${tl || '  • No updates yet'}`;
+    const tl = (s.timeline||[]).slice(-3).map(t=>`  • ${t.status} — ${t.location||'N/A'}`).join('\n');
+    return `\n\n[LIVE SHIPMENT DATA]\nTracking: ${s.tracking}\nStatus: ${s.status}\nFrom: ${s.sName} (${s.origin})\nTo: ${s.rName} (${s.dest})\nLocation: ${s.location||'N/A'}\nETA: ${s.eta||'TBD'}\nTimeline:\n${tl}`;
   }
 
-  // ── Send message to Claude API ───────────────────────────
-  async function sendToAI(userText) {
-    loadAdminContext();
-    let extraContext = '';
-
-    // Check for tracking number in message
-    const tn = extractTracking(userText);
+  // ── Send to AI ───────────────────────────────────────────
+  async function callAI(userText) {
+    // Check for tracking number
+    let extra = '';
+    const tn = extractTN(userText);
     if (tn) {
-      const shipData = await fetchShipment(tn);
-      if (shipData) {
-        extraContext = '\n\n[SYSTEM: Live shipment data retrieved]\n' + formatShipment(shipData);
-      } else {
-        extraContext = `\n\n[SYSTEM: Tracking number ${tn} was not found in the system. Tell the customer politely and suggest they double-check the number or contact support.]`;
-      }
+      const data = await getShipment(tn);
+      extra = data
+        ? formatShipment(data)
+        : `\n\n[Tracking number ${tn} not found. Tell the customer to double-check the number or contact support.]`;
     }
 
-    const apiMessages = msgs.map(m => ({ role: m.role, content: m.content }));
-    // Add extra context to the latest user message
-    if (extraContext) {
-      apiMessages[apiMessages.length - 1].content += extraContext;
-    }
+    const msgs = history.map(m => ({ role: m.role, content: m.content }));
+    if (extra) msgs[msgs.length-1] = { role: 'user', content: userText + extra };
 
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system: buildSystemPrompt(),
-        messages: apiMessages,
-      }),
+      body: JSON.stringify({ system: systemPrompt(), messages: msgs }),
     });
 
-    if (!res.ok) throw new Error('API error');
     const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    return data.reply || 'Sorry, I had trouble responding. Please try again.';
-  }
-
-  // ── Render message ───────────────────────────────────────
-  function renderMsg(role, text) {
-    const msgEl = document.createElement('div');
-    msgEl.className = `zc-msg ${role}`;
-    const av = document.createElement('div');
-    av.className = `zc-msg-avatar ${role === 'user' ? 'user-av' : ''}`;
-    av.innerHTML = role === 'user'
-      ? '<i class="fa-solid fa-user" style="font-size:.7rem;"></i>'
-      : '<i class="fa-solid fa-bolt" style="font-size:.7rem;"></i>';
-    const bub = document.createElement('div');
-    bub.className = `zc-bubble ${role === 'user' ? 'user' : 'bot'}`;
-    // Convert newlines to <br> and basic markdown bold
-    bub.innerHTML = text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\n/g,'<br>');
-    msgEl.appendChild(av);
-    msgEl.appendChild(bub);
-    document.getElementById('zc-messages').appendChild(msgEl);
-    scrollToBottom();
-  }
-
-  function showTyping() {
-    const el = document.createElement('div');
-    el.className = 'zc-msg';
-    el.innerHTML = `
-      <div class="zc-msg-avatar"><i class="fa-solid fa-bolt" style="font-size:.7rem;"></i></div>
-      <div class="zc-bubble bot"><div class="zc-typing"><span></span><span></span><span></span></div></div>`;
-    document.getElementById('zc-messages').appendChild(el);
-    scrollToBottom();
-    return el;
-  }
-
-  function scrollToBottom() {
-    const m = document.getElementById('zc-messages');
-    m.scrollTop = m.scrollHeight;
-  }
-
-  function setQuickReplies(replies) {
-    const el = document.getElementById('zc-quick-replies');
-    el.innerHTML = '';
-    replies.forEach(r => {
-      const btn = document.createElement('button');
-      btn.className = 'zc-qr';
-      btn.textContent = r;
-      btn.onclick = () => handleSend(r);
-      el.appendChild(btn);
-    });
+    if (!res.ok || data.error) throw new Error(data.error || 'Error');
+    return data.reply || '';
   }
 
   // ── Handle send ──────────────────────────────────────────
-  async function handleSend(text) {
-    text = (text || document.getElementById('zc-input').value).trim();
-    if (!text || isThinking) return;
+  async function send(text) {
+    text = (text || document.getElementById('zc-inp').value).trim();
+    if (!text || busy) return;
 
-    // Remove notification badge
-    const notif = bubble.querySelector('.zc-notif');
-    if (notif) notif.remove();
+    document.getElementById('zc-inp').value = '';
+    document.getElementById('zc-qrs').innerHTML = '';
+    resize();
 
-    document.getElementById('zc-input').value = '';
-    document.getElementById('zc-quick-replies').innerHTML = '';
-    autoResize();
+    history.push({ role: 'user', content: text });
+    addMsg('user', text);
 
-    msgs.push({ role: 'user', content: text });
-    renderMsg('user', text);
-
-    isThinking = true;
-    document.getElementById('zc-send').disabled = true;
-    thinkingEl = showTyping();
+    busy = true;
+    document.getElementById('zc-send-btn').disabled = true;
+    const typing = addTyping();
 
     try {
-      const reply = await sendToAI(text);
-      thinkingEl.remove();
-      msgs.push({ role: 'assistant', content: reply });
-      renderMsg('assistant', reply);
+      const reply = await callAI(text);
+      typing.remove();
+      history.push({ role: 'assistant', content: reply });
+      addMsg('assistant', reply);
 
-      // Dynamic quick replies based on context
-      const lower = reply.toLowerCase();
+      // Smart quick replies
+      const low = reply.toLowerCase();
       const qr = [];
-      if (lower.includes('track') || lower.includes('shipment')) qr.push('Track my package');
-      if (lower.includes('quote') || lower.includes('price')) qr.push('Get a free quote');
-      if (lower.includes('insurance')) qr.push('Tell me more about insurance');
-      if (lower.includes('contact') || lower.includes('team')) qr.push('How do I contact support?');
-      if (qr.length === 0) qr.push('What services do you offer?', 'How does tracking work?');
-      setQuickReplies(qr.slice(0, 3));
+      if (low.includes('track')) qr.push('Track another shipment');
+      if (low.includes('quot') || low.includes('pric')) qr.push('Get a free quote');
+      if (low.includes('insur')) qr.push('More about insurance');
+      if (low.includes('contact') || low.includes('team')) qr.push('Contact support');
+      if (!qr.length) qr.push('What services do you offer?', 'How does tracking work?');
+      setQRs(qr.slice(0,3));
 
-    } catch (err) {
-      thinkingEl.remove();
-      const errMsg = err.message && err.message.includes('configured')
-        ? 'The AI service is being set up. In the meantime, please contact us directly at info@zipcargo.com or use the Contact page.'
-        : 'I\'m having a connection issue right now. Please try again in a moment, or reach us directly via the Contact page.';
-      renderMsg('assistant', errMsg);
+    } catch(e) {
+      typing.remove();
+      addMsg('assistant', 'I\'m currently unavailable. Please contact us directly:\n\n📧 info@zipcargo.com\n📞 Or visit our **Contact** page for a quick response.');
+      setQRs(['Go to Contact page', 'Track my shipment']);
     } finally {
-      isThinking = false;
-      document.getElementById('zc-send').disabled = false;
+      busy = false;
+      document.getElementById('zc-send-btn').disabled = false;
     }
   }
 
-  // ── Auto resize textarea ─────────────────────────────────
-  function autoResize() {
-    const ta = document.getElementById('zc-input');
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(ta.scrollHeight, 100) + 'px';
-  }
-
-  // ── Toggle chat ──────────────────────────────────────────
-  function toggleChat() {
-    isOpen = !isOpen;
-    win.classList.toggle('open', isOpen);
-    const icon = bubble.querySelector('i');
-    if (icon) {
-      icon.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-comment-dots';
-    }
-    if (isOpen && msgs.length === 0) {
-      // Welcome message
-      setTimeout(() => {
-        const greeting = `👋 **Welcome to ZipCargo!**
-
-I'm your personal logistics assistant. I can help you with:
-• **Track a shipment** — just share your tracking number
-• **Services & pricing** — air, sea, road, express
-• **Insurance & payments** — all refundable
-• **Customs & documentation** — expert guidance
-
-How can I help you today?`;
-        msgs.push({ role: 'assistant', content: greeting });
-        renderMsg('assistant', greeting);
-        setQuickReplies(['Track my shipment', 'View our services', 'Insurance info']);
-      }, 300);
-    }
+  function resize() {
+    const t = document.getElementById('zc-inp');
+    t.style.height = 'auto';
+    t.style.height = Math.min(t.scrollHeight, 80) + 'px';
   }
 
   // ── Events ───────────────────────────────────────────────
-  bubble.addEventListener('click', toggleChat);
-  document.getElementById('zc-chat-close').addEventListener('click', toggleChat);
-  document.getElementById('zc-send').addEventListener('click', () => handleSend());
-  document.getElementById('zc-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  bubble.addEventListener('click', toggle);
+  document.getElementById('zc-close-btn').addEventListener('click', toggle);
+  document.getElementById('zc-send-btn').addEventListener('click', () => send());
+  document.getElementById('zc-inp').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
-  document.getElementById('zc-input').addEventListener('input', autoResize);
+  document.getElementById('zc-inp').addEventListener('input', resize);
 
-  // Auto-open after 8 seconds if never opened
-  setTimeout(() => {
-    if (!isOpen && msgs.length === 0) {
-      const notif = bubble.querySelector('.zc-notif');
-      if (notif) notif.style.animation = 'zcBubblePop .4s ease both';
-    }
-  }, 8000);
+  // Handle "Go to Contact page" quick reply
+  document.getElementById('zc-qrs').addEventListener('click', e => {
+    if (e.target.textContent === 'Go to Contact page') window.location.href = 'contact.html';
+  });
 
 })();
