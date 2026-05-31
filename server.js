@@ -297,10 +297,9 @@ app.post('/api/email/shipment', async (req, res) => {
       delRows.slice(0, 5).forEach(([l, v], i) => {
         if (!v) return;
         doc.fill('#94a3b8').fontSize(7).font('Helvetica').text(l, rx, y + 28 + i * 14);
-        const valStr = String(v).substring(0, 28);
-        doc.fill(l === 'Delivery Addr.' ? '#e8820c' : '#0d1f35')
-           .fontSize(l === 'Delivery Addr.' ? 7.5 : 8).font('Helvetica-Bold')
-           .text(valStr, rx + 72, y + 28 + i * 14, { width: cW/2 - 86, lineBreak: false });
+        const valStr = String(v).substring(0, 45);
+        doc.fill('#0d1f35').fontSize(7.5).font('Helvetica-Bold')
+           .text(valStr, rx + 72, y + 28 + i * 14, { width: cW/2 - 84, lineBreak: false });
       });
 
       // ── COST BANNER ──
