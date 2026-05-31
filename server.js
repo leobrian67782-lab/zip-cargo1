@@ -126,120 +126,141 @@ app.post('/api/email/shipment', async (req, res) => {
 
     const PDFDocument = require('pdfkit');
 
-    // Get site settings passed from admin
-    const siteUrl    = (req.body.settings && req.body.settings.website) || process.env.SITE_URL || 'https://zipcargo-app.onrender.com';
-    const siteEmail  = (req.body.settings && req.body.settings.email)   || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
-    const sitePhone  = (req.body.settings && req.body.settings.phone)   || '';
-
-    // Clean URL for display
+    // Get site settings
+    const siteUrl   = (req.body.settings && req.body.settings.website) || process.env.SITE_URL || 'https://zipcargo-app.onrender.com';
+    const siteEmail = (req.body.settings && req.body.settings.email)   || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
+    const sitePhone = (req.body.settings && req.body.settings.phone)   || '';
     const displayUrl = siteUrl.replace(/^https?:\/\//, '');
+    const trackingUrl = siteUrl + '/tracking.html';
+    const receiptNo = 'ZCR-' + new Date().getFullYear() + '-' + (shipment.tracking || '').replace('ZC-','').replace(/-/g,'').slice(-6);
 
-    // Generate PDF receipt — single page A4
+    // Generate QR code
+    const QRCode = require('qrcode');
+    const qrBuffer = await QRCode.toBuffer(trackingUrl + '?id=' + shipment.tracking, {
+      width: 80, margin: 1, color: { dark: '#0d1f35', light: '#ffffff' }
+    });
+
+    // Build professional PDF
     const pdfBuffer = await new Promise((resolve, reject) => {
       const doc = new PDFDocument({ margin: 0, size: 'A4', autoFirstPage: true });
       const chunks = [];
-      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('data', c => chunks.push(c));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      const W = 595, H = 842;
-      const pad = 40;
+      const W = 595, H = 842, pad = 30, cW = W - pad * 2;
 
-      // ── Header ──
-      doc.rect(0, 0, W, 90).fill('#0d1f35');
-      doc.fill('#e8820c').fontSize(22).font('Helvetica-Bold').text('ZipCargo', pad, 20);
-      doc.fill('white').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad, 48);
-      doc.fill('#7a9ab8').fontSize(8).text(siteEmail, pad, 63);
-      doc.fill('white').fontSize(14).font('Helvetica-Bold')
-         .text('SHIPMENT RECEIPT', 0, 22, { align: 'right', width: W - pad });
-      doc.fill('#aac4e0').fontSize(8).font('Helvetica')
-         .text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 0, 44, { align: 'right', width: W - pad });
+      // Background
+      doc.rect(0, 0, W, H).fill('#f3f4f6');
 
-      // ── Tracking + Status row ──
-      doc.rect(pad, 105, W - pad*2, 44).fill('#f0f7ff').stroke('#c5daf5');
-      doc.fill('#64748b').fontSize(8).font('Helvetica').text('TRACKING NUMBER', pad + 10, 113);
-      doc.fill('#e8820c').fontSize(17).font('Helvetica-Bold').text(shipment.tracking, pad + 10, 124);
+      // Orange top bar
+      doc.rect(pad, 20, cW, 4).fill('#e8820c');
+
+      // Header card
+      doc.roundedRect(pad, 24, cW, 95, 8).fill('#0d1f35');
+      doc.roundedRect(pad + 14, 40, 34, 34, 7).fill('#e8820c');
+      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('Z', pad + 22, 48);
+      doc.fill('white').fontSize(15).font('Helvetica-Bold').text('ZipCargo', pad + 56, 41);
+      doc.fill('#aac4e0').fontSize(8).font('Helvetica').text('Global Logistics Solutions', pad + 56, 61);
+      doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold').text('O F F I C I A L  R E C E I P T', 0, 36, { align: 'right', width: W - pad - 14 });
+      doc.fill('#aac4e0').fontSize(7).font('Helvetica').text('Receipt No: ' + receiptNo, 0, 50, { align: 'right', width: W - pad - 14 });
+      doc.fill('white').fontSize(13).font('Helvetica-Bold').text(shipment.tracking, 0, 62, { align: 'right', width: W - pad - 14 });
+      doc.fill('#7a9ab8').fontSize(7).text('Issued: ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }), 0, 80, { align: 'right', width: W - pad - 14 });
 
       const statusColors = { 'Delivered':'#16a34a','In Transit':'#2563eb','Pending':'#d97706','On Hold':'#dc2626','Out for Delivery':'#7c3aed' };
       const sc = statusColors[shipment.status] || '#64748b';
-      doc.roundedRect(W - pad - 100, 112, 100, 28, 4).fill(sc);
-      doc.fill('white').fontSize(9).font('Helvetica-Bold')
-         .text(shipment.status || 'Pending', W - pad - 100, 122, { width: 100, align: 'center' });
+      doc.roundedRect(pad + 14, 88, 65, 18, 9).fill(sc);
+      doc.fill('white').fontSize(7).font('Helvetica-Bold').text(shipment.status || 'Pending', pad + 14, 94, { width: 65, align: 'center' });
 
-      // ── Two column layout ──
-      let y = 165;
-      const col1x = pad, col2x = W/2 + 5, colW = W/2 - pad - 5;
+      // Route card
+      let y = 130;
+      doc.roundedRect(pad, y, cW, 46, 6).fill('white').stroke('#e5e7eb');
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica').text('ORIGIN', pad + 14, y + 8);
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text(String(shipment.origin || '-').substring(0, 22), pad + 14, y + 20);
+      doc.fill('#94a3b8').fontSize(7).text('DESTINATION', 0, y + 8, { align: 'right', width: W - pad - 14 });
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text(String(shipment.dest || '-').substring(0, 22), 0, y + 20, { align: 'right', width: W - pad - 14 });
+      doc.fill('#e8820c').fontSize(12).font('Helvetica-Bold').text('>>', W / 2 - 10, y + 16);
 
-      const sectionHeader = (title, x, w, yy) => {
-        doc.rect(x, yy, w, 20).fill('#0d1f35');
-        doc.fill('white').fontSize(8).font('Helvetica-Bold').text(title, x + 8, yy + 6);
-        return yy + 20;
-      };
+      // Progress bar
+      y += 54;
+      doc.roundedRect(pad, y, cW, 56, 6).fill('white').stroke('#e5e7eb');
+      doc.fill('#64748b').fontSize(7).font('Helvetica-Bold').text('SHIPMENT PROGRESS', pad + 14, y + 8);
+      const stages = ['Order Placed', 'In Transit', 'Out for\nDelivery', 'Delivered'];
+      const sIdx = { 'Pending':0,'In Transit':1,'Out for Delivery':2,'Delivered':3,'On Hold':0 };
+      const cur = sIdx[shipment.status] ?? 0;
+      const sw = cW / stages.length;
+      stages.forEach((st, i) => {
+        const sx = pad + sw * i + sw / 2;
+        const active = i <= cur, current = i === cur;
+        if (i < stages.length - 1) doc.rect(sx, y + 30, sw, 2).fill(active ? '#e8820c' : '#e5e7eb');
+        if (current) doc.circle(sx, y + 31, 9).fill('#e8820c');
+        else doc.circle(sx, y + 31, 6).fill(active ? '#e8820c' : '#e5e7eb');
+        doc.fill(current ? '#e8820c' : active ? '#0d1f35' : '#94a3b8').fontSize(6)
+           .font(current ? 'Helvetica-Bold' : 'Helvetica')
+           .text(st, sx - sw/2 + 4, y + 43, { width: sw - 8, align: 'center' });
+      });
 
-      const row = (label, value, x, w, yy, shade) => {
-        if (!value) return yy;
-        doc.rect(x, yy, w, 18).fill(shade ? '#f8fafc' : 'white').stroke('#e8edf2');
-        doc.fill('#94a3b8').fontSize(7).font('Helvetica').text(label, x + 6, yy + 5);
-        doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold')
-           .text(String(value).substring(0, 35), x + 6, yy + 12, { width: w - 12 });
-        return yy + 18;
-      };
+      // Sender / Recipient
+      y += 64;
+      doc.roundedRect(pad, y, cW, 76, 6).fill('white').stroke('#e5e7eb');
+      const half = cW / 2 - 8;
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica-Bold').text('SENDER', pad + 14, y + 10);
+      [['Name', shipment.sName],['Phone', shipment.sPhone],['Email', shipment.sEmail]]
+        .forEach(([l, v], i) => {
+          if (!v) return;
+          doc.fill('#94a3b8').fontSize(6).font('Helvetica').text(l, pad + 14, y + 24 + i * 16);
+          doc.fill('#0d1f35').fontSize(7).font('Helvetica-Bold').text(String(v).substring(0, 26), pad + 48, y + 24 + i * 16);
+        });
+      doc.moveTo(pad + cW/2, y + 8).lineTo(pad + cW/2, y + 68).stroke('#f1f5f9');
+      const rx = pad + cW/2 + 8;
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica-Bold').text('RECIPIENT', rx, y + 10);
+      [['Name', shipment.rName],['Phone', shipment.rPhone],['Email', shipment.rEmail]]
+        .forEach(([l, v], i) => {
+          if (!v) return;
+          doc.fill('#94a3b8').fontSize(6).font('Helvetica').text(l, rx, y + 24 + i * 16);
+          doc.fill('#0d1f35').fontSize(7).font('Helvetica-Bold').text(String(v).substring(0, 26), rx + 48, y + 24 + i * 16);
+        });
 
-      // LEFT: Shipment Details
-      let ly = sectionHeader('SHIPMENT DETAILS', col1x, colW, y);
-      let shade = false;
-      const shipFields = [
-        ['Service', shipment.service],
-        ['Origin', shipment.origin],
-        ['Destination', shipment.dest],
-        ['Est. Delivery', shipment.eta || 'TBD'],
-        ['Current Location', shipment.location || 'Processing'],
-        ['Weight', shipment.weight ? shipment.weight + ' kg' : null],
-        ['Declared Value', shipment.value ? '$' + shipment.value : null],
-        ['Description', shipment.description],
-      ];
-      shipFields.forEach(([l,v]) => { ly = row(l, v, col1x, colW, ly, shade); shade = !shade; });
+      // Package / Delivery
+      y += 84;
+      doc.roundedRect(pad, y, cW, 90, 6).fill('white').stroke('#e5e7eb');
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica-Bold').text('PACKAGE', pad + 14, y + 10);
+      [['Service', shipment.service],['Weight', shipment.weight ? shipment.weight+' kg' : null],['Declared Value', shipment.value ? '$'+shipment.value : null],['Description', shipment.description]]
+        .forEach(([l, v], i) => {
+          if (!v) return;
+          doc.fill('#94a3b8').fontSize(6).font('Helvetica').text(l, pad + 14, y + 24 + i * 16);
+          doc.fill('#0d1f35').fontSize(7).font('Helvetica-Bold').text(String(v).substring(0, 20), pad + 76, y + 24 + i * 16);
+        });
+      doc.moveTo(pad + cW/2, y + 8).lineTo(pad + cW/2, y + 82).stroke('#f1f5f9');
+      const dx = pad + cW/2 + 8;
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica-Bold').text('DELIVERY', dx, y + 10);
+      const delRows = [['Est. Delivery', shipment.eta],['Current Location', shipment.location],['Status', shipment.status],['Date Issued', new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})]];
+      if (shipment.deliveryAddress) delRows.splice(2, 0, ['Delivery Address', shipment.deliveryAddress]);
+      delRows.slice(0, 4).forEach(([l, v], i) => {
+        if (!v) return;
+        doc.fill('#94a3b8').fontSize(6).font('Helvetica').text(l, dx, y + 24 + i * 16);
+        doc.fill('#0d1f35').fontSize(7).font('Helvetica-Bold').text(String(v).substring(0, 20), dx + 72, y + 24 + i * 16);
+      });
 
-      // RIGHT: Sender + Recipient
-      let ry = sectionHeader('SENDER', col2x, colW, y);
-      shade = false;
-      [['Name',shipment.sName],['Phone',shipment.sPhone],['Email',shipment.sEmail],['From',shipment.origin]]
-        .forEach(([l,v]) => { ry = row(l, v, col2x, colW, ry, shade); shade=!shade; });
+      // Cost banner
+      y += 98;
+      doc.roundedRect(pad, y, cW, 36, 6).fill('#0d1f35');
+      doc.fill('#aac4e0').fontSize(7).font('Helvetica').text('TOTAL SHIPPING COST', pad + 14, y + 8);
+      doc.fill('#7a9ab8').fontSize(6).text('Inclusive of all applicable fees', pad + 14, y + 20);
+      const cost = shipment.cost ? '$' + parseFloat(shipment.cost).toFixed(2) : (shipment.value ? '$' + parseFloat(shipment.value).toFixed(2) : 'TBD');
+      doc.fill('#e8820c').fontSize(18).font('Helvetica-Bold').text(cost, 0, y + 8, { align: 'right', width: W - pad - 14 });
 
-      ry += 6;
-      ry = sectionHeader('RECIPIENT', col2x, colW, ry);
-      shade = false;
-      [['Name',shipment.rName],['Phone',shipment.rPhone],['Email',shipment.rEmail],['To',shipment.dest]]
-        .forEach(([l,v]) => { ry = row(l, v, col2x, colW, ry, shade); shade=!shade; });
-
-      // ── Notes (if any) ──
-      const bottomY = Math.max(ly, ry) + 14;
-      let ny = bottomY;
-      if (shipment.notes) {
-        ny = sectionHeader('NOTES', pad, W - pad*2, bottomY);
-        doc.rect(pad, ny, W - pad*2, 28).fill('#fffbeb').stroke('#fde68a');
-        doc.fill('#92400e').fontSize(8).font('Helvetica')
-           .text(shipment.notes, pad + 8, ny + 8, { width: W - pad*2 - 16 });
-        ny += 34;
-      }
-
-      // ── Track box ──
-      const trackY = ny + 6;
-      doc.rect(pad, trackY, W - pad*2, 42).fill('#fff7ed').stroke('#e8820c');
-      doc.fill('#e8820c').fontSize(9).font('Helvetica-Bold').text('TRACK YOUR SHIPMENT', pad + 10, trackY + 8);
-      doc.fill('#0d1f35').fontSize(8).font('Helvetica')
-         .text(`Visit ${displayUrl} and enter your tracking number: ${shipment.tracking}`, pad + 10, trackY + 22, { width: W - pad*2 - 20 });
-
-      // ── Footer — anchored to bottom ──
-      const footerY = H - 52;
-      doc.rect(0, footerY, W, 52).fill('#0d1f35');
-      doc.fill('white').fontSize(8).font('Helvetica-Bold')
-         .text('ZipCargo Logistics — Delivering trust, one shipment at a time', 0, footerY + 10, { align: 'center', width: W });
-      const footerLine2 = [siteEmail, displayUrl, sitePhone].filter(Boolean).join('  |  ');
-      doc.fill('#aac4e0').fontSize(7).font('Helvetica')
-         .text(footerLine2, 0, footerY + 26, { align: 'center', width: W });
-      doc.fill('#e8820c').fontSize(7)
-         .text('This is an official ZipCargo document. Please keep for your records.', 0, footerY + 40, { align: 'center', width: W });
+      // Footer
+      y += 44;
+      doc.roundedRect(pad, y, cW, 62, 6).fill('white').stroke('#e5e7eb');
+      doc.roundedRect(pad + 12, y + 14, 26, 26, 5).fill('#0d1f35');
+      doc.fill('#e8820c').fontSize(11).font('Helvetica-Bold').text('Z', pad + 19, y + 20);
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text('ZipCargo Logistics', pad + 46, y + 14);
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica').text('Ship Smarter. Deliver Faster.', pad + 46, y + 28);
+      doc.image(qrBuffer, W - pad - 62, y + 6, { width: 50, height: 50 });
+      doc.fill('#94a3b8').fontSize(6).text('Scan to track shipment', W - pad - 90, y + 57, { width: 78, align: 'center' });
+      doc.fill('#94a3b8').fontSize(6).text('Please retain for your records', pad + 46, y + 42);
+      doc.fill('#94a3b8').fontSize(5.5).text(shipment.tracking + '  •  ' + receiptNo, pad + 46, y + 52);
 
       doc.end();
     });
