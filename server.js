@@ -1,39 +1,27 @@
 require('dotenv').config();
 
-// ── Fail fast if critical env vars are missing ────────────────────────────
-if (!process.env.MONGODB_URI)    throw new Error('MONGODB_URI is missing.');
-if (!process.env.JWT_SECRET)     throw new Error('JWT_SECRET is missing.');
-if (!process.env.ADMIN_USERNAME) throw new Error('ADMIN_USERNAME is missing.');
-if (!process.env.ADMIN_PASSWORD) throw new Error('ADMIN_PASSWORD is missing.');
-
 const express      = require('express');
-const helmet       = require('helmet');
-const cors         = require('cors');
 const compression  = require('compression');
 const rateLimit    = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss          = require('xss-clean');
 const path         = require('path');
 const https        = require('https');
 
-const morgan     = require('morgan');
 const connectDB = require('./config/db');
 const Admin     = require('./models/Admin');
 
 connectDB();
 
-// ── Seed admin only from env vars — no hardcoded fallback ─────────────────
 async function seedAdmin() {
   try {
     const count = await Admin.countDocuments();
     if (count === 0) {
       await Admin.create({
-        username: process.env.ADMIN_USERNAME,
-        password: process.env.ADMIN_PASSWORD,
+        username: process.env.ADMIN_USERNAME || 'admin',
+        password: process.env.ADMIN_PASSWORD || 'zipcargo2026',
         role:     'superadmin',
       });
-      console.log('✅ Admin seeded from environment variables.');
+      console.log('✅ Default admin seeded.');
     }
   } catch (e) {
     console.error('Seed error:', e.message);
@@ -43,96 +31,32 @@ seedAdmin();
 
 const app = express();
 
-// ── HTTP request logging ──────────────────────────────────────────────────
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-
-// ── Trust Render proxy ────────────────────────────────────────────────────
 app.set('trust proxy', 1);
 
-// ── Force HTTPS in production ─────────────────────────────────────────────
 app.use((req, res, next) => {
-  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
-    return res.redirect(301, `https://${req.headers.host}${req.url}`);
-  }
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
 
-// ── CORS — only allow your own domains ───────────────────────────────────
-const allowedOrigins = [
-  process.env.SITE_ORIGIN,
-  process.env.SITE_URL,
-  'https://zipcargo-app.onrender.com',
-].filter(Boolean);
+app.use(rateLimit({ windowMs: 60_000, max: 200, standardHeaders: true, legacyHeaders: false }));
 
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    cb(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-}));
-
-// ── Helmet security headers ───────────────────────────────────────────────
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc:     ["'self'"],
-      scriptSrc:      ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://fonts.googleapis.com"],
-      styleSrc:       ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://unpkg.com"],
-      fontSrc:        ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-      imgSrc:         ["'self'", "data:", "https:", "blob:"],
-      connectSrc:     ["'self'", "https://nominatim.openstreetmap.org", "https://router.project-osrm.org", "https://api.qrserver.com"],
-      frameSrc:       ["'self'", "https://www.google.com"],
-      workerSrc:      ["'self'", "blob:"],
-      objectSrc:      ["'none'"],
-      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
-    },
-  },
-}));
-
-// ── Rate limiting ─────────────────────────────────────────────────────────
-app.use('/api/', rateLimit({
-  windowMs: 60_000, max: 120,
-  standardHeaders: true, legacyHeaders: false,
-  message: { error: 'Too many requests. Please slow down.' },
-}));
-
-app.use('/api/auth/login', rateLimit({
-  windowMs: 15 * 60_000, max: 10,
-  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
-}));
-
-app.use('/api/shipments/track', rateLimit({
-  windowMs: 15 * 60_000, max: 30,
-  message: { error: 'Too many tracking requests. Try again later.' },
-}));
-
-// ── Body parsing ──────────────────────────────────────────────────────────
 app.use(compression());
-app.use(express.json({ limit: '100kb' }));
-app.use(express.urlencoded({ extended: false, limit: '100kb' }));
+app.use(express.json({ limit: '200kb' }));
+app.use(express.urlencoded({ extended: false, limit: '200kb' }));
 app.use(cookieParser());
 
-// ── MongoDB injection sanitization ────────────────────────────────────────
-app.use(mongoSanitize());
-
-// ── XSS sanitization ─────────────────────────────────────────────────────
-app.use(xss());
-
-// ── Routes ────────────────────────────────────────────────────────────────
-app.use('/api/auth',          require('./routes/auth'));
-app.use('/api/shipments',     require('./routes/shipments'));
-app.use('/api/inquiries',     require('./routes/inquiries'));
-app.use('/api/activity',      require('./routes/activity'));
-app.use('/api/settings',      require('./routes/settings'));
-app.use('/api/subscriptions', require('./routes/subscriptions'));
+app.use('/api/auth',      require('./routes/auth'));
+app.use('/api/shipments', require('./routes/shipments'));
+app.use('/api/inquiries', require('./routes/inquiries'));
+app.use('/api/activity',  require('./routes/activity'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
-app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
-}));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -140,13 +64,12 @@ app.get('*', (req, res) => {
 
 app.use((err, req, res, _next) => {
   console.error(err.stack);
-  res.status(err.status || 500).json({ error: 'Something went wrong.' });
+  res.status(500).json({ error: 'Server error.' });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 ZipCargo v2 running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 ZipCargo running on port ${PORT}`));
 
-// ── Keep-alive ping ───────────────────────────────────────────────────────
 if (process.env.SITE_URL) {
   setInterval(() => {
     try {
