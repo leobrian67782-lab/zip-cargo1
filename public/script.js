@@ -580,74 +580,91 @@ function initRouteMap(oC, dC, cC, oN, dN, cN, status) {
 }
 
 async function buildMap(oC, dC, cC, oN, dN, cN, status) {
+  // Inject dark map CSS before building
+  if (!document.getElementById('zcMapDarkStyle')) {
+    const st = document.createElement('style');
+    st.id = 'zcMapDarkStyle';
+    st.textContent = [
+      '#trackMap { background:#1a2535 !important; }',
+      '#trackMap .leaflet-tile-pane { filter: brightness(0.9) contrast(1.1); }',
+      '#trackMap .leaflet-popup-content-wrapper { background:#0d1f35; color:#e2e8f0; border-radius:10px; border:1px solid rgba(232,130,12,0.4); box-shadow:0 8px 24px rgba(0,0,0,0.6); }',
+      '#trackMap .leaflet-popup-tip { background:#0d1f35; }',
+      '#trackMap .leaflet-popup-close-button { color:#7a9ab8 !important; top:6px; right:8px; }',
+      '#trackMap .leaflet-control-zoom { border:1px solid rgba(232,130,12,0.3) !important; border-radius:8px !important; overflow:hidden; }',
+      '#trackMap .leaflet-control-zoom a { background:#0d1f35 !important; color:#e8820c !important; border-bottom:1px solid rgba(232,130,12,0.2) !important; font-weight:700 !important; }',
+      '#trackMap .leaflet-control-zoom a:hover { background:#1a3a5c !important; }',
+      '#trackMap .leaflet-control-attribution { background:rgba(13,31,53,0.85) !important; color:#4a6a88 !important; font-size:9px !important; }',
+      '#trackMap .leaflet-control-attribution a { color:#e8820c !important; }',
+    ].join('');
+    document.head.appendChild(st);
+  }
+
   leafletMap = L.map('trackMap', { zoomControl: true, attributionControl: true });
 
-  // Dark professional map tiles
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CARTO',
-    subdomains: 'abcd',
-    maxZoom: 19
+  // Dark map tiles — using Stadia dark tiles (more reliable than CARTO dark)
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+    attribution: '© Stadia Maps © OpenStreetMap',
+    maxZoom: 20,
+    errorTileUrl: '',
   }).addTo(leafletMap);
+
+  // ── Pulse animation ──
+  if (!document.getElementById('mapPulseStyle')) {
+    const st = document.createElement('style'); st.id = 'mapPulseStyle';
+    st.textContent = '@keyframes mapPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,130,12,.7)}50%{box-shadow:0 0 0 12px rgba(232,130,12,0)}}';
+    document.head.appendChild(st);
+  }
 
   // ── Markers ──
   const mkrPin = (color, label) => L.divIcon({
-    html: `<div style="position:relative;display:flex;flex-direction:column;align-items:center;">
-      <div style="background:${color};width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,.6);"></div>
-      <div style="background:${color};color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-top:3px;white-space:nowrap;font-family:Outfit,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,.4);">${label}</div>
+    html: `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <div style="background:${color};width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,.7);"></div>
+      <div style="background:${color};color:white;font-size:9px;font-weight:800;padding:2px 7px;border-radius:4px;white-space:nowrap;font-family:'Outfit',sans-serif;letter-spacing:.5px;box-shadow:0 2px 8px rgba(0,0,0,.5);">${label}</div>
     </div>`,
-    className: '', iconSize: [60, 36], iconAnchor: [10, 10]
+    className: '', iconSize: [70, 40], iconAnchor: [11, 11]
   });
 
   const statusConfig = {
-    'Delivered':        { icon: '✓', pulse: false },
-    'In Transit':       { icon: '✈', pulse: true  },
+    'Delivered':        { icon: '✓',  pulse: false },
+    'In Transit':       { icon: '✈',  pulse: true  },
     'Out for Delivery': { icon: '🚚', pulse: true  },
     'Pending':          { icon: '📦', pulse: false },
     'On Hold':          { icon: '⏸', pulse: false },
   };
   const sc = statusConfig[status] || { icon: '📦', pulse: false };
-  const pulseStyle = sc.pulse
-    ? 'animation:mapPulse 1.6s ease-in-out infinite;'
-    : '';
-
-  if (!document.getElementById('mapPulseStyle')) {
-    const st = document.createElement('style'); st.id = 'mapPulseStyle';
-    st.textContent = '@keyframes mapPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,130,12,.6)}50%{box-shadow:0 0 0 10px rgba(232,130,12,0)}}';
-    document.head.appendChild(st);
-  }
+  const pulseStyle = sc.pulse ? 'animation:mapPulse 1.6s ease-in-out infinite;' : '';
 
   const pkgIco = L.divIcon({
-    html: `<div style="background:#e8820c;width:38px;height:38px;border-radius:50%;border:3px solid white;box-shadow:0 3px 14px rgba(232,130,12,.7);display:flex;align-items:center;justify-content:center;font-size:16px;${pulseStyle}">${sc.icon}</div>`,
-    className: '', iconSize: [38, 38], iconAnchor: [19, 19]
+    html: `<div style="background:#e8820c;width:40px;height:40px;border-radius:50%;border:3px solid white;box-shadow:0 3px 16px rgba(232,130,12,.8);display:flex;align-items:center;justify-content:center;font-size:17px;${pulseStyle}">${sc.icon}</div>`,
+    className: '', iconSize: [40, 40], iconAnchor: [20, 20]
   });
 
   L.marker([oC.lat, oC.lng], { icon: mkrPin('#22c55e', 'ORIGIN') })
     .addTo(leafletMap)
-    .bindPopup(`<div style="font-family:Outfit,sans-serif;font-weight:700;">📍 ${oN}</div>`);
-  L.marker([dC.lat, dC.lng], { icon: mkrPin('#ef4444', 'DESTINATION') })
+    .bindPopup(`<div style="font-family:'Outfit',sans-serif;font-weight:700;color:white;">📍 ${oN}</div>`);
+  L.marker([dC.lat, dC.lng], { icon: mkrPin('#ef4444', 'DEST') })
     .addTo(leafletMap)
-    .bindPopup(`<div style="font-family:Outfit,sans-serif;font-weight:700;">🎯 ${dN}</div>`);
+    .bindPopup(`<div style="font-family:'Outfit',sans-serif;font-weight:700;color:white;">🎯 ${dN}</div>`);
 
   // ── Route ──
   document.getElementById('trackMapStatus').textContent = 'Calculating route…';
   const { pts, type } = await getBestRoute(oC, dC);
 
-  // Progress ratio along route
-  const progressRatio = { 'Pending': 0.0, 'In Transit': 0.45, 'Out for Delivery': 0.82, 'Delivered': 1.0, 'On Hold': 0.25 }[status] ?? 0.1;
+  // Progress ratio: how far along the route the package is
+  const progressRatio = { 'Pending': 0.05, 'In Transit': 0.45, 'Out for Delivery': 0.85, 'Delivered': 1.0, 'On Hold': 0.25 }[status] ?? 0.1;
   const splitIdx = Math.min(Math.floor(progressRatio * (pts.length - 1)), pts.length - 2);
 
-  // Draw remaining route (dimmed dashed)
+  // Full route dashed — remaining portion
   const remainingPts = pts.slice(splitIdx);
   if (remainingPts.length > 1) {
-    L.polyline(remainingPts, { color: '#4a6a88', weight: 3, opacity: 0.5, dashArray: '8, 8' }).addTo(leafletMap);
+    L.polyline(remainingPts, { color: '#4a6a88', weight: 2, opacity: 0.6, dashArray: '8, 10' }).addTo(leafletMap);
   }
 
-  // Draw travelled portion (solid bright orange)
+  // Travelled portion — glowing orange line
   const travelledPts = pts.slice(0, splitIdx + 1);
   if (travelledPts.length > 1) {
-    // Glowing effect: thick dim layer + bright top layer
-    L.polyline(travelledPts, { color: '#e8820c', weight: 8, opacity: 0.2 }).addTo(leafletMap);
-    L.polyline(travelledPts, { color: '#e8820c', weight: 3, opacity: 1 }).addTo(leafletMap);
+    L.polyline(travelledPts, { color: '#e8820c', weight: 10, opacity: 0.15 }).addTo(leafletMap); // glow
+    L.polyline(travelledPts, { color: '#e8820c', weight: 3,  opacity: 1.0  }).addTo(leafletMap); // line
   }
 
   // Package position
@@ -656,12 +673,12 @@ async function buildMap(oC, dC, cC, oN, dN, cN, status) {
 
   L.marker(pkgPt, { icon: pkgIco, zIndexOffset: 1000 })
     .addTo(leafletMap)
-    .bindPopup(`<div style="font-family:Outfit,sans-serif;"><strong>📦 Package</strong><br/>Status: ${status}${!same ? '<br/>📍 ' + cN : ''}</div>`)
+    .bindPopup(`<div style="font-family:'Outfit',sans-serif;color:white;"><strong>📦 Package</strong><br/>Status: ${status}${!same ? '<br/>📍 ' + cN : ''}</div>`)
     .openPopup();
 
-  // Fit bounds nicely
+  // Fit map to all key points with good padding
   const bounds = L.latLngBounds([[oC.lat, oC.lng], [dC.lat, dC.lng], pkgPt]);
-  leafletMap.fitBounds(bounds, { padding: [50, 50] });
+  leafletMap.fitBounds(bounds, { padding: [60, 60] });
 
   const routeType = type === 'road' ? 'Road route' : 'Flight path';
   document.getElementById('trackMapStatus').textContent = `${routeType}: ${oN} → ${dN}`;
