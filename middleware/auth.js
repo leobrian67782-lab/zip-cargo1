@@ -1,7 +1,9 @@
-const jwt = require('jsonwebtoken');
+const jwt   = require('jsonwebtoken');
+const Admin = require('../models/Admin');
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
+    // Accept token from cookie OR Authorization header OR localStorage token
     const token =
       req.cookies?.zc_token ||
       (req.headers.authorization?.startsWith('Bearer ')
@@ -11,15 +13,10 @@ const protect = (req, res, next) => {
     if (!token) return res.status(401).json({ error: 'Not authenticated.' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const admin   = await Admin.findById(decoded.id).select('-password');
+    if (!admin) return res.status(401).json({ error: 'Admin not found.' });
 
-    // Attach admin info directly from JWT — no DB round-trip needed
-    req.admin = {
-      _id:      decoded.id,
-      id:       decoded.id,
-      username: decoded.username,
-      role:     decoded.role,
-    };
-
+    req.admin = admin;
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired token.' });
