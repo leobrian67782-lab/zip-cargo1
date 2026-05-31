@@ -601,11 +601,11 @@ async function buildMap(oC, dC, cC, oN, dN, cN, status) {
 
   leafletMap = L.map('trackMap', { zoomControl: true, attributionControl: true });
 
-  // Dark map tiles — using Stadia dark tiles (more reliable than CARTO dark)
-  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-    attribution: '© Stadia Maps © OpenStreetMap',
-    maxZoom: 20,
-    errorTileUrl: '',
+  // Dark map tiles — CartoDB Dark Matter (free, no API key required)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter_all/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+    subdomains: ['a','b','c','d'],
+    maxZoom: 19,
   }).addTo(leafletMap);
 
   // ── Pulse animation ──
