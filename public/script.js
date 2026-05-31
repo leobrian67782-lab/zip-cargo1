@@ -722,12 +722,40 @@ async function submitForm(e) {
   if (btn) { btn.disabled=true; btn.innerHTML='Sending… <i class="fa-solid fa-spinner fa-spin"></i>'; }
 
   try {
+    // Save to database
     const res = await fetch('/api/inquiries', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ name, email, company, service, message }),
     });
     if (!res.ok) throw new Error('Server error');
+
+    // Send emails via EmailJS
+    if (typeof emailjs !== 'undefined' && window.ZC_EMAILJS_SERVICE) {
+      try {
+        const templateParams = {
+          from_name:  name,
+          from_email: email,
+          company:    company || 'Not provided',
+          service:    service || 'Not specified',
+          message:    message,
+          name:       name,
+          email:      email,
+        };
+
+        // Send notification to you — auto-reply to customer is handled by template
+        await emailjs.send(
+          window.ZC_EMAILJS_SERVICE,
+          window.ZC_EMAILJS_NOTIFY_TEMPLATE,
+          templateParams
+        );
+
+        console.log('Email sent successfully');
+      } catch(emailErr) {
+        console.error('EmailJS error:', emailErr);
+      }
+    }
+
     const form    = document.querySelector('.contact-form');
     const success = document.getElementById('formSuccess');
     form.style.display='none'; success.style.display='block';
