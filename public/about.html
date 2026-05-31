@@ -152,9 +152,11 @@
 </script>
 <script src="script.js"></script>
 <script>
-  // Set your Google Gemini API key here
-  // Get it FREE at: https://aistudio.google.com/app/apikey
-  window.ZC_GEMINI_KEY = '';
+  // Key is loaded securely from server
+  fetch('/api/chat/config')
+    .then(r => r.json())
+    .then(d => { window.ZC_GEMINI_KEY = d.key || ''; })
+    .catch(() => { window.ZC_GEMINI_KEY = ''; });
 </script>
 <script src="chat.js"></script>
 </body>
