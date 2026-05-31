@@ -127,7 +127,7 @@ app.post('/api/chat', async (req, res) => {
     const trimmed = messages.slice(-10);
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) return res.status(503).json({ error: 'AI service not configured.' });
+    if (!apiKey) return res.status(503).json({ error: 'AI service not configured. Please add ANTHROPIC_API_KEY to your environment variables on Render.' });
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
