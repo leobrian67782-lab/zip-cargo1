@@ -146,6 +146,7 @@
       <a class="nav-item" onclick="showSection('inquiries',this);return false;"><i class="fa-solid fa-comments nav-icon"></i> Inquiries</a>
       <a class="nav-item" onclick="showSection('activity',this);return false;"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Activity Log</a>
       <a class="nav-item" onclick="showSection('settings',this);return false;"><i class="fa-solid fa-gear nav-icon"></i> Settings</a>
+      <a class="nav-item" onclick="showSection('ai',this);return false;"><i class="fa-solid fa-robot nav-icon"></i> AI Assistant</a>
     </nav>
 
     <div class="sidebar-footer">
@@ -340,6 +341,56 @@ window.adminLogout = async function() {
     }
   }
 })();
+</script>
+<script>
+// ── AI Assistant admin functions ──
+function saveAiContext() {
+  const val = document.getElementById('aiContextInput').value.trim();
+  try {
+    localStorage.setItem('zc_ai_context', val);
+    const msg = document.getElementById('aiContextMsg');
+    msg.style.color = '#16a34a';
+    msg.textContent = '✅ Instructions saved! The AI will follow these in all customer conversations immediately.';
+    setTimeout(() => msg.textContent = '', 4000);
+  } catch(e) {
+    document.getElementById('aiContextMsg').textContent = 'Error saving. Please try again.';
+  }
+}
+
+function clearAiContext() {
+  if (!confirm('Clear all AI instructions?')) return;
+  document.getElementById('aiContextInput').value = '';
+  try { localStorage.removeItem('zc_ai_context'); } catch(e) {}
+  const msg = document.getElementById('aiContextMsg');
+  msg.style.color = '#64748b';
+  msg.textContent = 'Instructions cleared. AI will use default responses.';
+  setTimeout(() => msg.textContent = '', 3000);
+}
+
+function loadTemplate(type) {
+  const templates = {
+    delay: 'Shipment [TRACKING NUMBER]: This shipment is currently delayed due to [REASON]. The new estimated delivery date is [NEW DATE]. Please apologize for the inconvenience and assure the customer their package is safe.',
+    promo: 'We currently have a special promotion: [DESCRIBE OFFER]. Mention this to all customers who ask about pricing or services.',
+    insurance: 'Strongly emphasize to ALL customers that our cargo insurance is FULLY REFUNDABLE if no claim is made. There is zero risk to taking out insurance — they get their money back if nothing goes wrong. Encourage all customers to protect their shipments.',
+    customs: 'Shipment [TRACKING NUMBER] is currently held at [LOCATION] customs for [REASON]. The customer may need to provide [DOCUMENTS NEEDED]. Estimated release: [DATE]. Please be empathetic and guide them through next steps.'
+  };
+  const ta = document.getElementById('aiContextInput');
+  ta.value = templates[type] || '';
+  ta.focus();
+  ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Load saved context when AI section is opened
+const origShowSection = showSection;
+window.showSection = async function(name, el) {
+  await origShowSection(name, el);
+  if (name === 'ai') {
+    try {
+      const saved = localStorage.getItem('zc_ai_context') || '';
+      document.getElementById('aiContextInput').value = saved;
+    } catch(e) {}
+  }
+};
 </script>
 </body>
 </html>
