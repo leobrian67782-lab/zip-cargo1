@@ -71,19 +71,34 @@
   </div>
 </section>
 
-<section id="trackMapSection" style="display:none;background:#0d1f35;padding:0 0 50px;">
-  <div style="max-width:900px;margin:0 auto;padding:0 24px;">
-    <div style="display:flex;align-items:center;gap:10px;padding:20px 0 14px;">
-      <i class="fa-solid fa-map-location-dot" style="color:#e8820c;font-size:1.2rem;"></i>
-      <span style="color:white;font-weight:700;">Live Route Map</span>
-      <span id="trackMapStatus" style="color:#7a9ab8;font-size:.82rem;margin-left:8px;"></span>
+<section id="trackMapSection" style="display:none;background:#0a1828;padding:0 0 50px;border-top:1px solid rgba(232,130,12,0.15);">
+  <div style="max-width:920px;margin:0 auto;padding:0 24px;">
+    <!-- Map header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:24px 0 16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;background:rgba(232,130,12,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fa-solid fa-map-location-dot" style="color:#e8820c;font-size:1rem;"></i>
+        </div>
+        <div>
+          <div style="color:white;font-weight:800;font-size:1rem;font-family:'Outfit',sans-serif;">Live Route Map</div>
+          <div id="trackMapStatus" style="color:#7a9ab8;font-size:.78rem;margin-top:2px;"></div>
+        </div>
+      </div>
+      <!-- Legend -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:#7a9ab8;font-weight:600;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,.5);"></span> Origin
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:#7a9ab8;font-weight:600;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;box-shadow:0 0 6px rgba(239,68,68,.5);"></span> Destination
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:#7a9ab8;font-weight:600;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#e8820c;display:inline-block;box-shadow:0 0 6px rgba(232,130,12,.5);"></span> Package
+        </div>
+      </div>
     </div>
-    <div id="trackMap" style="width:100%;height:420px;border-radius:14px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.4);border:2px solid rgba(232,130,12,.3);"></div>
-    <div style="margin-top:12px;display:flex;gap:20px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:#7a9ab8;"><span style="width:12px;height:12px;border-radius:50%;background:#27ae60;display:inline-block;"></span> Origin</div>
-      <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:#7a9ab8;"><span style="width:12px;height:12px;border-radius:50%;background:#e74c3c;display:inline-block;"></span> Destination</div>
-      <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:#7a9ab8;"><span style="width:12px;height:12px;border-radius:50%;background:#e8820c;display:inline-block;"></span> Package</div>
-    </div>
+    <!-- Map container -->
+    <div id="trackMap" style="width:100%;height:440px;border-radius:16px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.6);border:1px solid rgba(232,130,12,0.25);background:#1a2535;"></div>
   </div>
 </section>
 
