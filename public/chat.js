@@ -8,8 +8,8 @@
   const css = `
     #zc-bubble {
       position: fixed !important;
-      bottom: 24px !important;
-      right: 24px !important;
+      bottom: 90px !important;
+      right: 20px !important;
       width: 60px !important;
       height: 60px !important;
       border-radius: 50% !important;
@@ -44,8 +44,8 @@
     }
     #zc-box {
       position: fixed !important;
-      bottom: 96px !important;
-      right: 24px !important;
+      bottom: 165px !important;
+      right: 20px !important;
       width: 340px !important;
       max-width: calc(100vw - 40px) !important;
       height: 480px !important;
@@ -152,8 +152,8 @@
     #zc-send-btn:hover { opacity:.9; }
     #zc-send-btn:disabled { opacity:.4; cursor:not-allowed; }
     @media(max-width:480px){
-      #zc-box { bottom:90px !important; right:12px !important; width:calc(100vw - 24px) !important; }
-      #zc-bubble { bottom:20px !important; right:16px !important; }
+      #zc-box { bottom:165px !important; right:10px !important; width:calc(100vw - 20px) !important; }
+      #zc-bubble { bottom:90px !important; right:14px !important; }
     }
   `;
   const styleEl = document.createElement('style');
