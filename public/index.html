@@ -11,77 +11,18 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    /* ── ADMIN OVERLAY — full fixed, own scroll, nothing behind ── */
-    #adminWrapper {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: #f0f2f7;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
-    #adminWrapper.visible { display: block; }
-    #adminWrapper .login-screen { min-height: 100vh; width: 100%; display:flex; align-items:center; justify-content:center; }
-    #adminWrapper .admin-panel  { width: 100%; min-height: 100vh; display:flex; }
-
-    /* Lock main site completely when admin or loader is open */
-    body.no-scroll {
-      overflow: hidden !important;
-      position: fixed !important;
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    /* ── RESPONSIVE FIXES ── */
-    @media (max-width: 480px) {
-      .hero h1 { font-size: 2rem !important; }
-      .hero p  { font-size: 0.95rem !important; }
-      .btn-primary, .btn-secondary { padding: 12px 22px !important; font-size: 0.9rem !important; }
-      .section-title { font-size: 1.6rem !important; }
-      .services-grid { grid-template-columns: 1fr !important; }
-      .stats { padding: 30px 16px !important; }
-      .stat-item h2 { font-size: 2rem !important; }
-      .hubs-grid { grid-template-columns: repeat(2,1fr) !important; }
-      .testimonials-grid { grid-template-columns: 1fr !important; }
-      .contact-wrapper { padding: 0 16px !important; }
-      .footer-content { gap: 28px !important; }
-      .tracking-form { flex-direction: column !important; }
-      .tracking-form input { min-width: unset !important; width: 100% !important; }
-      .tracking-form button { width: 100% !important; }
-    }
-    @media (max-width: 768px) {
-      .services { padding: 60px 16px !important; }
-      .about { padding: 60px 16px !important; }
-      .contact { padding: 60px 16px !important; }
-      .testimonials { padding: 60px 16px !important; }
-      .map-section { padding: 60px 16px !important; }
-      .how-it-works { padding: 60px 16px !important; }
-      .footer { padding: 50px 16px 20px !important; }
-      .footer-content { flex-direction: column !important; }
-      .footer-bottom { flex-direction: column !important; text-align: center !important; }
-      .footer-bottom-links { justify-content: center !important; }
-    }
+    #adminWrapper { display:none; position:fixed; inset:0; z-index:9999; background:#f0f2f7; }
+    #adminWrapper.visible { display:flex; }
+    #adminWrapper .login-screen { min-height:100vh; width:100%; }
+    #adminWrapper .admin-panel  { width:100%; min-height:100vh; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
 <div id="loader">
-  <div class="loader-inner">
-    <div class="loader-logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
-    <div class="loader-tagline">Global Logistics Solutions</div>
-    <div class="loader-ring">
-      <div class="loader-ring-inner">
-        <i class="fa-solid fa-truck-fast loader-truck-icon"></i>
-      </div>
-    </div>
-    <div class="loader-dots">
-      <span></span><span></span><span></span>
-    </div>
-    <div class="loader-text">Loading your experience</div>
-  </div>
+  <div class="loader-logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
+  <div class="loader-spinner"></div>
+  <div class="loader-text">Loading your experience...</div>
 </div>
 <div id="progressBar"></div>
 <button id="backToTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
@@ -139,7 +80,7 @@
 
 <section class="trust-strip">
   <div class="trust-inner">
-    <div class="trust-item"><i class="fa-solid fa-shield-halved"></i><span>Shipment Protection Available</span></div>
+    <div class="trust-item"><i class="fa-solid fa-shield-halved"></i><span>Fully Insured Cargo</span></div>
     <div class="trust-divider"></div>
     <div class="trust-item"><i class="fa-solid fa-certificate"></i><span>ISO 9001 Certified</span></div>
     <div class="trust-divider"></div>
@@ -160,10 +101,9 @@
     <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80" alt="Air Freight"/></div><div class="service-icon"><i class="fa-solid fa-plane-departure"></i></div><h3>Air Freight</h3><p>Express worldwide delivery for urgent shipments to over 200 international destinations.</p><a href="#contact" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
     <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=600&q=80" alt="Sea Freight"/></div><div class="service-icon"><i class="fa-solid fa-ship"></i></div><h3>Sea Freight</h3><p>Cost-effective ocean shipping for large cargo with full container and groupage options.</p><a href="#contact" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
     <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80" alt="Road Transport"/></div><div class="service-icon"><i class="fa-solid fa-truck-moving"></i></div><h3>Road Transport</h3><p>Cross-border trucking with real-time GPS tracking and dedicated fleet management.</p><a href="#contact" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
-    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1586528116493-a029325540fa?w=600&q=80" alt="Warehousing"/></div><div class="service-icon"><i class="fa-solid fa-warehouse"></i></div><h3>Warehousing</h3><p>Secure, climate-controlled storage with smart inventory and fulfilment systems.</p><a href="#contact" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=600&q=80" alt="Warehousing"/></div><div class="service-icon"><i class="fa-solid fa-warehouse"></i></div><h3>Warehousing</h3><p>Secure, climate-controlled storage with smart inventory and fulfilment systems.</p><a href="#contact" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
     <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80" alt="Customs"/></div><div class="service-icon"><i class="fa-solid fa-file-shield"></i></div><h3>Customs Clearance</h3><p>Expert handling of all import/export documentation and compliance requirements.</p><a href="#contact" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
     <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80" alt="Supply Chain"/></div><div class="service-icon"><i class="fa-solid fa-chart-line"></i></div><h3>Supply Chain</h3><p>End-to-end supply chain consulting to optimise costs and improve delivery times.</p><a href="#contact" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
-    <div class="service-card animate-card"><div class="service-img"><img src="https://images.unsplash.com/photo-1568515387631-8b650bbcdb90?w=600&q=80" alt="Express Delivery"/></div><div class="service-icon"><i class="fa-solid fa-bolt"></i></div><h3>Express Delivery</h3><p>Same-day and next-day delivery options for time-critical shipments anywhere in the world.</p><a href="#contact" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
   </div>
 </section>
 
@@ -187,7 +127,7 @@
     <p>Enter your ZipCargo tracking number for real-time updates on your delivery status.</p>
     <div class="tracking-form">
       <input type="text" id="trackInput" placeholder="e.g. ZC-2026-00123"/>
-      <button type="button" id="trackBtn">Track Now</button>
+      <button onclick="trackShipment()">Track Now</button>
     </div>
     <div id="trackResult" class="track-result"></div>
   </div>
@@ -227,18 +167,6 @@
     <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Vancouver</div>
     <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Houston</div>
     <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Auckland</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Lagos</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Nairobi</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Accra</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Johannesburg</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Cairo</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Dubai</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Riyadh</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Mumbai</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Singapore</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Shanghai</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Tokyo</div>
-    <div class="hub-card"><i class="fa-solid fa-location-dot"></i> Bangkok</div>
   </div>
 </section>
 
@@ -271,9 +199,8 @@
   <div class="contact-wrapper">
     <div class="contact-info animate-fade">
       <h3>Contact Details</h3>
-      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-solid fa-phone"></i></div><div><strong>Phone</strong><span id="sitePhone">—</span></div></div>
-      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-solid fa-envelope"></i></div><div><strong>Email</strong><span id="siteEmail">info@zipcargo.com</span></div></div>
-      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-regular fa-clock"></i></div><div><strong>Hours</strong><span id="siteHours">Mon–Fri: 8am – 8pm (GMT)</span></div></div>
+      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-solid fa-envelope"></i></div><div><strong>Email</strong><span>info@zipcargo.com</span></div></div>
+      <div class="contact-detail-item"><div class="contact-detail-icon"><i class="fa-regular fa-clock"></i></div><div><strong>Hours</strong><span>Mon–Fri: 8am – 8pm (GMT)</span></div></div>
       <div class="contact-social">
         <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
         <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
@@ -285,89 +212,12 @@
       <input type="text"  id="fname"    placeholder="Your Full Name" required/>
       <input type="email" id="femail"   placeholder="Your Email Address" required/>
       <input type="text"  id="fcompany" placeholder="Company Name (optional)"/>
-      <select id="fservice"><option value="">Select a Service</option><option>Air Freight</option><option>Sea Freight</option><option>Road Transport</option><option>Warehousing</option><option>Customs Clearance</option><option>Supply Chain</option><option>Express Delivery</option></select>
+      <select id="fservice"><option value="">Select a Service</option><option>Air Freight</option><option>Sea Freight</option><option>Road Transport</option><option>Warehousing</option><option>Customs Clearance</option><option>Supply Chain</option></select>
       <textarea id="fmessage" placeholder="Tell us about your shipment needs..." required></textarea>
       <button type="submit">Send Message <i class="fa-solid fa-paper-plane"></i></button>
     </form>
   </div>
   <div id="formSuccess" class="form-success" style="display:none;"><i class="fa-solid fa-circle-check"></i> Thank you! Your message has been sent. We'll be in touch within 24 hours.</div>
-</section>
-
-<section class="faq-section" id="faq">
-  <div class="section-header animate-fade">
-    <h2 class="section-title">Frequently Asked Questions</h2>
-    <p class="section-subtitle">Everything you need to know about shipping with ZipCargo</p>
-  </div>
-  <div class="faq-wrapper">
-    <div class="faq-col">
-      <div class="faq-item">
-        <button type="button" class="faq-question" onclick="toggleFaq(this)">
-          <span>How do I track my shipment?</span><i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="faq-answer">
-          <p>Enter your ZipCargo tracking number (e.g. ZC-2026-00123) in the <a href="#tracking">Track Shipment</a> section on this page. You'll see real-time status, live map, and full timeline history instantly.</p>
-        </div>
-      </div>
-      <div class="faq-item">
-        <button type="button" class="faq-question" onclick="toggleFaq(this)">
-          <span>What countries do you ship to?</span><i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="faq-answer">
-          <p>ZipCargo operates in 150+ countries across every major continent, including hubs in North America, Europe, Africa, Asia, the Middle East, and Oceania. <a href="#map">View our global network</a>.</p>
-        </div>
-      </div>
-      <div class="faq-item">
-        <button type="button" class="faq-question" onclick="toggleFaq(this)">
-          <span>How long does shipping take?</span><i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="faq-answer">
-          <p>Transit times vary by service: <strong>Air Freight</strong> typically takes 1–5 business days, <strong>Express Delivery</strong> 24–72 hours, <strong>Sea Freight</strong> 10–40 days depending on route, and <strong>Road Transport</strong> 1–7 days within regions.</p>
-        </div>
-      </div>
-      <div class="faq-item">
-        <button type="button" class="faq-question" onclick="toggleFaq(this)">
-          <span>Do you offer cargo insurance?</span><i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="faq-answer">
-          <p>Yes. ZipCargo offers optional shipment protection on all services. Coverage is based on the declared value of your cargo. Contact us when requesting a quote to add insurance to your shipment.</p>
-        </div>
-      </div>
-    </div>
-    <div class="faq-col">
-      <div class="faq-item">
-        <button type="button" class="faq-question" onclick="toggleFaq(this)">
-          <span>What is the maximum weight/size I can ship?</span><i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="faq-answer">
-          <p>We handle everything from small parcels to full container loads (FCL). For oversized or heavy cargo, please <a href="#contact">contact our team</a> for a custom quote tailored to your needs.</p>
-        </div>
-      </div>
-      <div class="faq-item">
-        <button type="button" class="faq-question" onclick="toggleFaq(this)">
-          <span>Do you handle customs clearance?</span><i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="faq-answer">
-          <p>Yes. Our customs clearance experts handle all necessary documentation, duties, and compliance requirements for international shipments, ensuring smooth border crossings with minimal delays.</p>
-        </div>
-      </div>
-      <div class="faq-item">
-        <button type="button" class="faq-question" onclick="toggleFaq(this)">
-          <span>How do I get a shipping quote?</span><i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="faq-answer">
-          <p>Fill in the <a href="#contact">Get In Touch</a> form with your shipment details — origin, destination, weight, and service type. Our team will respond within 24 hours with a competitive quote.</p>
-        </div>
-      </div>
-      <div class="faq-item">
-        <button type="button" class="faq-question" onclick="toggleFaq(this)">
-          <span>What happens if my shipment is delayed?</span><i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="faq-answer">
-          <p>We proactively notify recipients of any delays. You can always check the live status via your tracking number. If your shipment is placed "On Hold," contact our 24/7 support team for immediate assistance.</p>
-        </div>
-      </div>
-    </div>
-  </div>
 </section>
 
 <section class="testimonials" id="testimonials">
@@ -389,7 +239,7 @@
     </div>
     <div class="footer-links"><h4>Company</h4><a href="#home">Home</a><a href="#services">Our Services</a><a href="#about">About Us</a><a href="#testimonials">Testimonials</a></div>
     <div class="footer-links"><h4>Services</h4><a href="#services">Air Freight</a><a href="#services">Sea Freight</a><a href="#services">Road Transport</a><a href="#services">Warehousing</a><a href="#services">Customs Clearance</a></div>
-    <div class="footer-contact"><h4>Contact Us</h4><p><i class="fa-solid fa-phone"></i> <span id="footerPhone"></span></p><p style="margin-top:10px;"><i class="fa-solid fa-envelope"></i> <span id="footerEmail">info@zipcargo.com</span></p><p style="margin-top:10px;"><i class="fa-regular fa-clock"></i> <span id="footerHours">Mon–Fri: 8am – 8pm GMT</span></p></div>
+    <div class="footer-contact"><h4>Contact Us</h4><p><i class="fa-solid fa-envelope"></i> info@zipcargo.com</p><p style="margin-top:16px;"><i class="fa-regular fa-clock"></i> Mon–Fri: 8am – 8pm GMT</p></div>
   </div>
   <div class="footer-bottom">
     <p>&copy; 2026 ZipCargo Logistics. All rights reserved.</p>
@@ -411,9 +261,9 @@
       <h2>Admin Portal</h2>
       <p>Sign in to access the dashboard</p>
       <div class="login-form">
-        <div class="input-wrap"><i class="fa-solid fa-user"></i><input type="text" id="loginUser" placeholder="Username"/></div>
-        <div class="input-wrap"><i class="fa-solid fa-lock"></i><input type="password" id="loginPass" placeholder="Password"/></div>
-        <button type="button" id="loginBtn">Sign In</button>
+        <input type="text" id="loginUser" placeholder="Username"/>
+        <input type="password" id="loginPass" placeholder="Password"/>
+        <button onclick="adminLogin()">Sign In</button>
         <div id="loginError" class="login-error"></div>
       </div>
       <div style="margin-top:20px;"><button onclick="closeAdminPanel()" style="background:none;border:none;color:#aaa;font-size:.85rem;cursor:pointer;text-decoration:underline;">← Back to main site</button></div>
@@ -423,10 +273,7 @@
   <div class="admin-panel" id="adminPanel" style="display:none;">
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar-logo">
-        <div class="sidebar-logo-icon"><i class="fa-solid fa-bolt"></i></div>
-        <span class="sidebar-logo-text">ZipCargo</span>
-      </div>
+      <div class="sidebar-logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
       <nav class="sidebar-nav">
         <a href="#" class="nav-item active" onclick="showSection('dashboard',this)"><i class="fa-solid fa-gauge nav-icon"></i> Dashboard</a>
         <a href="#" class="nav-item" onclick="showSection('shipments',this)"><i class="fa-solid fa-boxes-stacked nav-icon"></i> Shipments</a>
@@ -456,21 +303,19 @@
 
       <section class="section active" id="sec-dashboard">
         <div class="stats-grid">
-          <div class="stat-card blue"><div class="stat-icon-wrap"><i class="fa-solid fa-boxes-stacked"></i></div><div class="stat-info"><h3 id="totalShipments">0</h3><p>Total Shipments</p></div></div>
-          <div class="stat-card green"><div class="stat-icon-wrap"><i class="fa-solid fa-circle-check"></i></div><div class="stat-info"><h3 id="deliveredCount">0</h3><p>Delivered</p></div></div>
-          <div class="stat-card orange"><div class="stat-icon-wrap"><i class="fa-solid fa-truck-fast"></i></div><div class="stat-info"><h3 id="transitCount">0</h3><p>In Transit</p></div></div>
-          <div class="stat-card red"><div class="stat-icon-wrap"><i class="fa-solid fa-comments"></i></div><div class="stat-info"><h3 id="inquiryCount">0</h3><p>Inquiries</p></div></div>
+          <div class="stat-card blue"><div class="stat-icon"><i class="fa-solid fa-boxes-stacked"></i></div><div class="stat-info"><h3 id="totalShipments">0</h3><p>Total Shipments</p></div></div>
+          <div class="stat-card green"><div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div><div class="stat-info"><h3 id="deliveredCount">0</h3><p>Delivered</p></div></div>
+          <div class="stat-card orange"><div class="stat-icon"><i class="fa-solid fa-truck-moving"></i></div><div class="stat-info"><h3 id="transitCount">0</h3><p>In Transit</p></div></div>
+          <div class="stat-card red"><div class="stat-icon"><i class="fa-solid fa-comments"></i></div><div class="stat-info"><h3 id="inquiryCount">0</h3><p>Inquiries</p></div></div>
         </div>
         <div class="dashboard-grid">
-          <div class="dash-card"><h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Shipments</h3><table class="mini-table"><thead><tr><th>Tracking #</th><th>Recipient</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentShipmentsBody"><tr><td colspan="4" class="empty-msg">No shipments yet</td></tr></tbody></table></div>
-          <div class="dash-card"><h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3><div class="quick-actions">
+          <div class="dash-card"><h3>Recent Shipments</h3><table class="mini-table"><thead><tr><th>Tracking #</th><th>Recipient</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentShipmentsBody"><tr><td colspan="4" class="empty-msg">No shipments yet</td></tr></tbody></table></div>
+          <div class="dash-card"><h3>Quick Actions</h3><div class="quick-actions">
             <button class="qa-btn" onclick="showSection('create',null)"><i class="fa-solid fa-plus"></i> New Shipment</button>
             <button class="qa-btn" onclick="showSection('shipments',null)"><i class="fa-solid fa-boxes-stacked"></i> View All Shipments</button>
             <button class="qa-btn" onclick="showSection('receipts',null)"><i class="fa-solid fa-receipt"></i> Generate Receipt</button>
             <button class="qa-btn" onclick="showSection('inquiries',null)"><i class="fa-solid fa-comments"></i> View Inquiries</button>
           </div></div>
-          <div class="dash-card"><h3><i class="fa-solid fa-chart-pie"></i> Shipments by Status</h3><div style="position:relative;height:220px;display:flex;align-items:center;justify-content:center;"><canvas id="statusChart"></canvas></div></div>
-          <div class="dash-card"><h3><i class="fa-solid fa-chart-bar"></i> Monthly Volume</h3><div style="position:relative;height:220px;"><canvas id="volumeChart"></canvas></div></div>
         </div>
       </section>
 
@@ -480,7 +325,6 @@
           <select id="filterStatus" onchange="loadShipments(1)">
             <option value="">All Statuses</option><option>Pending</option><option>In Transit</option><option>Out for Delivery</option><option>Delivered</option><option>On Hold</option>
           </select>
-          <button class="tbl-btn tbl-btn-edit" onclick="exportShipmentsCSV()" title="Export to CSV"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
         </div>
         <div class="table-wrapper">
           <table class="data-table">
@@ -541,17 +385,12 @@
       </section>
 
       <section class="section" id="sec-inquiries">
-        <div class="section-toolbar">
-          <input type="text" id="searchInquiries" placeholder="Search by name, email or message..." oninput="loadInquiries(1)"/>
-          <button class="tbl-btn tbl-btn-edit" onclick="exportInquiriesCSV()" title="Export to CSV"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
-        </div>
         <div class="table-wrapper">
           <table class="data-table">
             <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Service</th><th>Message</th><th>Date</th><th>Action</th></tr></thead>
             <tbody id="inquiriesBody"><tr><td colspan="7" class="empty-msg">No inquiries yet.</td></tr></tbody>
           </table>
         </div>
-        <div id="inquiriesPaginationContainer" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;"></div>
       </section>
 
       <section class="section" id="sec-activity">
@@ -564,142 +403,44 @@
       </section>
 
       <section class="section" id="sec-settings">
-        <div class="settings-grid">
-
-          <!-- Password Card -->
-          <div class="setting-section">
-            <h3><i class="fa-solid fa-lock"></i> Security</h3>
-            <div class="form-group" style="margin-bottom:14px;">
-              <label>Current Password</label>
-              <input type="password" id="oldPass" placeholder="Enter current password"/>
-            </div>
-            <div class="form-group" style="margin-bottom:14px;">
-              <label>New Password</label>
-              <input type="password" id="newPass" placeholder="Minimum 8 characters"/>
-            </div>
-            <div class="form-group" style="margin-bottom:20px;">
-              <label>Confirm New Password</label>
-              <input type="password" id="confirmPass" placeholder="Repeat new password"/>
-            </div>
-            <button class="btn-save" onclick="changePassword()"><i class="fa-solid fa-lock"></i> Update Password</button>
-            <div id="passMsg" class="create-msg" style="margin-top:12px;"></div>
+        <div class="form-card">
+          <h3>Change Admin Password</h3>
+          <div class="form-grid" style="max-width:500px;">
+            <div class="form-group full-width"><label>Current Password</label><input type="password" id="oldPass" placeholder="Enter current password"/></div>
+            <div class="form-group full-width"><label>New Password</label><input type="password" id="newPass" placeholder="Enter new password (min 8 chars)"/></div>
+            <div class="form-group full-width"><label>Confirm New Password</label><input type="password" id="confirmPass" placeholder="Repeat new password"/></div>
           </div>
-
-          <!-- Contact Info Card -->
-          <div class="setting-section">
-            <h3><i class="fa-solid fa-address-card"></i> Contact Information</h3>
-            <p style="font-size:.8rem;color:#94a3b8;margin-bottom:18px;">These details appear live on your website. Click Edit to update any field.</p>
-
-            <div class="contact-info-item" id="ciPhone">
-              <div class="contact-info-icon"><i class="fa-solid fa-phone"></i></div>
-              <div class="contact-info-details">
-                <div class="contact-info-label">Phone Number</div>
-                <div class="contact-info-value" id="ciPhoneVal">Not set</div>
-              </div>
-              <button class="contact-edit-btn" onclick="editContactField('phone')"><i class="fa-solid fa-pen"></i> Edit</button>
-            </div>
-            <div id="ciPhoneEdit" style="display:none;margin-bottom:12px;">
-              <div class="contact-edit-row">
-                <input type="text" id="ciPhoneInput" placeholder="+1 000 000 0000"/>
-                <button class="save-inline" onclick="saveContactField('phone')"><i class="fa-solid fa-check"></i> Save</button>
-                <button class="cancel-inline" onclick="cancelContactField('phone')">✕</button>
-              </div>
-            </div>
-
-            <div class="contact-info-item" id="ciEmail">
-              <div class="contact-info-icon"><i class="fa-solid fa-envelope"></i></div>
-              <div class="contact-info-details">
-                <div class="contact-info-label">Email Address</div>
-                <div class="contact-info-value" id="ciEmailVal">info@zipcargo.com</div>
-              </div>
-              <button class="contact-edit-btn" onclick="editContactField('email')"><i class="fa-solid fa-pen"></i> Edit</button>
-            </div>
-            <div id="ciEmailEdit" style="display:none;margin-bottom:12px;">
-              <div class="contact-edit-row">
-                <input type="email" id="ciEmailInput" placeholder="info@zipcargo.com"/>
-                <button class="save-inline" onclick="saveContactField('email')"><i class="fa-solid fa-check"></i> Save</button>
-                <button class="cancel-inline" onclick="cancelContactField('email')">✕</button>
-              </div>
-            </div>
-
-            <div class="contact-info-item" id="ciWebsite">
-              <div class="contact-info-icon"><i class="fa-solid fa-globe"></i></div>
-              <div class="contact-info-details">
-                <div class="contact-info-label">Website</div>
-                <div class="contact-info-value" id="ciWebsiteVal">www.zipcargo.com</div>
-              </div>
-              <button class="contact-edit-btn" onclick="editContactField('website')"><i class="fa-solid fa-pen"></i> Edit</button>
-            </div>
-            <div id="ciWebsiteEdit" style="display:none;margin-bottom:12px;">
-              <div class="contact-edit-row">
-                <input type="text" id="ciWebsiteInput" placeholder="www.zipcargo.com"/>
-                <button class="save-inline" onclick="saveContactField('website')"><i class="fa-solid fa-check"></i> Save</button>
-                <button class="cancel-inline" onclick="cancelContactField('website')">✕</button>
-              </div>
-            </div>
-
-            <div class="contact-info-item" id="ciHours">
-              <div class="contact-info-icon"><i class="fa-regular fa-clock"></i></div>
-              <div class="contact-info-details">
-                <div class="contact-info-label">Business Hours</div>
-                <div class="contact-info-value" id="ciHoursVal">Mon–Fri: 8am – 8pm (GMT)</div>
-              </div>
-              <button class="contact-edit-btn" onclick="editContactField('hours')"><i class="fa-solid fa-pen"></i> Edit</button>
-            </div>
-            <div id="ciHoursEdit" style="display:none;margin-bottom:12px;">
-              <div class="contact-edit-row">
-                <input type="text" id="ciHoursInput" placeholder="Mon–Fri: 8am – 8pm (GMT)"/>
-                <button class="save-inline" onclick="saveContactField('hours')"><i class="fa-solid fa-check"></i> Save</button>
-                <button class="cancel-inline" onclick="cancelContactField('hours')">✕</button>
-              </div>
-            </div>
-            <div id="settingsMsg" class="create-msg" style="margin-top:4px;"></div>
+          <button class="btn-save" onclick="changePassword()"><i class="fa-solid fa-lock"></i> Update Password</button>
+          <div id="passMsg" class="create-msg" style="margin-top:14px;"></div>
+        </div>
+        <div class="form-card" style="margin-top:24px;">
+          <h3>Company Information</h3>
+          <div class="form-grid">
+            <div class="form-group"><label>Company Name</label><input type="text" value="ZipCargo Logistics" id="companyName"/></div>
+            <div class="form-group"><label>Email</label><input type="text" value="info@zipcargo.com" id="companyEmail"/></div>
+            <div class="form-group"><label>Website</label><input type="text" value="www.zipcargo.com" id="companyWebsite"/></div>
           </div>
-
+          <button class="btn-save" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+          <div id="settingsMsg" class="create-msg" style="margin-top:14px;"></div>
         </div>
       </section>
     </main>
   </div>
 </div>
 
-
-<script>
-// Load dynamic contact info from localStorage (set by admin)
-(function loadContactInfo() {
-  var phone   = localStorage.getItem('zc_contact_phone')   || '';
-  var email   = localStorage.getItem('zc_contact_email')   || 'info@zipcargo.com';
-  var hours   = localStorage.getItem('zc_contact_hours')   || 'Mon–Fri: 8am – 8pm (GMT)';
-  var website = localStorage.getItem('zc_contact_website') || 'www.zipcargo.com';
-  var sPhone = document.getElementById('sitePhone');
-  var sEmail = document.getElementById('siteEmail');
-  var sHours = document.getElementById('siteHours');
-  var fPhone = document.getElementById('footerPhone');
-  var fEmail = document.getElementById('footerEmail');
-  var fHours = document.getElementById('footerHours');
-  if (sPhone) sPhone.textContent = phone || '—';
-  if (sEmail) sEmail.textContent = email;
-  if (sHours) sHours.textContent = hours;
-  if (fPhone) { fPhone.textContent = phone; if(!phone) fPhone.parentElement.style.display='none'; }
-  if (fEmail) fEmail.textContent = email;
-  if (fHours) fHours.textContent = hours;
-})();
-</script>
 <script src="script.js"></script>
 <script src="admin.js"></script>
 <script>
   function checkAdminHash() {
     if (window.location.hash === '#admin') {
       document.getElementById('adminWrapper').classList.add('visible');
-      document.body.classList.add('no-scroll');
     } else {
       document.getElementById('adminWrapper').classList.remove('visible');
-      document.body.classList.remove('no-scroll');
     }
   }
   function closeAdminPanel() {
     history.pushState('', document.title, window.location.pathname + window.location.search);
     document.getElementById('adminWrapper').classList.remove('visible');
-    document.body.classList.remove('no-scroll');
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
   }
