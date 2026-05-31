@@ -580,29 +580,10 @@ function initRouteMap(oC, dC, cC, oN, dN, cN, status) {
 }
 
 async function buildMap(oC, dC, cC, oN, dN, cN, status) {
-  // Inject dark map CSS before building
-  if (!document.getElementById('zcMapDarkStyle')) {
-    const st = document.createElement('style');
-    st.id = 'zcMapDarkStyle';
-    st.textContent = [
-      '#trackMap { background:#1a2535 !important; }',
-      '#trackMap .leaflet-tile-pane { filter: brightness(0.9) contrast(1.1); }',
-      '#trackMap .leaflet-popup-content-wrapper { background:#0d1f35; color:#e2e8f0; border-radius:10px; border:1px solid rgba(232,130,12,0.4); box-shadow:0 8px 24px rgba(0,0,0,0.6); }',
-      '#trackMap .leaflet-popup-tip { background:#0d1f35; }',
-      '#trackMap .leaflet-popup-close-button { color:#7a9ab8 !important; top:6px; right:8px; }',
-      '#trackMap .leaflet-control-zoom { border:1px solid rgba(232,130,12,0.3) !important; border-radius:8px !important; overflow:hidden; }',
-      '#trackMap .leaflet-control-zoom a { background:#0d1f35 !important; color:#e8820c !important; border-bottom:1px solid rgba(232,130,12,0.2) !important; font-weight:700 !important; }',
-      '#trackMap .leaflet-control-zoom a:hover { background:#1a3a5c !important; }',
-      '#trackMap .leaflet-control-attribution { background:rgba(13,31,53,0.85) !important; color:#4a6a88 !important; font-size:9px !important; }',
-      '#trackMap .leaflet-control-attribution a { color:#e8820c !important; }',
-    ].join('');
-    document.head.appendChild(st);
-  }
-
   leafletMap = L.map('trackMap', { zoomControl: true, attributionControl: true });
 
-  // Dark map tiles — CartoDB Dark Matter (free, no API key required)
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter_all/{z}/{x}/{y}.png', {
+  // Clean professional map tiles — OpenStreetMap Voyager (free, no API key, shows everything)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
     subdomains: ['a','b','c','d'],
     maxZoom: 19,
