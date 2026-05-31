@@ -835,3 +835,10 @@ document.addEventListener('click', function(e) {
   document.body.classList.add('page-leaving');
   setTimeout(() => { window.location.href = href; }, 250);
 });
+
+// Fix blank page on browser back button — remove fade-out class immediately
+window.addEventListener('pageshow', function(e) {
+  document.body.classList.remove('page-leaving');
+  document.body.style.opacity = '1';
+  document.body.style.transform = 'none';
+});
