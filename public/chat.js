@@ -7,26 +7,40 @@
   const css = `
     #zc-bubble {
       position: fixed !important;
-      bottom: 90px !important;
-      right: 20px !important;
-      width: 60px !important;
-      height: 60px !important;
-      border-radius: 50% !important;
-      background: linear-gradient(135deg, #e8820c, #cf6a00) !important;
+      top: 50% !important;
+      bottom: auto !important;
+      right: 0 !important;
+      transform: translateY(-50%) !important;
+      width: 48px !important;
+      height: 72px !important;
+      border-radius: 12px 0 0 12px !important;
+      background: linear-gradient(180deg, #e8820c, #cf6a00) !important;
       color: white !important;
       border: none !important;
       cursor: pointer !important;
       z-index: 999999 !important;
-      box-shadow: 0 4px 20px rgba(232,130,12,.6) !important;
+      box-shadow: -3px 0 16px rgba(232,130,12,.5) !important;
       display: flex !important;
+      flex-direction: column !important;
       align-items: center !important;
       justify-content: center !important;
-      font-size: 1.5rem !important;
-      transition: transform .2s !important;
+      gap: 5px !important;
+      font-size: 1.2rem !important;
+      transition: width .2s !important;
       padding: 0 !important;
       margin: 0 !important;
     }
-    #zc-bubble:hover { transform: scale(1.1) !important; }
+    #zc-bubble:hover { width: 54px !important; }
+    #zc-bubble .zc-chat-label {
+      font-size: 8px !important;
+      font-weight: 800 !important;
+      letter-spacing: 1px !important;
+      font-family: Outfit, sans-serif !important;
+      writing-mode: vertical-rl !important;
+      text-orientation: mixed !important;
+      transform: rotate(180deg) !important;
+      line-height: 1 !important;
+    }
     #zc-bubble .zc-badge {
       position: absolute;
       top: -4px; right: -4px;
@@ -43,25 +57,26 @@
     }
     #zc-box {
       position: fixed !important;
-      bottom: 165px !important;
-      right: 20px !important;
+      top: 50% !important;
+      bottom: auto !important;
+      right: 56px !important;
+      transform: translateY(-50%) !important;
       width: 340px !important;
-      max-width: calc(100vw - 40px) !important;
-      height: 480px !important;
-      max-height: calc(100vh - 180px) !important;
+      max-width: calc(100vw - 70px) !important;
+      height: 500px !important;
+      max-height: calc(100vh - 40px) !important;
       background: white !important;
       border-radius: 18px !important;
-      box-shadow: 0 8px 40px rgba(0,0,0,.18) !important;
+      box-shadow: 0 8px 40px rgba(0,0,0,.22) !important;
       z-index: 999998 !important;
       display: flex !important;
       flex-direction: column !important;
       overflow: hidden !important;
-      transition: opacity .2s, transform .25s !important;
-      transform-origin: bottom right !important;
+      transition: opacity .2s, transform .2s !important;
     }
     #zc-box.zc-hidden {
       opacity: 0 !important;
-      transform: scale(0.85) translateY(10px) !important;
+      transform: translateY(-50%) translateX(20px) !important;
       pointer-events: none !important;
     }
     #zc-head {
@@ -145,9 +160,30 @@
     }
     #zc-send-btn:hover { opacity: .9; }
     #zc-send-btn:disabled { opacity: .4; cursor: not-allowed; }
-    @media(max-width:480px){
-      #zc-box { bottom:165px !important; right:10px !important; width:calc(100vw - 20px) !important; }
-      #zc-bubble { bottom:90px !important; right:14px !important; }
+    @media(max-width:600px){
+      #zc-bubble {
+        top: 50% !important;
+        right: 0 !important;
+        width: 42px !important;
+        height: 64px !important;
+        transform: translateY(-50%) !important;
+      }
+      #zc-box {
+        top: auto !important;
+        bottom: 0 !important;
+        right: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 75vh !important;
+        max-height: 75vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        transform: translateY(0) !important;
+      }
+      #zc-box.zc-hidden {
+        transform: translateY(100%) !important;
+        opacity: 1 !important;
+      }
     }
   `;
   const styleEl = document.createElement('style');
@@ -157,7 +193,7 @@
   // ── DOM ──────────────────────────────────────────────────
   const bubble = document.createElement('button');
   bubble.id = 'zc-bubble';
-  bubble.innerHTML = '<i class="fa-solid fa-comment-dots"></i><span class="zc-badge">1</span>';
+  bubble.innerHTML = '<i class="fa-solid fa-comment-dots"></i><span class="zc-chat-label">CHAT</span><span class="zc-badge">1</span>';
 
   const box = document.createElement('div');
   box.id = 'zc-box';
