@@ -96,19 +96,22 @@ app.use('/api/activity',  require('./routes/activity'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
-// ── AI Chat — Gemini powered ──────────────────────────────────────────────
+// ── AI Chat — Groq powered (free, fast, no restrictions) ─────────────────
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history, adminContext } = req.body;
     if (!message) return res.json({ reply: 'No message received.' });
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
       return res.json({ reply: 'Our AI assistant is being set up. Please contact us at info@zipcargo.com — we respond within 24 hours!' });
     }
 
     const adminPart = adminContext
-      ? `\n\nSPECIAL MANAGEMENT INSTRUCTIONS (follow exactly, highest priority):\n${adminContext}`
+      ? `
+
+SPECIAL MANAGEMENT INSTRUCTIONS (follow exactly, highest priority):
+${adminContext}`
       : '';
 
     const systemText = `You are Zara, the ZipCargo AI Assistant. You are professional, warm, intelligent, and genuinely helpful. You work for ZipCargo — a premium global logistics and freight company.
@@ -140,40 +143,43 @@ PRICING:
 
 BEHAVIOR:
 - Answer ANY question naturally and thoroughly — logistics, customs, routes, regulations, documentation, packaging, anything
-- Never say "I don't know" — always give your best knowledgeable answer
+- Never say "I don't know" — always give your best knowledgeable answer  
 - Never say "I'm an AI" — you are Zara from ZipCargo
-- Be conversational, warm, professional
+- Be conversational, warm, and professional
 - Keep replies clear with line breaks
 - Always offer a helpful next step${adminPart}`;
 
-    const safeHistory = (Array.isArray(history) ? history : [])
-      .slice(-10)
-      .map(m => ({
-        role: m.r === 'assistant' ? 'model' : 'user',
-        parts: [{ text: String(m.t || '') }]
-      }));
+    const messages = [
+      { role: 'system', content: systemText },
+      ...(Array.isArray(history) ? history : []).slice(-10).map(m => ({
+        role: m.r === 'assistant' ? 'assistant' : 'user',
+        content: String(m.t || '')
+      })),
+      { role: 'user', content: message }
+    ];
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemText }] },
-          contents: [...safeHistory, { role: 'user', parts: [{ text: message }] }],
-          generationConfig: { maxOutputTokens: 600, temperature: 0.8 }
-        })
-      }
-    );
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        max_tokens: 600,
+        temperature: 0.8
+      })
+    });
 
-    const data = await geminiRes.json();
+    const data = await groqRes.json();
 
-    if (!geminiRes.ok || !data.candidates) {
-      console.error('Gemini error:', JSON.stringify(data).slice(0, 200));
+    if (!groqRes.ok || !data.choices) {
+      console.error('Groq error:', JSON.stringify(data).slice(0, 200));
       return res.json({ reply: "I'm having a moment — please try again, or reach us at info@zipcargo.com." });
     }
 
-    const reply = data.candidates[0]?.content?.parts?.[0]?.text
+    const reply = data.choices[0]?.message?.content
       || "Could you rephrase that? I want to make sure I help you properly.";
     res.json({ reply });
 
