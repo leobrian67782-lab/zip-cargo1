@@ -301,6 +301,64 @@
       </div>
     </section>
 
+      <!-- AI ASSISTANT SECTION -->
+      <section class="section" id="sec-ai">
+        <div class="form-card">
+          <h3><i class="fa-solid fa-robot" style="color:#e8820c;margin-right:8px;"></i>AI Assistant — Zara</h3>
+          <p style="color:#64748b;font-size:.875rem;margin-bottom:20px;line-height:1.6;">
+            Give Zara special instructions she will follow in every customer conversation. Use this to announce delays, promotions, customs holds, or any important updates.
+          </p>
+
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+            <i class="fa-solid fa-circle-check" style="color:#16a34a;"></i>
+            <span style="font-size:.85rem;color:#15803d;font-weight:600;">Zara is active on all pages of your website</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:20px;">
+            <label style="font-weight:700;color:#0d1f35;margin-bottom:8px;display:block;">
+              <i class="fa-solid fa-pen-to-square" style="color:#e8820c;margin-right:6px;"></i>Custom Instructions for Zara
+            </label>
+            <p style="font-size:.78rem;color:#94a3b8;margin-bottom:10px;">
+              Example: "Shipment ZC-2026-00123 is delayed — tell the customer it arrives Friday" or "Remind all customers insurance is fully refundable"
+            </p>
+            <textarea id="aiContextInput"
+              placeholder="Type your instructions here…"
+              style="width:100%;min-height:140px;padding:14px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.875rem;line-height:1.7;color:#1e293b;resize:vertical;outline:none;box-sizing:border-box;"
+              onfocus="this.style.borderColor='#e8820c'"
+              onblur="this.style.borderColor='#e2e8f0'"></textarea>
+          </div>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+            <button class="btn-save" onclick="saveAiContext()"><i class="fa-solid fa-floppy-disk"></i> Save Instructions</button>
+            <button class="btn-clear" onclick="clearAiContext()"><i class="fa-solid fa-trash"></i> Clear</button>
+          </div>
+          <div id="aiContextMsg" class="create-msg" style="margin-top:8px;"></div>
+        </div>
+
+        <div class="form-card" style="margin-top:20px;">
+          <h3 style="margin-bottom:16px;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#e8820c;margin-right:8px;"></i>Quick Templates</h3>
+          <p style="color:#64748b;font-size:.825rem;margin-bottom:16px;">Click a template to load it, then customize and save.</p>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button onclick="loadAiTemplate('delay')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
+              <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">⚠️ Shipment Delay</div>
+              <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Tell customers a specific shipment is delayed with new ETA</div>
+            </button>
+            <button onclick="loadAiTemplate('insurance')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
+              <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">🛡️ Insurance Reminder</div>
+              <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Emphasise refundable insurance to all customers</div>
+            </button>
+            <button onclick="loadAiTemplate('promo')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
+              <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">🎉 Promotional Offer</div>
+              <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Announce a discount or special offer to customers</div>
+            </button>
+            <button onclick="loadAiTemplate('customs')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
+              <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">📋 Customs Hold</div>
+              <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Notify customers of a shipment held at customs</div>
+            </button>
+          </div>
+        </div>
+      </section>
+
   </main>
 </div>
 
@@ -312,32 +370,33 @@ function closeAdminPanel() {
 </script>
 <script src="admin.js"></script>
 <script>
-// After admin.js loads, patch logout to stay on this page
-const _origLogout = adminLogout;
-window.adminLogout = async function() {
-  if (!confirm('Are you sure you want to logout?')) return;
-  try { await api.post('/api/auth/logout'); } catch {}
-  TokenStore.clear();
-  document.getElementById('adminPanel').classList.remove('visible');
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-};
+// Patch logout to stay on this page
+if (typeof adminLogout !== 'undefined') {
+  window.adminLogout = async function() {
+    if (!confirm('Are you sure you want to logout?')) return;
+    try { await api.post('/api/auth/logout'); } catch {}
+    TokenStore.clear();
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+  };
+}
 
-// Auto-check token on load
+// Auto-login if token exists
 (async function(){
-  const token = TokenStore.get();
-  if (token) {
-    try {
-      await api.get('/api/auth/verify');
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('adminPanel').style.display = 'flex';
-      setCurrentDate();
-      await showSection('dashboard', document.querySelector('.nav-item'));
-    } catch {
-      TokenStore.clear();
+  if (typeof TokenStore !== 'undefined') {
+    const token = TokenStore.get();
+    if (token) {
+      try {
+        await api.get('/api/auth/verify');
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'flex';
+        if (typeof setCurrentDate === 'function') setCurrentDate();
+        await showSection('dashboard', document.querySelector('.nav-item'));
+      } catch {
+        TokenStore.clear();
+      }
     }
   }
 })();
