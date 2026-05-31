@@ -99,29 +99,15 @@ async function showSection(name, clickedEl) {
 }
 
 function toggleSidebar() {
-  const s = document.getElementById('sidebar');
-  const b = document.getElementById('sidebarBackdrop');
-  if (!s || !b) return;
-  if (s.classList.contains('open')) {
-    closeSidebar();
-  } else {
-    s.classList.add('open');
-    b.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
+  const s=document.getElementById('sidebar'), b=document.getElementById('sidebarBackdrop');
+  if(s.classList.contains('open')){ closeSidebar(); }
+  else { s.classList.add('open'); b.classList.add('active'); document.body.style.overflow='hidden'; }
 }
 function closeSidebar() {
-  const s = document.getElementById('sidebar');
-  const b = document.getElementById('sidebarBackdrop');
-  if (s) s.classList.remove('open');
-  if (b) b.classList.remove('active');
-  document.body.style.overflow = '';
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('active');
+  document.body.style.overflow='';
 }
-// Close sidebar when tapping backdrop
-document.addEventListener('DOMContentLoaded', function() {
-  var backdrop = document.getElementById('sidebarBackdrop');
-  if (backdrop) backdrop.addEventListener('click', closeSidebar);
-});
 
 // ===== DASHBOARD =====
 async function loadDashboard() {
@@ -230,6 +216,45 @@ async function createShipment() {
     } else {
       await api.post('/api/shipments', payload);
       showToast(`Shipment ${payload.tracking} created!`,'success');
+
+      // Send email notification to recipient if email provided
+      if (payload.rEmail) {
+        try {
+          const emailPayload = {
+            tracking: payload.tracking,
+            service: payload.service,
+            status: payload.status || 'Pending',
+            sName: payload.sName,
+            sPhone: payload.sPhone,
+            sEmail: payload.sEmail,
+            origin: payload.origin,
+            rName: payload.rName,
+            rPhone: payload.rPhone,
+            rEmail: payload.rEmail,
+            dest: payload.dest,
+            description: payload.desc,
+            weight: payload.weight,
+            value: payload.value,
+            eta: payload.eta,
+            location: payload.location,
+            notes: payload.notes,
+          };
+          const emailRes = await fetch('/api/email/shipment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ shipment: emailPayload }),
+          });
+          const emailData = await emailRes.json();
+          if (emailData.success) {
+            showToast(`📧 Receipt sent to ${payload.rEmail}`, 'success');
+          } else {
+            showToast(`⚠️ Shipment saved but email failed: ${emailData.error}`, 'error');
+          }
+        } catch(emailErr) {
+          console.error('Email send error:', emailErr);
+          showToast('⚠️ Shipment saved but email could not be sent.', 'error');
+        }
+      }
     }
     msg.style.color='#27ae60'; msg.textContent='Saved successfully!';
     setTimeout(()=>msg.textContent='',4000);
