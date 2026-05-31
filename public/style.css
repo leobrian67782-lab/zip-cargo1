@@ -30,7 +30,7 @@ a { text-decoration: none; color: inherit; }
 .btn-secondary { border: 2px solid #aac4e0; color: #aac4e0; padding: 14px 34px; border-radius: 8px; font-weight: 700; font-size: 1rem; transition: all 0.3s; display: inline-block; }
 .btn-secondary:hover { background-color: #aac4e0; color: #0d1f35; transform: translateY(-3px); }
 
-.stats { display: flex; justify-content: space-around; flex-wrap: wrap; background: linear-gradient(270deg, #e8820c, #cf6a00, #e8a030, #e8820c); background-size: 400% 400%; animation: gradientShift 6s ease infinite; padding: 50px 30px; gap: 20px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); background: linear-gradient(270deg, #e8820c, #cf6a00, #e8a030, #e8820c); background-size: 400% 400%; animation: gradientShift 6s ease infinite; padding: 50px 30px; gap: 20px; }
 .stat-item { text-align: center; color: white; }
 .stat-item h2 { font-size: 2.6rem; font-weight: 800; }
 .stat-item p { font-size: 0.95rem; opacity: 0.85; margin-top: 4px; }
@@ -420,3 +420,38 @@ body.page-leaving {
 @keyframes pageFadeOut {
   to { opacity: 0; transform: translateY(-8px); }
 }
+
+/* ── STATS GRID — consistent across all devices ── */
+@media (max-width: 768px) {
+  .stats { grid-template-columns: repeat(2, 1fr) !important; padding: 40px 20px !important; }
+}
+@media (max-width: 400px) {
+  .stats { grid-template-columns: repeat(2, 1fr) !important; padding: 30px 16px !important; }
+  .stat-item h2 { font-size: 2rem !important; }
+}
+
+/* ── HERO BUTTONS — consistent size on all screens ── */
+@media (max-width: 600px) {
+  .hero-buttons { flex-direction: column !important; align-items: center !important; width: 100%; }
+  .btn-primary, .btn-secondary { width: 100% !important; max-width: 320px !important; text-align: center !important; justify-content: center !important; }
+}
+
+/* ── TRACKING MAP — dark professional theme ── */
+#trackMapSection { background: #0d1f35; }
+#trackMap .leaflet-container { background: #1a2a3a; }
+#trackMap .leaflet-popup-content-wrapper {
+  background: #0d1f35;
+  color: white;
+  border-radius: 10px;
+  border: 1px solid rgba(232,130,12,0.3);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+#trackMap .leaflet-popup-tip { background: #0d1f35; }
+#trackMap .leaflet-popup-close-button { color: #7a9ab8 !important; }
+#trackMap .leaflet-control-zoom a {
+  background: #0d1f35 !important;
+  color: #e8820c !important;
+  border-color: rgba(232,130,12,0.3) !important;
+}
+#trackMap .leaflet-control-zoom a:hover { background: #1a3a5c !important; }
+#trackMap .leaflet-attribution-flag { display: none !important; }
