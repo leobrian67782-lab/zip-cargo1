@@ -1,309 +1,248 @@
-// ZipCargo AI Chat Widget
-(function () {
+require('dotenv').config();
 
-  document.head.insertAdjacentHTML('beforeend', `<style>
-    #zcBtn {
-      position: fixed !important;
-      bottom: 80px !important;
-      right: 20px !important;
-      width: 54px !important;
-      height: 54px !important;
-      border-radius: 50% !important;
-      background: linear-gradient(135deg,#e8820c,#cf6a00) !important;
-      color: white !important;
-      border: none !important;
-      cursor: pointer !important;
-      z-index: 2147483647 !important;
-      box-shadow: 0 4px 18px rgba(232,130,12,.65) !important;
-      font-size: 1.35rem !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      transition: transform .2s !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      top: auto !important;
-      left: auto !important;
-      transform: none !important;
-    }
-    #zcBtn:hover { transform: scale(1.08) !important; }
-    #zcBtn .zcN {
-      position: absolute !important;
-      top: -4px !important; right: -4px !important;
-      background: #ef4444 !important;
-      color: white !important;
-      width: 18px !important; height: 18px !important;
-      border-radius: 50% !important;
-      border: 2px solid white !important;
-      font-size: 9px !important; font-weight: 800 !important;
-      display: flex !important;
-      align-items: center !important; justify-content: center !important;
-      font-family: sans-serif !important;
-    }
-    #zcWin {
-      position: fixed !important;
-      bottom: 144px !important;
-      right: 20px !important;
-      width: 320px !important;
-      max-width: calc(100vw - 40px) !important;
-      height: 460px !important;
-      max-height: calc(100vh - 160px) !important;
-      background: white !important;
-      border-radius: 16px !important;
-      box-shadow: 0 8px 36px rgba(0,0,0,.2) !important;
-      z-index: 2147483646 !important;
-      display: none !important;
-      flex-direction: column !important;
-      overflow: hidden !important;
-      top: auto !important; left: auto !important;
-    }
-    #zcWin.on { display: flex !important; }
-    #zcHead {
-      background: linear-gradient(135deg,#0d1f35,#1a3a5c);
-      padding: 13px 15px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-    }
-    .zcAv {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(135deg,#e8820c,#f59e0b);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .95rem; flex-shrink: 0;
-    }
-    .zcInf { flex: 1; }
-    .zcNm { color: white; font-weight: 800; font-size: .88rem; font-family: Outfit,sans-serif; }
-    .zcSt { color: #7a9ab8; font-size: .68rem; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
-    .zcDt { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: zcp 2s infinite; }
-    @keyframes zcp{0%,100%{opacity:1}50%{opacity:.4}}
-    #zcClose {
-      background: rgba(255,255,255,.12); border: none; color: white;
-      width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
-      font-size: .8rem; display: flex; align-items: center; justify-content: center;
-    }
-    #zcClose:hover { background: rgba(255,255,255,.2); }
-    #zcMsgs {
-      flex: 1; overflow-y: auto; padding: 12px;
-      display: flex; flex-direction: column; gap: 9px; background: #f8fafc;
-    }
-    #zcMsgs::-webkit-scrollbar{width:3px}
-    #zcMsgs::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:2px}
-    .zm{display:flex;gap:7px;align-items:flex-end}
-    .zm.u{flex-direction:row-reverse}
-    .zav{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#e8820c,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:white;flex-shrink:0}
-    .zav.u{background:linear-gradient(135deg,#0d1f35,#1a3a5c)}
-    .zb{max-width:82%;padding:8px 12px;border-radius:13px;font-size:.81rem;line-height:1.55;font-family:Outfit,sans-serif;word-break:break-word}
-    .zb.b{background:white;color:#1e293b;border-bottom-left-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1px solid #f1f5f9}
-    .zb.u{background:linear-gradient(135deg,#e8820c,#cf6a00);color:white;border-bottom-right-radius:3px}
-    .zdts{display:flex;gap:3px;padding:3px 1px}
-    .zdts span{width:5px;height:5px;background:#cbd5e1;border-radius:50%;animation:zdb .9s ease-in-out infinite}
-    .zdts span:nth-child(2){animation-delay:.15s}.zdts span:nth-child(3){animation-delay:.3s}
-    @keyframes zdb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
-    #zcQR{padding:7px 9px 5px;display:flex;gap:5px;flex-wrap:wrap;background:#f8fafc;border-top:1px solid #f1f5f9;flex-shrink:0}
-    .zqr{background:white;border:1px solid #e2e8f0;color:#0d1f35;padding:4px 10px;border-radius:20px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap}
-    .zqr:hover{background:#e8820c;color:white;border-color:#e8820c}
-    #zcFoot{padding:9px 11px;display:flex;gap:7px;align-items:flex-end;background:white;border-top:1px solid #f1f5f9;flex-shrink:0}
-    #zcInp{flex:1;border:1.5px solid #e2e8f0;border-radius:9px;padding:8px 11px;font-size:.81rem;font-family:Outfit,sans-serif;resize:none;outline:none;line-height:1.5;color:#1e293b;max-height:70px}
-    #zcInp:focus{border-color:#e8820c}
-    #zcSend{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#e8820c,#cf6a00);color:white;border:none;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    #zcSend:disabled{opacity:.4;cursor:not-allowed}
-    @media(max-width:400px){
-      #zcWin{right:10px !important;width:calc(100vw - 20px) !important}
-      #zcBtn{right:14px !important}
-    }
-  </style>`);
+// ── Fail fast if critical env vars are missing ────────────────────────────
+if (!process.env.MONGODB_URI)    throw new Error('MONGODB_URI is missing.');
+if (!process.env.JWT_SECRET)     throw new Error('JWT_SECRET is missing.');
+if (!process.env.ADMIN_USERNAME) throw new Error('ADMIN_USERNAME is missing.');
+if (!process.env.ADMIN_PASSWORD) throw new Error('ADMIN_PASSWORD is missing.');
 
-  document.body.insertAdjacentHTML('beforeend', `
-    <button id="zcBtn"><i class="fa-solid fa-comment-dots"></i><span class="zcN">1</span></button>
-    <div id="zcWin">
-      <div id="zcHead">
-        <div class="zcAv"><i class="fa-solid fa-bolt"></i></div>
-        <div class="zcInf">
-          <div class="zcNm">ZipCargo Assistant</div>
-          <div class="zcSt"><span class="zcDt"></span> Online · replies instantly</div>
-        </div>
-        <button id="zcClose"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div id="zcMsgs"></div>
-      <div id="zcQR"></div>
-      <div id="zcFoot">
-        <textarea id="zcInp" placeholder="Ask me anything…" rows="1"></textarea>
-        <button id="zcSend"><i class="fa-solid fa-paper-plane"></i></button>
-      </div>
-    </div>
-  `);
+const express      = require('express');
+const helmet       = require('helmet');
+const cors         = require('cors');
+const compression  = require('compression');
+const rateLimit    = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss          = require('xss-clean');
+const path         = require('path');
+const https        = require('https');
 
-  let isOpen = false, busy = false;
-  const hist = [];
+const connectDB = require('./config/db');
+const Admin     = require('./models/Admin');
 
-  // Make sure window starts hidden
-  document.getElementById('zcWin').style.display = 'none';
+connectDB();
 
-  function toggle() {
-    isOpen = !isOpen;
-    const win = document.getElementById('zcWin');
-    win.style.display = isOpen ? 'flex' : 'none';
-    win.classList.toggle('on', isOpen);
-    const ic = document.getElementById('zcBtn').querySelector('i');
-    if (ic) ic.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-comment-dots';
-    const badge = document.getElementById('zcBtn').querySelector('.zcN');
-    if (badge) badge.remove();
-    if (isOpen && document.getElementById('zcMsgs').children.length === 0) setTimeout(welcome, 200);
+// ── Seed admin only from env vars — no hardcoded fallback ─────────────────
+async function seedAdmin() {
+  try {
+    const count = await Admin.countDocuments();
+    if (count === 0) {
+      await Admin.create({
+        username: process.env.ADMIN_USERNAME,
+        password: process.env.ADMIN_PASSWORD,
+        role:     'superadmin',
+      });
+      console.log('✅ Admin seeded from environment variables.');
+    }
+  } catch (e) {
+    console.error('Seed error:', e.message);
   }
+}
+seedAdmin();
 
-  function addMsg(role, text) {
-    const w = document.createElement('div');
-    w.className = 'zm' + (role==='user' ? ' u' : '');
-    w.innerHTML = `<div class="zav${role==='user'?' u':''}"><i class="fa-solid fa-${role==='user'?'user':'bolt'}" style="font-size:.55rem"></i></div><div class="zb ${role==='user'?'u':'b'}">${fmt(text)}</div>`;
-    document.getElementById('zcMsgs').appendChild(w);
-    scr();
+const app = express();
+
+// ── Trust Render proxy ────────────────────────────────────────────────────
+app.set('trust proxy', 1);
+
+// ── Force HTTPS in production ─────────────────────────────────────────────
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
   }
+  next();
+});
 
-  function fmt(t) {
-    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g,'<em>$1</em>')
-      .replace(/\n/g,'<br>');
-  }
+// ── CORS — only allow your own domains ───────────────────────────────────
+const allowedOrigins = [
+  process.env.SITE_ORIGIN,
+  process.env.SITE_URL,
+  'https://zipcargo-app.onrender.com',
+].filter(Boolean);
 
-  function showTyping() {
-    const w=document.createElement('div'); w.className='zm'; w.id='zcTyping';
-    w.innerHTML=`<div class="zav"><i class="fa-solid fa-bolt" style="font-size:.55rem"></i></div><div class="zb b"><div class="zdts"><span></span><span></span><span></span></div></div>`;
-    document.getElementById('zcMsgs').appendChild(w); scr();
-  }
-  function hideTyping() { const t=document.getElementById('zcTyping'); if(t) t.remove(); }
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 
-  function setQR(list) {
-    const el=document.getElementById('zcQR'); el.innerHTML='';
-    (list||[]).forEach(item => {
-      const b=document.createElement('button'); b.className='zqr';
-      b.textContent=typeof item==='string'?item:item.label;
-      b.onclick=()=>{ if(typeof item==='object'&&item.href) window.location.href=item.href; else send(typeof item==='string'?item:item.label); };
-      el.appendChild(b);
-    });
-  }
+// ── Helmet security headers ───────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
 
-  function scr() { const m=document.getElementById('zcMsgs'); m.scrollTop=m.scrollHeight; }
-  const wait = ms => new Promise(r=>setTimeout(r,ms));
+// ── Rate limiting ─────────────────────────────────────────────────────────
+app.use('/api/', rateLimit({
+  windowMs: 60_000, max: 120,
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many requests. Please slow down.' },
+}));
 
-  // Shipment tracking
-  function findTN(t) { const m=t.match(/\b(ZC[-\s]?\d{4}[-\s]?\d{3,6})\b/i); return m?m[1].replace(/\s/g,'-').toUpperCase():null; }
-  async function getShipment(tn) {
-    try { const r=await fetch(`/api/shipments/track/${encodeURIComponent(tn)}`); return r.ok?await r.json():null; } catch{return null;}
-  }
-  function fmtShipment(s) {
-    const e={'Pending':'⏳','In Transit':'✈️','Out for Delivery':'🚚','Delivered':'✅','On Hold':'⚠️'}[s.status]||'📦';
-    const tl=(s.timeline||[]).slice(-2).reverse().map(t=>`• ${t.status} — ${t.location||'N/A'}`).join('\n');
-    return `${e} **Shipment: ${s.tracking}**\n\n**Status:** ${s.status}\n**From:** ${s.origin}\n**To:** ${s.dest}\n**Location:** ${s.location||'Updating...'}\n**Est. Delivery:** ${s.eta||'TBD'}\n**Service:** ${s.service}${tl?'\n\n**Recent Updates:**\n'+tl:''}`;
-  }
+app.use('/api/auth/login', rateLimit({
+  windowMs: 15 * 60_000, max: 10,
+  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
+}));
 
-  // AI call — goes through your server (key stays safe)
-  async function callAI(userText) {
-    const adminCtx = (()=>{ try{return localStorage.getItem('zc_ai_context')||'';}catch{return'';} })();
-    try {
-      const res = await fetch('/api/chat', {
+app.use('/api/shipments/track', rateLimit({
+  windowMs: 15 * 60_000, max: 30,
+  message: { error: 'Too many tracking requests. Try again later.' },
+}));
+
+// ── Body parsing ──────────────────────────────────────────────────────────
+app.use(compression());
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: false, limit: '100kb' }));
+app.use(cookieParser());
+
+// ── MongoDB injection sanitization ────────────────────────────────────────
+app.use(mongoSanitize());
+
+// ── XSS sanitization ─────────────────────────────────────────────────────
+app.use(xss());
+
+// ── Routes ────────────────────────────────────────────────────────────────
+app.use('/api/auth',      require('./routes/auth'));
+app.use('/api/shipments', require('./routes/shipments'));
+app.use('/api/inquiries', require('./routes/inquiries'));
+app.use('/api/activity',  require('./routes/activity'));
+
+app.get('/health', (_, res) => res.send('OK'));
+
+// ── Secure config endpoint — sends API key to frontend without exposing in source ──
+app.get('/api/chat/config', (req, res) => {
+  res.json({ key: process.env.GEMINI_API_KEY || '' });
+});
+
+// ── AI Chat proxy — keeps API key secret on server ────────
+app.use('/api/chat', rateLimit({
+  windowMs: 60_000, max: 40,
+  message: { reply: 'Too many messages — please slow down a moment.' },
+}));
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, history, adminContext } = req.body;
+    if (!message) return res.status(400).json({ reply: 'No message received.' });
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.json({ reply: "Our AI assistant is being configured. Please contact us at info@zipcargo.com or visit the Contact page — we respond within 24 hours!" });
+    }
+
+    const systemText = `You are Zara, the ZipCargo AI Assistant. You are professional, warm, intelligent, and genuinely helpful. You work for ZipCargo — a premium global logistics and freight company.
+
+ABOUT ZIPCARGO:
+- Serves 150+ countries worldwide
+- 80,000+ shipments per month, 99.8% on-time delivery rate
+- 15+ years of experience, ISO 9001 Certified, 24/7 customer support
+- Major hubs: New York, London, Dubai, Singapore, Lagos, Nairobi, Sydney, Tokyo, Mumbai, Toronto, Miami, Shanghai, Johannesburg, Cairo, Vancouver
+
+SERVICES & TRANSIT TIMES:
+- Air Freight: Express worldwide, 1-5 business days, ideal for urgent/high-value cargo
+- Sea Freight: Cost-effective for large cargo, FCL and LCL, 2-6 weeks by route
+- Road Transport: Cross-border trucking with GPS, 1-10 days, great for regional
+- Express Delivery: Same-day and next-day options for time-critical shipments
+- Warehousing: Secure climate-controlled storage, smart inventory, fulfilment
+- Customs Clearance: Import/export documentation and compliance handled fully
+- Supply Chain Consulting: End-to-end optimization to cut costs and improve times
+
+INSURANCE & PAYMENTS — mention proactively whenever relevant:
+- ALL cargo insurance fees are FULLY REFUNDABLE if no claim is made
+- Customer pays the premium — if shipment arrives safely they get 100% back
+- Zero risk to taking insurance — always recommend it strongly
+- All ZipCargo payments follow a transparent refund policy
+
+PRICING:
+- Rates depend on: service, weight, dimensions, origin, destination, special requirements
+- Always invite customers to request a FREE quote — team responds within 24 hours
+- Never give exact prices — always direct to the quote form
+
+YOUR PERSONALITY:
+- You are knowledgeable, confident, and always helpful
+- Answer ANY question — shipping routes, customs rules, packaging tips, country regulations, documentation, tariffs, anything logistics-related
+- Never say "I don't know" — always give your best answer
+- Never say "I'm an AI" — you are Zara, the ZipCargo Assistant
+- Be natural and conversational, not robotic
+- Use line breaks for readability
+- For complex issues offer to connect with the human team
+- Always end with a helpful next step
+
+${adminContext ? `
+MANAGEMENT INSTRUCTIONS (highest priority, follow exactly):
+${adminContext}` : ''}`;
+
+    const safeHistory = (Array.isArray(history) ? history : []).slice(-10).map(m => ({
+      role: m.r === 'assistant' ? 'model' : 'user',
+      parts: [{ text: String(m.t || '') }]
+    }));
+
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: userText,
-          history: hist.slice(-10),
-          adminContext: adminCtx
+          system_instruction: { parts: [{ text: systemText }] },
+          contents: [...safeHistory, { role: 'user', parts: [{ text: message }] }],
+          generationConfig: { maxOutputTokens: 600, temperature: 0.8, topP: 0.95 }
         })
-      });
-      const data = await res.json();
-      return data.reply || null;
-    } catch { return null; }
-  }
-
-  // Welcome message
-  async function welcome() {
-    showTyping(); await wait(800); hideTyping();
-    const t=`👋 Hi! I'm **Zara**, your ZipCargo assistant.\n\nI can help you with anything — tracking shipments, services, pricing, insurance, customs, or connecting you with our team.\n\nWhat can I help you with today?`;
-    addMsg('assistant',t); hist.push({r:'assistant',t});
-    setQR(['Track my shipment','Our services','Insurance info','Get a quote','How does shipping work?']);
-    const ctx=(()=>{try{return localStorage.getItem('zc_ai_context')||'';}catch{return'';}})();
-    if(ctx){await wait(600);showTyping();await wait(700);hideTyping();addMsg('assistant',`📢 **Notice:** ${ctx}`);}
-  }
-
-  // Main send
-  async function send(text) {
-    text=(text||document.getElementById('zcInp').value).trim();
-    if(!text||busy) return;
-    busy=true;
-    document.getElementById('zcInp').value='';
-    document.getElementById('zcQR').innerHTML='';
-    resize();
-    addMsg('user',text);
-    hist.push({r:'user',t:text});
-
-    // Always check for tracking number first
-    const tn=findTN(text);
-    if(tn){
-      showTyping(); await wait(900); hideTyping();
-      const data=await getShipment(tn);
-      if(data){
-        const m=fmtShipment(data); addMsg('assistant',m); hist.push({r:'assistant',t:m});
-        setQR(['Track another shipment',{label:'Go to Tracking Page',href:'tracking.html'},'Contact support']);
-      } else {
-        const m=`❌ I couldn't find a shipment with tracking number **${tn}**.\n\nPlease double-check the number — it should look like **ZC-2026-00123**. If you're sure it's correct, our team can help locate it.`;
-        addMsg('assistant',m); hist.push({r:'assistant',t:m});
-        setQR([{label:'📝 Contact Support',href:'contact.html'},'Try a different number']);
       }
-      busy=false; return;
+    );
+
+    const data = await geminiRes.json();
+
+    if (!geminiRes.ok || !data.candidates) {
+      console.error('Gemini API error:', JSON.stringify(data).slice(0, 300));
+      return res.json({ reply: "I'm having a moment — please try again! Or reach us at info@zipcargo.com." });
     }
 
-    // Call Gemini AI
-    showTyping();
-    const reply = await callAI(text);
-    hideTyping();
+    const reply = data.candidates[0]?.content?.parts?.[0]?.text || "Could you rephrase that? I want to make sure I help you properly.";
+    res.json({ reply });
 
-    if(reply){
-      addMsg('assistant',reply); hist.push({r:'assistant',t:reply});
-      // Smart follow-up suggestions
-      const low=reply.toLowerCase();
-      const q=[];
-      if(low.includes('track')||low.includes('shipment')) q.push('Track my shipment');
-      if(low.includes('quot')||low.includes('pric')) q.push({label:'📝 Get a Free Quote',href:'contact.html'});
-      if(low.includes('insur')) q.push('Tell me more about insurance');
-      if(low.includes('contact')||low.includes('team')||low.includes('support')) q.push({label:'Contact Page',href:'contact.html'});
-      if(q.length===0) q.push('Tell me more','Get a quote','Contact support');
-      setQR(q.slice(0,3));
-    } else {
-      // Fallback when Gemini unavailable
-      const low=text.toLowerCase();
-      let r,q=[];
-      if(low.includes('insur')||low.includes('refund')||low.includes('payment')){
-        r=`🛡️ All ZipCargo insurance fees are **fully refundable** if no claim is made. You pay the insurance, and if your shipment arrives safely, every penny comes back to you. Zero risk — we strongly recommend insuring your cargo.`;
-        q=['Get a quote','How does shipping work?'];
-      } else if(low.includes('service')||low.includes('offer')||low.includes('freight')){
-        r=`✈️ **ZipCargo Services:**\n\n• **Air Freight** — 1-5 business days worldwide\n• **Sea Freight** — cost-effective, 2-6 weeks\n• **Road Transport** — cross-border, 1-10 days\n• **Express Delivery** — same or next day\n• **Warehousing** — secure storage & fulfilment\n• **Customs Clearance** — full documentation handled\n• **Supply Chain** — end-to-end consulting`;
-        q=['Get a quote','Insurance info',{label:'Contact Us',href:'contact.html'}];
-      } else if(low.includes('price')||low.includes('cost')||low.includes('quot')||low.includes('how much')){
-        r=`💰 Our rates depend on service type, weight, dimensions, and route. The best way to get an accurate number is a **free quote** — just fill out our form and we'll respond within 24 hours with a competitive price.`;
-        q=[{label:'📝 Get a Free Quote',href:'contact.html'},'Our services'];
-      } else if(low.includes('track')||low.includes('package')||low.includes('shipment')){
-        r=`📦 To track your shipment, just type your **ZipCargo tracking number** and I'll pull up the live details immediately.\n\nFormat: **ZC-2026-00123**`;
-        q=[];
-      } else if(low.includes('hello')||low.includes('hi')||low.includes('hey')){
-        r=`👋 Hello! I'm Zara, your ZipCargo assistant. I'm here to help with tracking, services, pricing, insurance, and more.\n\nWhat can I help you with?`;
-        q=['Track my shipment','Our services','Get a quote'];
-      } else {
-        r=`I'm here to help with all your logistics needs! You can ask me about:\n\n• **Tracking** a shipment\n• **Services** — air, sea, road, express\n• **Pricing** — get a free quote\n• **Insurance** — fully refundable\n• **Customs & documentation**`;
-        q=['Track my shipment','Our services','Insurance info','Get a quote'];
-      }
-      addMsg('assistant',r); hist.push({r:'assistant',t:r}); setQR(q);
-    }
-    busy=false;
+  } catch (err) {
+    console.error('Chat error:', err.message);
+    res.json({ reply: "Something went wrong on my end. Please try again or contact info@zipcargo.com." });
+  }
+});
+
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+}));
+
+// ── Multi-page routing ───────────────────────────────────────────────────
+const knownPages = ['index', 'services', 'tracking', 'about', 'testimonials', 'contact', 'admin'];
+
+app.get('*', (req, res) => {
+  const urlPath = req.path.replace(/^\//, '').replace(/\.html$/, '') || 'index';
+
+  // Serve known pages without .html extension (e.g. /services → services.html)
+  if (knownPages.includes(urlPath)) {
+    return res.sendFile(path.join(__dirname, 'public', urlPath + '.html'));
   }
 
-  function resize(){
-    const t=document.getElementById('zcInp');
-    t.style.height='auto';
-    t.style.height=Math.min(t.scrollHeight,70)+'px';
-  }
+  // Unknown route — serve 404 page
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
 
-  document.getElementById('zcBtn').addEventListener('click',toggle);
-  document.getElementById('zcClose').addEventListener('click',toggle);
-  document.getElementById('zcSend').addEventListener('click',()=>send());
-  document.getElementById('zcInp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
-  document.getElementById('zcInp').addEventListener('input',resize);
+app.use((err, req, res, _next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({ error: 'Something went wrong.' });
+});
 
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 ZipCargo v2 running on port ${PORT}`));
 
-})();
+// ── Keep-alive ping ───────────────────────────────────────────────────────
+if (process.env.SITE_URL) {
+  setInterval(() => {
+    try {
+      const u = new URL(process.env.SITE_URL + '/health');
+      https.get({ hostname: u.hostname, path: u.pathname, timeout: 10000 }, r =>
+        console.log(`[keep-alive] ${r.statusCode}`)
+      ).on('error', e => console.warn('[keep-alive]', e.message));
+    } catch {}
+  }, 14 * 60 * 1000);
+}
