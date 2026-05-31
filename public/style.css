@@ -442,22 +442,15 @@ body {
   .btn-primary, .btn-secondary { width: 100% !important; max-width: 320px !important; text-align: center !important; justify-content: center !important; }
 }
 
-/* ── TRACKING MAP — dark professional theme ── */
+/* ── TRACKING MAP — clean professional theme ── */
 #trackMapSection { background: #0d1f35; }
-#trackMap .leaflet-container { background: #1a2a3a; }
 #trackMap .leaflet-popup-content-wrapper {
-  background: #0d1f35;
-  color: white;
   border-radius: 10px;
   border: 1px solid rgba(232,130,12,0.3);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  font-family: 'Outfit', sans-serif;
 }
-#trackMap .leaflet-popup-tip { background: #0d1f35; }
-#trackMap .leaflet-popup-close-button { color: #7a9ab8 !important; }
 #trackMap .leaflet-control-zoom a {
-  background: #0d1f35 !important;
-  color: #e8820c !important;
-  border-color: rgba(232,130,12,0.3) !important;
+  color: #0d1f35 !important;
+  font-weight: 700 !important;
 }
-#trackMap .leaflet-control-zoom a:hover { background: #1a3a5c !important; }
-#trackMap .leaflet-attribution-flag { display: none !important; }
