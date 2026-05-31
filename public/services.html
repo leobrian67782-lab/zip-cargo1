@@ -132,13 +132,6 @@ document.querySelectorAll('.get-quote-link').forEach(function(link) {
   });
 });
 </script>
-<script>
-  // Key is loaded securely from server
-  fetch('/api/chat/config')
-    .then(r => r.json())
-    .then(d => { window.ZC_GEMINI_KEY = d.key || ''; })
-    .catch(() => { window.ZC_GEMINI_KEY = ''; });
-</script>
 <script src="chat.js"></script>
 </body>
 </html>

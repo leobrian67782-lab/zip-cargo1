@@ -1,396 +1,277 @@
-// ============================================================
-//  ZipCargo AI Chat — Powered by Google Gemini (Free)
-// ============================================================
+// ZipCargo Chat Widget
 (function () {
-  'use strict';
 
-  const css = `
-    #zc-bubble {
-      position: fixed !important;
-      top: 50% !important;
-      bottom: auto !important;
-      right: 0 !important;
-      transform: translateY(-50%) !important;
-      width: 48px !important;
-      height: 72px !important;
-      border-radius: 12px 0 0 12px !important;
-      background: linear-gradient(180deg, #e8820c, #cf6a00) !important;
-      color: white !important;
-      border: none !important;
-      cursor: pointer !important;
-      z-index: 999999 !important;
-      box-shadow: -3px 0 16px rgba(232,130,12,.5) !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      gap: 5px !important;
-      font-size: 1.2rem !important;
-      transition: width .2s !important;
-      padding: 0 !important;
-      margin: 0 !important;
+  // ── Styles ──
+  document.head.insertAdjacentHTML('beforeend', `<style>
+    #zcBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#e8820c,#cf6a00);
+      color: white;
+      border: none;
+      cursor: pointer;
+      z-index: 2147483647;
+      box-shadow: 0 4px 16px rgba(232,130,12,.6);
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s;
     }
-    #zc-bubble:hover { width: 54px !important; }
-    #zc-bubble .zc-chat-label {
-      font-size: 8px !important;
-      font-weight: 800 !important;
-      letter-spacing: 1px !important;
-      font-family: Outfit, sans-serif !important;
-      writing-mode: vertical-rl !important;
-      text-orientation: mixed !important;
-      transform: rotate(180deg) !important;
-      line-height: 1 !important;
-    }
-    #zc-bubble .zc-badge {
+    #zcBtn:hover { transform: scale(1.1); }
+    #zcBtn .zcN {
       position: absolute;
-      top: -4px; right: -4px;
-      width: 20px; height: 20px;
+      top: -3px; right: -3px;
       background: #ef4444;
+      color: white;
+      width: 18px; height: 18px;
       border-radius: 50%;
       border: 2px solid white;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: sans-serif;
     }
-    #zc-box {
-      position: fixed !important;
-      top: 50% !important;
-      bottom: auto !important;
-      right: 56px !important;
-      transform: translateY(-50%) !important;
-      width: 340px !important;
-      max-width: calc(100vw - 70px) !important;
-      height: 500px !important;
-      max-height: calc(100vh - 40px) !important;
-      background: white !important;
-      border-radius: 18px !important;
-      box-shadow: 0 8px 40px rgba(0,0,0,.22) !important;
-      z-index: 999998 !important;
-      display: flex !important;
-      flex-direction: column !important;
-      overflow: hidden !important;
-      transition: opacity .2s, transform .2s !important;
+    #zcWin {
+      position: fixed;
+      bottom: 96px;
+      right: 30px;
+      width: 320px;
+      max-width: calc(100vw - 40px);
+      height: 460px;
+      max-height: calc(100vh - 110px);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      z-index: 2147483646;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
     }
-    #zc-box.zc-hidden {
-      opacity: 0 !important;
-      transform: translateY(-50%) translateX(20px) !important;
-      pointer-events: none !important;
-    }
-    #zc-head {
-      background: linear-gradient(135deg, #0d1f35, #1a3a5c);
-      padding: 14px 16px;
+    #zcWin.on { display: flex; }
+    #zcHead {
+      background: linear-gradient(135deg,#0d1f35,#1a3a5c);
+      padding: 13px 15px;
       display: flex;
       align-items: center;
       gap: 10px;
       flex-shrink: 0;
     }
-    .zc-av {
-      width: 38px; height: 38px; border-radius: 50%;
+    #zcHead .av {
+      width: 36px; height: 36px; border-radius: 50%;
       background: linear-gradient(135deg,#e8820c,#f59e0b);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1rem; flex-shrink: 0;
+      font-size: .95rem; flex-shrink: 0;
     }
-    .zc-info { flex: 1; }
-    .zc-name { color: white; font-weight: 800; font-size: .9rem; font-family:'Outfit',sans-serif; }
-    .zc-status { color: #7a9ab8; font-size: .7rem; display:flex; align-items:center; gap:4px; margin-top:2px; }
-    .zc-dot { width:6px; height:6px; border-radius:50%; background:#22c55e; animation:zcP 2s infinite; }
-    @keyframes zcP{0%,100%{opacity:1}50%{opacity:.4}}
-    #zc-close-btn {
-      background: rgba(255,255,255,.1); border: none; color: white;
-      width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
-      font-size: .85rem; display: flex; align-items:center; justify-content:center;
+    #zcHead .inf { flex: 1; }
+    #zcHead .nm { color: white; font-weight: 800; font-size: .88rem; font-family: Outfit,sans-serif; }
+    #zcHead .st { color: #7a9ab8; font-size: .68rem; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+    #zcHead .dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+    #zcX {
+      background: rgba(255,255,255,.12); border: none; color: white;
+      width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+      font-size: .8rem; display: flex; align-items: center; justify-content: center;
     }
-    #zc-close-btn:hover { background: rgba(255,255,255,.2); }
-    #zc-msgs {
-      flex: 1; overflow-y: auto; padding: 14px;
-      display: flex; flex-direction: column; gap: 10px; background: #f8fafc;
+    #zcMsgs {
+      flex: 1; overflow-y: auto; padding: 12px;
+      display: flex; flex-direction: column; gap: 9px;
+      background: #f8fafc;
     }
-    #zc-msgs::-webkit-scrollbar { width: 3px; }
-    #zc-msgs::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
-    .zcm { display:flex; gap:8px; align-items:flex-end; animation:zcIn .25s ease both; }
-    .zcm.u { flex-direction:row-reverse; }
-    @keyframes zcIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-    .zcm-av {
-      width:26px; height:26px; border-radius:50%;
-      background:linear-gradient(135deg,#e8820c,#f59e0b);
-      display:flex; align-items:center; justify-content:center;
-      font-size:.65rem; color:white; flex-shrink:0; font-weight:800;
+    #zcMsgs::-webkit-scrollbar { width: 3px; }
+    #zcMsgs::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
+    .zm { display: flex; gap: 7px; align-items: flex-end; }
+    .zm.u { flex-direction: row-reverse; }
+    .zav {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(135deg,#e8820c,#f59e0b);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .6rem; color: white; flex-shrink: 0;
     }
-    .zcm-av.u { background:linear-gradient(135deg,#0d1f35,#1a3a5c); }
-    .zcm-bbl {
-      max-width:82%; padding:9px 13px; border-radius:14px;
-      font-size:.83rem; line-height:1.6; font-family:'Outfit',sans-serif;
-      word-break: break-word;
+    .zav.u { background: linear-gradient(135deg,#0d1f35,#1a3a5c); }
+    .zb {
+      max-width: 82%; padding: 8px 12px; border-radius: 13px;
+      font-size: .81rem; line-height: 1.55; font-family: Outfit,sans-serif;
     }
-    .zcm-bbl.b { background:white; color:#1e293b; border-bottom-left-radius:3px; box-shadow:0 1px 6px rgba(0,0,0,.07); border:1px solid #f1f5f9; }
-    .zcm-bbl.u { background:linear-gradient(135deg,#e8820c,#cf6a00); color:white; border-bottom-right-radius:3px; }
-    .zc-dots { display:flex; gap:4px; padding:4px 2px; }
-    .zc-dots span { width:6px; height:6px; background:#cbd5e1; border-radius:50%; animation:zcD .9s ease-in-out infinite; }
-    .zc-dots span:nth-child(2){animation-delay:.15s}
-    .zc-dots span:nth-child(3){animation-delay:.3s}
-    @keyframes zcD{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
-    #zc-qrs {
-      padding: 8px 10px 6px; display: flex; gap: 5px; flex-wrap: wrap;
+    .zb.b { background: white; color: #1e293b; border-bottom-left-radius: 3px; box-shadow: 0 1px 4px rgba(0,0,0,.08); border: 1px solid #f1f5f9; }
+    .zb.u { background: linear-gradient(135deg,#e8820c,#cf6a00); color: white; border-bottom-right-radius: 3px; }
+    .zdots { display: flex; gap: 3px; padding: 3px 1px; }
+    .zdots span { width: 5px; height: 5px; background: #cbd5e1; border-radius: 50%; animation: zd .9s ease-in-out infinite; }
+    .zdots span:nth-child(2){animation-delay:.15s}.zdots span:nth-child(3){animation-delay:.3s}
+    @keyframes zd{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+    #zcQR {
+      padding: 7px 9px 5px; display: flex; gap: 5px; flex-wrap: wrap;
       background: #f8fafc; border-top: 1px solid #f1f5f9; flex-shrink: 0;
     }
-    .zc-qr {
+    .zq {
       background: white; border: 1px solid #e2e8f0; color: #0d1f35;
-      padding: 5px 11px; border-radius: 20px; font-size: .72rem; font-weight: 600;
-      cursor: pointer; font-family: 'Outfit',sans-serif; transition: all .15s; white-space: nowrap;
+      padding: 4px 10px; border-radius: 20px; font-size: .7rem; font-weight: 600;
+      cursor: pointer; font-family: Outfit,sans-serif; white-space: nowrap;
     }
-    .zc-qr:hover { background: #e8820c; color: white; border-color: #e8820c; }
-    #zc-foot {
-      padding: 10px 12px; display: flex; gap: 8px; align-items: flex-end;
+    .zq:hover { background: #e8820c; color: white; border-color: #e8820c; }
+    #zcFoot {
+      padding: 9px 11px; display: flex; gap: 7px; align-items: flex-end;
       background: white; border-top: 1px solid #f1f5f9; flex-shrink: 0;
     }
-    #zc-inp {
-      flex: 1; border: 1.5px solid #e2e8f0; border-radius: 10px;
-      padding: 9px 12px; font-size: .83rem; font-family: 'Outfit',sans-serif;
-      resize: none; outline: none; max-height: 80px; line-height: 1.5; color: #1e293b;
+    #zcInp {
+      flex: 1; border: 1.5px solid #e2e8f0; border-radius: 9px;
+      padding: 8px 11px; font-size: .81rem; font-family: Outfit,sans-serif;
+      resize: none; outline: none; line-height: 1.5; color: #1e293b; max-height: 70px;
     }
-    #zc-inp:focus { border-color: #e8820c; }
-    #zc-send-btn {
-      width: 38px; height: 38px; border-radius: 10px;
+    #zcInp:focus { border-color: #e8820c; }
+    #zcSend {
+      width: 36px; height: 36px; border-radius: 9px;
       background: linear-gradient(135deg,#e8820c,#cf6a00);
-      color: white; border: none; cursor: pointer; font-size: .9rem;
+      color: white; border: none; cursor: pointer; font-size: .85rem;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    #zc-send-btn:hover { opacity: .9; }
-    #zc-send-btn:disabled { opacity: .4; cursor: not-allowed; }
-    @media(max-width:600px){
-      #zc-bubble {
-        top: 50% !important;
-        right: 0 !important;
-        width: 42px !important;
-        height: 64px !important;
-        transform: translateY(-50%) !important;
-      }
-      #zc-box {
-        top: auto !important;
-        bottom: 0 !important;
-        right: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        height: 75vh !important;
-        max-height: 75vh !important;
-        border-radius: 20px 20px 0 0 !important;
-        transform: translateY(0) !important;
-      }
-      #zc-box.zc-hidden {
-        transform: translateY(100%) !important;
-        opacity: 1 !important;
-      }
+    #zcSend:disabled { opacity: .4; cursor: not-allowed; }
+    @media(max-width:400px){
+      #zcWin { right: 10px; bottom: 90px; width: calc(100vw - 20px); }
+      #zcBtn { right: 16px; bottom: 24px; }
     }
-  `;
-  const styleEl = document.createElement('style');
-  styleEl.textContent = css;
-  document.head.appendChild(styleEl);
+  </style>`);
 
-  // ── DOM ──────────────────────────────────────────────────
-  const bubble = document.createElement('button');
-  bubble.id = 'zc-bubble';
-  bubble.innerHTML = '<i class="fa-solid fa-comment-dots"></i><span class="zc-chat-label">CHAT</span><span class="zc-badge">1</span>';
-
-  const box = document.createElement('div');
-  box.id = 'zc-box';
-  box.classList.add('zc-hidden');
-  box.innerHTML = `
-    <div id="zc-head">
-      <div class="zc-av"><i class="fa-solid fa-bolt"></i></div>
-      <div class="zc-info">
-        <div class="zc-name">ZipCargo Assistant</div>
-        <div class="zc-status"><span class="zc-dot"></span> Online · replies instantly</div>
+  // ── DOM ──
+  document.body.insertAdjacentHTML('beforeend', `
+    <button id="zcBtn"><i class="fa-solid fa-comment-dots"></i><span class="zcN">1</span></button>
+    <div id="zcWin">
+      <div id="zcHead">
+        <div class="av"><i class="fa-solid fa-bolt"></i></div>
+        <div class="inf">
+          <div class="nm">ZipCargo Assistant</div>
+          <div class="st"><span class="dot"></span> Online · replies instantly</div>
+        </div>
+        <button id="zcX"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <button id="zc-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      <div id="zcMsgs"></div>
+      <div id="zcQR"></div>
+      <div id="zcFoot">
+        <textarea id="zcInp" placeholder="Type your message…" rows="1"></textarea>
+        <button id="zcSend"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
     </div>
-    <div id="zc-msgs"></div>
-    <div id="zc-qrs"></div>
-    <div id="zc-foot">
-      <textarea id="zc-inp" placeholder="Type your message…" rows="1"></textarea>
-      <button id="zc-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
-    </div>
-  `;
+  `);
 
-  document.body.appendChild(bubble);
-  document.body.appendChild(box);
+  // ── State ──
+  let isOpen = false, busy = false;
+  const hist = [];
 
-  // ── State ────────────────────────────────────────────────
-  let open = false, busy = false;
-  const history = [];
-
-  // ── Toggle ───────────────────────────────────────────────
+  // ── Open/close ──
   function toggle() {
-    open = !open;
-    box.classList.toggle('zc-hidden', !open);
-    const icon = bubble.querySelector('i');
-    if (icon) icon.className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-comment-dots';
-    const badge = bubble.querySelector('.zc-badge');
+    isOpen = !isOpen;
+    document.getElementById('zcWin').classList.toggle('on', isOpen);
+    const ic = document.getElementById('zcBtn').querySelector('i');
+    if (ic) ic.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-comment-dots';
+    const badge = document.getElementById('zcBtn').querySelector('.zcN');
     if (badge) badge.remove();
-    if (open && document.getElementById('zc-msgs').children.length === 0) {
-      setTimeout(showWelcome, 200);
+    if (isOpen && document.getElementById('zcMsgs').children.length === 0) {
+      setTimeout(welcome, 200);
     }
   }
 
-  // ── Messages ─────────────────────────────────────────────
-  function addMsg(role, text) {
-    const wrap = document.createElement('div');
-    wrap.className = `zcm ${role === 'user' ? 'u' : ''}`;
-    const av = document.createElement('div');
-    av.className = `zcm-av ${role === 'user' ? 'u' : ''}`;
-    av.innerHTML = role === 'user'
-      ? '<i class="fa-solid fa-user" style="font-size:.6rem"></i>'
-      : '<i class="fa-solid fa-bolt" style="font-size:.6rem"></i>';
-    const bbl = document.createElement('div');
-    bbl.className = `zcm-bbl ${role === 'user' ? 'u' : 'b'}`;
-    bbl.innerHTML = text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g,'<em>$1</em>')
-      .replace(/\n/g,'<br>');
-    wrap.appendChild(av); wrap.appendChild(bbl);
-    document.getElementById('zc-msgs').appendChild(wrap);
-    scroll();
-  }
-
-  function addTyping() {
+  // ── Add message ──
+  function msg(role, text) {
     const w = document.createElement('div');
-    w.className = 'zcm'; w.id = 'zc-typing';
-    w.innerHTML = `<div class="zcm-av"><i class="fa-solid fa-bolt" style="font-size:.6rem"></i></div><div class="zcm-bbl b"><div class="zc-dots"><span></span><span></span><span></span></div></div>`;
-    document.getElementById('zc-msgs').appendChild(w);
-    scroll();
+    w.className = 'zm' + (role === 'user' ? ' u' : '');
+    w.innerHTML = `
+      <div class="zav${role==='user'?' u':''}">
+        <i class="fa-solid fa-${role==='user'?'user':'bolt'}" style="font-size:.55rem"></i>
+      </div>
+      <div class="zb ${role==='user'?'u':'b'}">${fmt(text)}</div>`;
+    document.getElementById('zcMsgs').appendChild(w);
+    scr();
   }
 
-  function removeTyping() {
-    const t = document.getElementById('zc-typing');
-    if (t) t.remove();
+  function fmt(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\n/g,'<br>');
   }
 
-  function setQRs(list) {
-    const el = document.getElementById('zc-qrs');
+  function typing() {
+    const w = document.createElement('div');
+    w.className = 'zm'; w.id = 'zcT';
+    w.innerHTML = `<div class="zav"><i class="fa-solid fa-bolt" style="font-size:.55rem"></i></div><div class="zb b"><div class="zdots"><span></span><span></span><span></span></div></div>`;
+    document.getElementById('zcMsgs').appendChild(w); scr();
+  }
+  function rmTyping() { const t=document.getElementById('zcT'); if(t) t.remove(); }
+
+  function qr(list) {
+    const el = document.getElementById('zcQR');
     el.innerHTML = '';
-    (list || []).forEach(item => {
+    (list||[]).forEach(item => {
       const b = document.createElement('button');
-      b.className = 'zc-qr';
-      b.textContent = typeof item === 'string' ? item : item.label;
+      b.className = 'zq';
+      b.textContent = typeof item==='string' ? item : item.label;
       b.onclick = () => {
-        if (typeof item === 'object' && item.href) window.location.href = item.href;
-        else send(typeof item === 'string' ? item : item.label);
+        if (typeof item==='object' && item.href) window.location.href = item.href;
+        else send(typeof item==='string' ? item : item.label);
       };
       el.appendChild(b);
     });
   }
 
-  function scroll() {
-    const m = document.getElementById('zc-msgs');
-    m.scrollTop = m.scrollHeight;
-  }
+  function scr() { const m=document.getElementById('zcMsgs'); m.scrollTop=m.scrollHeight; }
+  function wait(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
-  // ── Shipment lookup ───────────────────────────────────────
-  async function getShipment(tn) {
-    try {
-      const r = await fetch(`/api/shipments/track/${encodeURIComponent(tn.toUpperCase().trim())}`);
-      if (!r.ok) return null;
-      return await r.json();
-    } catch { return null; }
-  }
-
-  function extractTN(text) {
+  // ── Shipment lookup ──
+  function findTN(text) {
     const m = text.match(/\b(ZC[-\s]?\d{4}[-\s]?\d{3,6})\b/i);
     return m ? m[1].replace(/\s/g,'-').toUpperCase() : null;
   }
-
-  function formatShipmentMsg(s) {
-    const emoji = {'Pending':'⏳','In Transit':'✈️','Out for Delivery':'🚚','Delivered':'✅','On Hold':'⚠️'}[s.status]||'📦';
-    const tl = (s.timeline||[]).slice(-2).reverse().map(t=>`• ${t.status} — ${t.location||'N/A'}`).join('\n');
-    return `${emoji} **Shipment: ${s.tracking}**\n\n**Status:** ${s.status}\n**From:** ${s.origin}\n**To:** ${s.dest}\n**Location:** ${s.location||'Updating...'}\n**Est. Delivery:** ${s.eta||'TBD'}\n**Service:** ${s.service}${tl?'\n\n**Recent Updates:**\n'+tl:''}`;
-  }
-
-  // ── Admin context ─────────────────────────────────────────
-  function getCtx() {
-    try { return localStorage.getItem('zc_ai_context')||''; } catch { return ''; }
-  }
-
-  // ── Gemini API call ───────────────────────────────────────
-  async function callGemini(userMessage, shipmentData) {
-    const GEMINI_KEY = window.ZC_GEMINI_KEY || '';
-    if (!GEMINI_KEY) return null; // fallback to smart replies
-
-    const ctx = getCtx();
-    const systemContext = `You are the ZipCargo AI Assistant — a professional, friendly logistics support agent for ZipCargo, a global freight company.
-
-ABOUT ZIPCARGO:
-- Serves 150+ countries worldwide
-- Services: Air Freight, Sea Freight, Road Transport, Warehousing, Customs Clearance, Supply Chain, Express Delivery
-- 99.8% on-time rate, 80,000+ deliveries/month, 15+ years experience, ISO 9001 certified
-- 24/7 customer support
-
-INSURANCE & PAYMENTS — always mention when relevant:
-- ALL insurance fees are FULLY REFUNDABLE if no claim is made
-- ALL payments follow ZipCargo's refund policy
-- Strongly encourage customers to insure cargo — zero risk, they get the fee back if nothing goes wrong
-
-TRANSIT TIMES:
-- Air Freight: 1-5 business days
-- Sea Freight: 2-6 weeks  
-- Road Transport: 1-10 days
-- Express: Same day or next day
-
-RESPONSE STYLE:
-- Keep replies concise and professional (2-5 sentences normally)
-- Use line breaks for readability
-- Be warm and reassuring
-- Never say "I'm just an AI" — you are the ZipCargo Assistant
-- For pricing, say rates depend on weight/distance/service and direct to contact page for a free quote
-- For complex issues, direct to support team
-
-${shipmentData ? `\nLIVE SHIPMENT DATA:\n${shipmentData}` : ''}
-${ctx ? `\nSPECIAL ADMIN INSTRUCTIONS (follow exactly):\n${ctx}` : ''}`;
-
-    const geminiHistory = history.slice(-8).map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    }));
-
+  async function getShipment(tn) {
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: systemContext }] },
-            contents: [
-              ...geminiHistory,
-              { role: 'user', parts: [{ text: userMessage }] }
-            ],
-            generationConfig: { maxOutputTokens: 500, temperature: 0.7 }
-          })
-        }
-      );
-      const data = await res.json();
-      return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+      const r = await fetch(`/api/shipments/track/${encodeURIComponent(tn)}`);
+      return r.ok ? await r.json() : null;
+    } catch { return null; }
+  }
+  function shipMsg(s) {
+    const e = {'Pending':'⏳','In Transit':'✈️','Out for Delivery':'🚚','Delivered':'✅','On Hold':'⚠️'}[s.status]||'📦';
+    const tl = (s.timeline||[]).slice(-2).reverse().map(t=>`• ${t.status} — ${t.location||'N/A'}`).join('\n');
+    return `${e} **Shipment: ${s.tracking}**\n\n**Status:** ${s.status}\n**From:** ${s.origin}\n**To:** ${s.dest}\n**Location:** ${s.location||'Updating...'}\n**Est. Delivery:** ${s.eta||'TBD'}\n**Service:** ${s.service}${tl?'\n\n**Updates:**\n'+tl:''}`;
+  }
+
+  // ── Gemini AI ──
+  async function gemini(text) {
+    const key = window.ZC_GEMINI_KEY || '';
+    if (!key) return null;
+    const ctx = (() => { try { return localStorage.getItem('zc_ai_context')||''; } catch{return'';} })();
+    const sys = `You are the ZipCargo AI Assistant — professional, warm, concise. ZipCargo is a global freight company serving 150+ countries. Services: Air Freight, Sea Freight, Road Transport, Warehousing, Customs Clearance, Express Delivery. Key facts: 99.8% on-time, 80k+ deliveries/month, ISO 9001 certified. Insurance fees are FULLY REFUNDABLE if no claim is made — always mention this when insurance comes up. Keep replies to 2-4 sentences. Never say "I'm an AI".${ctx?'\n\nSPECIAL INSTRUCTIONS: '+ctx:''}`;
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          system_instruction:{parts:[{text:sys}]},
+          contents:[...hist.slice(-8).map(m=>({role:m.r==='assistant'?'model':'user',parts:[{text:m.t}]})),{role:'user',parts:[{text}]}],
+          generationConfig:{maxOutputTokens:400,temperature:0.7}
+        })
+      });
+      const d = await res.json();
+      return d?.candidates?.[0]?.content?.parts?.[0]?.text || null;
     } catch { return null; }
   }
 
-  // ── Smart fallback replies ────────────────────────────────
+  // ── Fallback rules ──
   const rules = [
-    { k:['hello','hi','hey','good morning','good afternoon','good evening'], r:`👋 Hello! Welcome to **ZipCargo** — your global logistics partner.\n\nHow can I help you today?`, q:['Track my shipment','Our services','Insurance info','Get a quote'] },
-    { k:['services','what do you offer','shipping options','freight'], r:`✈️ **ZipCargo Services:**\n\n• Air Freight — fast worldwide delivery\n• Sea Freight — cost-effective for large cargo\n• Road Transport — cross-border with GPS\n• Express Delivery — same/next day\n• Warehousing — secure storage\n• Customs Clearance — full documentation\n• Supply Chain — end-to-end consulting`, q:['Get a quote','Insurance info','Contact support'] },
-    { k:['insurance','insure','refund','refundable','coverage','payment'], r:`🛡️ **Insurance & Payments**\n\nAll ZipCargo cargo insurance fees are **fully refundable** if no claim is made.\n\nThere is **zero risk** — if your shipment arrives safely, you get every penny back. We strongly recommend insuring your cargo for complete peace of mind.`, q:['Get a quote','Contact support'] },
-    { k:['price','pricing','cost','how much','rate','quote'], r:`💰 **Pricing**\n\nOur rates depend on service type, weight, dimensions, and route. Get a **free quote** from our team — we respond within 24 hours!`, q:[{label:'📝 Get a Free Quote', href:'contact.html'},'Back to menu'] },
-    { k:['contact','support','help','agent','human','team','call','email','phone'], r:`📞 **Contact ZipCargo**\n\nOur team is available **Mon–Fri, 8am–8pm GMT**.\n\n📧 info@zipcargo.com\n\nOr use our contact form for a quick response.`, q:[{label:'📝 Contact Page', href:'contact.html'}] },
-    { k:['track','tracking','where is','my package','my shipment','my order'], r:`📦 Please type your **tracking number** and I'll look it up instantly.\n\nIt looks like: **ZC-2026-00123**`, q:[] },
-    { k:['transit time','how long','delivery time','when will','arrive','eta'], r:`⏱️ **Estimated Transit Times**\n\n• ✈️ Air Freight: 1–5 business days\n• 🚢 Sea Freight: 2–6 weeks\n• 🚛 Road Transport: 1–10 days\n• ⚡ Express: Same or next day`, q:['Get a quote','Our services'] },
-    { k:['thank','thanks','great','awesome','perfect','good'], r:`You're welcome! 😊 Is there anything else I can help you with?`, q:['Track my shipment','Get a quote','Contact support'] },
-    { k:['bye','goodbye','done','nothing else'], r:`Thank you for chatting with ZipCargo! 👋 Safe shipping! 📦`, q:[] },
-    { k:['back to menu','menu','start over'], r:`Sure! What can I help you with?`, q:['Track my shipment','Our services','Insurance info','Get a quote','Contact support'] },
+    {k:['hello','hi','hey','good morning','good afternoon'],r:`👋 Hello! Welcome to **ZipCargo** — your global logistics partner.\n\nHow can I help you today?`,q:['Track my shipment','Our services','Insurance info','Get a quote']},
+    {k:['services','what do you offer','freight','shipping options'],r:`✈️ **ZipCargo Services:**\n\n• Air Freight — fast worldwide delivery\n• Sea Freight — cost-effective large cargo\n• Road Transport — cross-border GPS tracked\n• Express Delivery — same/next day\n• Warehousing — secure storage\n• Customs Clearance — full documentation`,q:['Get a quote','Insurance info','Contact support']},
+    {k:['insurance','insure','refund','refundable','coverage'],r:`🛡️ **Insurance & Payments**\n\nAll ZipCargo insurance fees are **fully refundable** if no claim is made. Zero risk — you get every penny back if your shipment arrives safely.\n\nWe strongly recommend insuring your cargo.`,q:['Get a quote','Contact support']},
+    {k:['price','pricing','cost','how much','quote','rate'],r:`💰 **Pricing**\n\nRates depend on service type, weight, and route. Get a **free quote** — we respond within 24 hours!`,q:[{label:'📝 Get a Free Quote',href:'contact.html'}]},
+    {k:['contact','support','help','agent','human','email','phone'],r:`📞 **Contact ZipCargo**\n\nMon–Fri, 8am–8pm GMT\n📧 info@zipcargo.com\n\nOr use our contact form for a quick response.`,q:[{label:'📝 Contact Page',href:'contact.html'}]},
+    {k:['track','tracking','where is','my package','my shipment'],r:`📦 Please share your **tracking number** and I'll look it up instantly.\n\nFormat: **ZC-2026-00123**`,q:[]},
+    {k:['how long','transit time','delivery time','when will','eta'],r:`⏱️ **Transit Times:**\n\n• ✈️ Air Freight: 1–5 business days\n• 🚢 Sea Freight: 2–6 weeks\n• 🚛 Road Transport: 1–10 days\n• ⚡ Express: Same or next day`,q:['Get a quote','Our services']},
+    {k:['countries','where','destinations','global','worldwide'],r:`🌍 **Global Network**\n\nZipCargo operates in **150+ countries** with hubs in New York, London, Dubai, Singapore, Lagos, Sydney, Tokyo and many more.`,q:['Our services','Get a quote']},
+    {k:['thank','thanks','great','awesome','perfect'],r:`You're welcome! 😊 Is there anything else I can help you with?`,q:['Track my shipment','Get a quote']},
+    {k:['bye','goodbye','done'],r:`Thank you for chatting with ZipCargo! 👋 Safe shipping! 📦`,q:[]},
   ];
 
-  function smartReply(text) {
+  function fallback(text) {
     const low = text.toLowerCase();
     for (const rule of rules) {
       if (rule.k.some(k => low.includes(k))) return rule;
@@ -398,109 +279,95 @@ ${ctx ? `\nSPECIAL ADMIN INSTRUCTIONS (follow exactly):\n${ctx}` : ''}`;
     return null;
   }
 
-  // ── Welcome ───────────────────────────────────────────────
-  async function showWelcome() {
-    const ctx = getCtx();
-    addTyping();
-    await delay(600);
-    removeTyping();
-    addMsg('assistant', `👋 **Welcome to ZipCargo!**\n\nI'm your logistics assistant. I can help you with:\n• **Track a shipment** — just share your tracking number\n• **Services & pricing** — air, sea, road, express & more\n• **Insurance** — fully refundable fees\n• **Get a quote** — free, we reply within 24 hours\n\nHow can I help you today?`);
-    history.push({ role: 'assistant', content: 'Welcome message shown' });
-    if (ctx) {
-      await delay(400);
-      addTyping();
-      await delay(700);
-      removeTyping();
-      addMsg('assistant', `📢 **Notice:** ${ctx}`);
-    }
-    setQRs(['Track my shipment','Our services','Insurance info','Get a quote']);
+  // ── Welcome ──
+  async function welcome() {
+    typing(); await wait(700); rmTyping();
+    const t = `👋 **Welcome to ZipCargo!**\n\nI'm your logistics assistant. I can help you:\n• **Track a shipment** — share your tracking number\n• **Services & pricing** — air, sea, road, express\n• **Insurance** — all fees fully refundable\n• **Get a quote** — free, we reply in 24 hours`;
+    msg('assistant', t);
+    hist.push({r:'assistant',t});
+    qr(['Track my shipment','Our services','Insurance info','Get a quote']);
+    const ctx = (() => { try { return localStorage.getItem('zc_ai_context')||''; } catch{return'';} })();
+    if (ctx) { await wait(500); typing(); await wait(600); rmTyping(); msg('assistant',`📢 **Notice:** ${ctx}`); }
   }
 
-  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-  // ── Main send handler ─────────────────────────────────────
+  // ── Send ──
   async function send(text) {
-    text = (text || document.getElementById('zc-inp').value).trim();
+    text = (text || document.getElementById('zcInp').value).trim();
     if (!text || busy) return;
-
     busy = true;
-    document.getElementById('zc-inp').value = '';
-    document.getElementById('zc-qrs').innerHTML = '';
+    document.getElementById('zcInp').value = '';
+    document.getElementById('zcQR').innerHTML = '';
     resize();
-    addMsg('user', text);
-    history.push({ role: 'user', content: text });
+    msg('user', text);
+    hist.push({r:'user',t:text});
 
-    // Check for tracking number first — always handle locally
-    const tn = extractTN(text);
+    // Tracking number?
+    const tn = findTN(text);
     if (tn) {
-      addTyping();
-      await delay(800);
-      removeTyping();
+      typing(); await wait(800); rmTyping();
       const data = await getShipment(tn);
       if (data) {
-        const msg = formatShipmentMsg(data);
-        addMsg('assistant', msg);
-        history.push({ role: 'assistant', content: msg });
-        setQRs(['Track another shipment','Contact support',{label:'Go to Tracking Page', href:'tracking.html'}]);
+        const m = shipMsg(data);
+        msg('assistant', m); hist.push({r:'assistant',t:m});
+        qr(['Track another shipment',{label:'Go to Tracking Page',href:'tracking.html'},'Contact support']);
       } else {
-        const msg = `❌ No shipment found for **${tn}**.\n\nPlease double-check the number (format: ZC-2026-00123) or contact our support team.`;
-        addMsg('assistant', msg);
-        history.push({ role: 'assistant', content: msg });
-        setQRs([{label:'📝 Contact Support', href:'contact.html'},'Try again']);
+        const m = `❌ No shipment found for **${tn}**.\n\nPlease double-check the number or contact our support team.`;
+        msg('assistant', m); hist.push({r:'assistant',t:m});
+        qr([{label:'📝 Contact Support',href:'contact.html'}]);
       }
-      busy = false;
-      return;
+      busy = false; return;
     }
 
-    // Try Gemini first
-    addTyping();
-    let reply = await callGemini(text, null);
+    // Try Gemini
+    typing();
+    let reply = await gemini(text);
 
     if (!reply) {
       // Smart fallback
-      await delay(400 + Math.random() * 300);
-      const rule = smartReply(text);
+      await wait(400);
+      const rule = fallback(text);
+      rmTyping();
       if (rule) {
-        removeTyping();
-        addMsg('assistant', rule.r);
-        history.push({ role: 'assistant', content: rule.r });
-        setQRs(rule.q);
-        busy = false;
-        return;
+        msg('assistant', rule.r); hist.push({r:'assistant',t:rule.r});
+        qr(rule.q);
+      } else {
+        const m = `I'm here to help! You can ask me about:\n\n• Tracking a shipment\n• Our services & pricing\n• Insurance information\n• Getting a free quote`;
+        msg('assistant', m); hist.push({r:'assistant',t:m});
+        qr(['Track my shipment','Our services','Get a quote','Contact support']);
       }
-      reply = `I'd be happy to help! Could you tell me more about what you need? I can assist with:\n\n• Tracking a shipment\n• Information about our services\n• Insurance & payment questions\n• Getting a free quote\n• Connecting you with our support team`;
+      busy = false; return;
     }
 
-    removeTyping();
-    addMsg('assistant', reply);
-    history.push({ role: 'assistant', content: reply });
+    rmTyping();
+    msg('assistant', reply); hist.push({r:'assistant',t:reply});
 
-    // Suggest next steps
     const low = reply.toLowerCase();
-    const qr = [];
-    if (low.includes('track')) qr.push('Track my shipment');
-    if (low.includes('quot') || low.includes('pric')) qr.push({label:'📝 Get a Quote', href:'contact.html'});
-    if (low.includes('insur')) qr.push('Tell me about insurance');
-    if (low.includes('contact') || low.includes('support')) qr.push({label:'Contact Page', href:'contact.html'});
-    if (qr.length === 0) qr.push('Our services', 'Get a quote', 'Insurance info');
-    setQRs(qr.slice(0,3));
-
+    const q = [];
+    if (low.includes('track')) q.push('Track my shipment');
+    if (low.includes('quot')||low.includes('pric')) q.push({label:'📝 Get a Quote',href:'contact.html'});
+    if (low.includes('insur')) q.push('Insurance info');
+    if (low.includes('contact')||low.includes('support')) q.push({label:'Contact Page',href:'contact.html'});
+    if (!q.length) q.push('Our services','Get a quote');
+    qr(q.slice(0,3));
     busy = false;
   }
 
   function resize() {
-    const t = document.getElementById('zc-inp');
+    const t = document.getElementById('zcInp');
     t.style.height = 'auto';
-    t.style.height = Math.min(t.scrollHeight, 80) + 'px';
+    t.style.height = Math.min(t.scrollHeight,70)+'px';
   }
 
-  // ── Events ────────────────────────────────────────────────
-  bubble.addEventListener('click', toggle);
-  document.getElementById('zc-close-btn').addEventListener('click', toggle);
-  document.getElementById('zc-send-btn').addEventListener('click', () => send());
-  document.getElementById('zc-inp').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  // ── Events ──
+  document.getElementById('zcBtn').addEventListener('click', toggle);
+  document.getElementById('zcX').addEventListener('click', toggle);
+  document.getElementById('zcSend').addEventListener('click', () => send());
+  document.getElementById('zcInp').addEventListener('keydown', e => {
+    if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
-  document.getElementById('zc-inp').addEventListener('input', resize);
+  document.getElementById('zcInp').addEventListener('input', resize);
+
+  // Load Gemini key from server
+  fetch('/api/chat/config').then(r=>r.json()).then(d=>{ window.ZC_GEMINI_KEY = d.key||''; }).catch(()=>{});
 
 })();
