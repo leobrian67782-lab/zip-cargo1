@@ -96,6 +96,31 @@ app.use('/api/activity',  require('./routes/activity'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
+// ── Test email config ─────────────────────────────────────────────────────
+app.get('/api/email/test', async (req, res) => {
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailPass = process.env.GMAIL_APP_PASSWORD;
+  if (!gmailUser || !gmailPass) {
+    return res.json({ 
+      ok: false, 
+      error: 'Missing env vars', 
+      GMAIL_USER: !!gmailUser, 
+      GMAIL_APP_PASSWORD: !!gmailPass 
+    });
+  }
+  try {
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: gmailUser, pass: gmailPass }
+    });
+    await transporter.verify();
+    res.json({ ok: true, message: 'Gmail connection verified!', user: gmailUser });
+  } catch(err) {
+    res.json({ ok: false, error: err.message });
+  }
+});
+
 // ── Shipment notification email with PDF receipt ──────────────────────────
 app.post('/api/email/shipment', async (req, res) => {
   try {
