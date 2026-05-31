@@ -98,29 +98,19 @@ app.get('/health', (_, res) => res.send('OK'));
 
 // ── Test email config ─────────────────────────────────────────────────────
 app.get('/api/email/test', async (req, res) => {
-  const brevoEmail = process.env.BREVO_EMAIL;
-  const brevoKey = process.env.BREVO_SMTP_KEY;
-  if (!brevoEmail || !brevoKey) {
-    return res.json({ 
-      ok: false, 
-      error: 'Missing env vars', 
-      BREVO_EMAIL: !!brevoEmail, 
-      BREVO_SMTP_KEY: !!brevoKey 
-    });
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL;
+  if (!apiKey) {
+    return res.json({ ok: false, error: 'Missing BREVO_API_KEY env var' });
   }
   try {
-    const nodemailer = require('nodemailer');
-    const transporter = nodemailer.createTransport({
-      host: 'smtp-relay.brevo.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_EMAIL,
-        pass: process.env.BREVO_SMTP_KEY,
-      },
+    // Test by calling Brevo account info endpoint
+    const r = await fetch('https://api.brevo.com/v3/account', {
+      headers: { 'api-key': apiKey, 'accept': 'application/json' }
     });
-    await transporter.verify();
-    res.json({ ok: true, message: 'Brevo SMTP connection verified!', user: process.env.BREVO_EMAIL });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Brevo API error');
+    res.json({ ok: true, message: 'Brevo API connected!', email: d.email, plan: d.plan?.[0]?.type });
   } catch(err) {
     res.json({ ok: false, error: err.message });
   }
@@ -134,18 +124,7 @@ app.post('/api/email/shipment', async (req, res) => {
       return res.status(400).json({ error: 'Missing shipment data or recipient email.' });
     }
 
-    const nodemailer = require('nodemailer');
     const PDFDocument = require('pdfkit');
-
-    const transporter = nodemailer.createTransport({
-      host: 'smtp-relay.brevo.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_EMAIL,
-        pass: process.env.BREVO_SMTP_KEY,
-      },
-    });
 
     // Generate PDF receipt
     const pdfBuffer = await new Promise((resolve, reject) => {
@@ -342,18 +321,32 @@ app.post('/api/email/shipment', async (req, res) => {
 </body>
 </html>`;
 
-    await transporter.sendMail({
-      from: `"ZipCargo Logistics" <${process.env.BREVO_EMAIL}>`,
-      to: shipment.rEmail,
-      subject: `Your ZipCargo Shipment — ${shipment.tracking}`,
-      html: emailHtml,
-      replyTo: process.env.BREVO_EMAIL,
-      attachments: [{
-        filename: `ZipCargo-Receipt-${shipment.tracking}.pdf`,
-        content: pdfBuffer,
-        contentType: 'application/pdf',
-      }],
+    // Send via Brevo API (HTTP — no port blocking)
+    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: 'ZipCargo Logistics', email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        to: [{ email: shipment.rEmail, name: shipment.rName }],
+        replyTo: { email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        subject: `Your ZipCargo Shipment — ${shipment.tracking}`,
+        htmlContent: emailHtml,
+        attachment: [{
+          name: `ZipCargo-Receipt-${shipment.tracking}.pdf`,
+          content: pdfBuffer.toString('base64'),
+        }],
+      }),
     });
+
+    const brevoData = await brevoRes.json();
+    if (!brevoRes.ok) {
+      console.error('Brevo API error:', JSON.stringify(brevoData));
+      throw new Error(brevoData.message || 'Brevo API error');
+    }
 
     res.json({ success: true, message: 'Shipment notification sent successfully.' });
 
