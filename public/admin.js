@@ -239,10 +239,16 @@ async function createShipment() {
             location: payload.location,
             notes: payload.notes,
           };
+          // Pass admin settings so PDF uses correct domain/email
+          const settings = {
+            website: localStorage.getItem('zc_contact_website') || '',
+            email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
+            phone:   localStorage.getItem('zc_contact_phone')   || '',
+          };
           const emailRes = await fetch('/api/email/shipment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ shipment: emailPayload }),
+            body: JSON.stringify({ shipment: emailPayload, settings }),
           });
           const emailData = await emailRes.json();
           if (emailData.success) {
