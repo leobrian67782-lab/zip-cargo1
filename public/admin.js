@@ -238,6 +238,7 @@ async function createShipment() {
             eta: payload.eta,
             location: payload.location,
             notes: payload.notes,
+            deliveryAddress: payload.deliveryAddress,
           };
           // Pass admin settings so PDF uses correct domain/email
           const settings = {
@@ -245,16 +246,26 @@ async function createShipment() {
             email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
             phone:   localStorage.getItem('zc_contact_phone')   || '',
           };
-          const emailRes = await fetch('/api/email/shipment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ shipment: emailPayload, settings }),
-          });
-          const emailData = await emailRes.json();
-          if (emailData.success) {
+          // Retry up to 3 times for reliability
+          let emailData = null;
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              const emailRes = await fetch('/api/email/shipment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shipment: emailPayload, settings }),
+              });
+              emailData = await emailRes.json();
+              if (emailData.success) break;
+              if (attempt < 3) await new Promise(r => setTimeout(r, 1500));
+            } catch(retryErr) {
+              if (attempt < 3) await new Promise(r => setTimeout(r, 1500));
+            }
+          }
+          if (emailData && emailData.success) {
             showToast(`📧 Receipt sent to ${payload.rEmail}`, 'success');
           } else {
-            showToast(`⚠️ Shipment saved but email failed: ${emailData.error}`, 'error');
+            showToast(`⚠️ Shipment saved but email failed: ${emailData ? emailData.error : 'Unknown error'}`, 'error');
           }
         } catch(emailErr) {
           console.error('Email send error:', emailErr);
