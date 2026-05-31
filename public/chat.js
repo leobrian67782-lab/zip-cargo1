@@ -189,57 +189,21 @@
     return `${e} **Shipment: ${s.tracking}**\n\n**Status:** ${s.status}\n**From:** ${s.origin}\n**To:** ${s.dest}\n**Location:** ${s.location||'Updating...'}\n**Est. Delivery:** ${s.eta||'TBD'}\n**Service:** ${s.service}${tl?'\n\n**Recent Updates:**\n'+tl:''}`;
   }
 
-  // Gemini AI call
-  async function callGemini(userText) {
-    const key = window.ZC_GEMINI_KEY||'';
-    if (!key) return null;
+  // AI call — goes through your server (key stays safe)
+  async function callAI(userText) {
     const adminCtx = (()=>{ try{return localStorage.getItem('zc_ai_context')||'';}catch{return'';} })();
-    const system = `You are Zara, the ZipCargo AI Assistant. You are professional, warm, smart, and helpful. You work for ZipCargo — a premium global logistics company.
-
-COMPANY FACTS:
-- 150+ countries served, 80,000+ deliveries/month, 99.8% on-time rate, 15+ years experience, ISO 9001 certified
-- Services: Air Freight (1-5 days), Sea Freight (2-6 weeks), Road Transport (1-10 days), Express Delivery (same/next day), Warehousing, Customs Clearance, Supply Chain Consulting
-- Major hubs: New York, London, Dubai, Singapore, Lagos, Nairobi, Sydney, Tokyo, Mumbai, Toronto
-
-INSURANCE POLICY — always mention proactively when relevant:
-- ALL cargo insurance fees are FULLY REFUNDABLE if no claim is made
-- Customers pay insurance, get it back 100% if nothing goes wrong — zero risk
-- Always encourage customers to insure their cargo
-
-PRICING:
-- Rates depend on service, weight, dimensions, and route
-- Always direct to contact page for a free quote — respond within 24 hours
-
-BEHAVIOR RULES:
-- Be conversational, helpful and thorough — answer ANY question the customer has
-- If asked about shipping to a specific country or city, answer knowledgeably
-- If asked about customs, documentation, tariffs — answer professionally
-- Never say "I'm an AI" or "I don't know" — always give a helpful response
-- Keep replies focused and clear, use line breaks for readability
-- If a customer seems frustrated, be extra empathetic and offer solutions
-- For anything you truly can't handle, direct them to contact the team
-
-${adminCtx?`\nSPECIAL INSTRUCTIONS FROM MANAGEMENT (follow exactly):\n${adminCtx}`:''}`;
-
-    const contents = [
-      ...hist.slice(-10).map(m=>({role:m.r==='assistant'?'model':'user',parts:[{text:m.t}]})),
-      {role:'user',parts:[{text:userText}]}
-    ];
-
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`,
-        { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            system_instruction:{parts:[{text:system}]},
-            contents,
-            generationConfig:{maxOutputTokens:500,temperature:0.75}
-          })
-        }
-      );
-      if (!res.ok) return null;
-      const d = await res.json();
-      return d?.candidates?.[0]?.content?.parts?.[0]?.text||null;
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userText,
+          history: hist.slice(-10),
+          adminContext: adminCtx
+        })
+      });
+      const data = await res.json();
+      return data.reply || null;
     } catch { return null; }
   }
 
@@ -282,7 +246,7 @@ ${adminCtx?`\nSPECIAL INSTRUCTIONS FROM MANAGEMENT (follow exactly):\n${adminCtx
 
     // Call Gemini AI
     showTyping();
-    const reply = await callGemini(text);
+    const reply = await callAI(text);
     hideTyping();
 
     if(reply){
@@ -336,7 +300,5 @@ ${adminCtx?`\nSPECIAL INSTRUCTIONS FROM MANAGEMENT (follow exactly):\n${adminCtx
   document.getElementById('zcInp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
   document.getElementById('zcInp').addEventListener('input',resize);
 
-  // Load Gemini key from server
-  fetch('/api/chat/config').then(r=>r.json()).then(d=>{window.ZC_GEMINI_KEY=d.key||'';}).catch(()=>{});
 
 })();
