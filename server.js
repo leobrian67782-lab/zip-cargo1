@@ -163,7 +163,7 @@ app.post('/api/email/shipment', async (req, res) => {
 
       // Logo box
       doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
-      doc.fill('white').fontSize(20).font('Helvetica-Bold').text('⚡', pad + 16, 45, { lineBreak: false });
+      doc.fill('white').fontSize(14).font('Helvetica-Bold').text('ZC', pad + 18, 50, { lineBreak: false });
 
       // Company name
       doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
@@ -297,7 +297,10 @@ app.post('/api/email/shipment', async (req, res) => {
       delRows.slice(0, 5).forEach(([l, v], i) => {
         if (!v) return;
         doc.fill('#94a3b8').fontSize(7).font('Helvetica').text(l, rx, y + 28 + i * 14);
-        doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold').text(String(v).substring(0,22), rx + 72, y + 28 + i * 14);
+        // Wrap long delivery address
+        const valStr = String(v).substring(0, 40);
+        doc.fill('#0d1f35').fontSize(l === 'Delivery Address' ? 7 : 8).font('Helvetica-Bold')
+           .text(valStr, rx + 72, y + 28 + i * 14, { width: cW/2 - 86, lineBreak: false });
       });
 
       // ── COST BANNER ──
@@ -314,7 +317,7 @@ app.post('/api/email/shipment', async (req, res) => {
 
       // Logo
       doc.roundedRect(pad + 12, y + 16, 26, 26, 5).fill('#0d1f35');
-      doc.fill('#e8820c').fontSize(14).font('Helvetica-Bold').text('⚡', pad + 15, y + 20, { lineBreak: false });
+      doc.fill('#e8820c').fontSize(11).font('Helvetica-Bold').text('ZC', pad + 16, y + 22, { lineBreak: false });
       doc.fill('#0d1f35').fontSize(11).font('Helvetica-Bold').text('ZipCargo Logistics', pad + 46, y + 15);
       doc.fill('#94a3b8').fontSize(8).font('Helvetica').text('Ship Smarter. Deliver Faster.', pad + 46, y + 29);
       doc.fill('#94a3b8').fontSize(7).text('Please retain for your records', pad + 46, y + 43);
@@ -343,7 +346,7 @@ app.post('/api/email/shipment', async (req, res) => {
 <body style="margin:0;padding:24px;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;">
 <div style="max-width:520px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
   <div style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:22px;font-weight:800;">⚡ ZipCargo</div>
+    <div style="color:#e8820c;font-size:22px;font-weight:800;">ZipCargo</div>
     <div style="color:#aac4e0;font-size:12px;margin-top:2px;">Global Logistics Solutions</div>
   </div>
   <div style="padding:28px;">
