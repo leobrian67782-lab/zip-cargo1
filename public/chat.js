@@ -12,24 +12,35 @@
     /* ── Chat bubble ── */
     #zc-chat-bubble {
       position: fixed;
-      bottom: 80px;
-      right: 24px;
-      width: 58px;
-      height: 58px;
-      border-radius: 50%;
+      bottom: 50%;
+      transform: translateY(50%);
+      right: 0;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px 0 0 14px;
       background: linear-gradient(135deg, #e8820c, #cf6a00);
       color: white;
       border: none;
       cursor: pointer;
       z-index: 9000;
-      box-shadow: 0 6px 24px rgba(232,130,12,.55);
+      box-shadow: -4px 4px 20px rgba(232,130,12,.55);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 1.4rem;
-      transition: transform .2s, box-shadow .2s;
+      gap: 4px;
+      font-size: 1.2rem;
+      transition: width .2s, box-shadow .2s;
       animation: zcBubblePop .4s cubic-bezier(.34,1.56,.64,1) both;
     }
+    #zc-chat-bubble .zc-label {
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      font-family: 'Outfit', sans-serif;
+      line-height: 1;
+    }
+    #zc-chat-bubble:hover { width: 60px; box-shadow: -6px 4px 24px rgba(232,130,12,.7); }
     #zc-chat-bubble:hover { transform: scale(1.08); box-shadow: 0 8px 32px rgba(232,130,12,.7); }
     #zc-chat-bubble .zc-notif {
       position: absolute;
@@ -52,12 +63,13 @@
     /* ── Chat window ── */
     #zc-chat-window {
       position: fixed;
-      bottom: 152px;
-      right: 24px;
+      top: 50%;
+      transform: translateY(-50%) translateX(20px);
+      right: 60px;
       width: 370px;
-      max-width: calc(100vw - 32px);
-      height: 540px;
-      max-height: calc(100vh - 120px);
+      max-width: calc(100vw - 80px);
+      height: 560px;
+      max-height: calc(100vh - 40px);
       background: white;
       border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.08);
@@ -65,14 +77,12 @@
       flex-direction: column;
       z-index: 9001;
       overflow: hidden;
-      transform: scale(0.85) translateY(20px);
       opacity: 0;
       pointer-events: none;
-      transform-origin: bottom right;
       transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
     }
     #zc-chat-window.open {
-      transform: scale(1) translateY(0);
+      transform: translateY(-50%) translateX(0);
       opacity: 1;
       pointer-events: all;
     }
@@ -271,9 +281,28 @@
       margin: 4px 0;
     }
 
-    @media (max-width: 420px) {
-      #zc-chat-window { right: 12px; width: calc(100vw - 24px); bottom: 155px; }
-      #zc-chat-bubble { right: 16px; bottom: 80px; }
+    @media (max-width: 600px) {
+      #zc-chat-window {
+        top: auto;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 80vh;
+        max-height: 80vh;
+        border-radius: 20px 20px 0 0;
+        transform: translateY(100%);
+      }
+      #zc-chat-window.open {
+        transform: translateY(0);
+      }
+      #zc-chat-bubble {
+        bottom: 50%;
+        right: 0;
+        transform: translateY(50%);
+        border-radius: 14px 0 0 14px;
+      }
     }
   `;
   document.head.appendChild(style);
@@ -281,7 +310,7 @@
   // ── Build DOM ────────────────────────────────────────────
   const bubble = document.createElement('button');
   bubble.id = 'zc-chat-bubble';
-  bubble.innerHTML = '<i class="fa-solid fa-comment-dots"></i><span class="zc-notif">1</span>';
+  bubble.innerHTML = '<i class="fa-solid fa-comment-dots"></i><span class="zc-label">CHAT</span><span class="zc-notif">1</span>';
   bubble.title = 'Chat with ZipCargo AI';
 
   const win = document.createElement('div');
@@ -517,7 +546,10 @@ ${tl || '  • No updates yet'}`;
 
     } catch (err) {
       thinkingEl.remove();
-      renderMsg('assistant', 'I\'m having a connection issue right now. Please try again in a moment or contact our team directly.');
+      const errMsg = err.message && err.message.includes('configured')
+        ? 'The AI service is being set up. In the meantime, please contact us directly at info@zipcargo.com or use the Contact page.'
+        : 'I\'m having a connection issue right now. Please try again in a moment, or reach us directly via the Contact page.';
+      renderMsg('assistant', errMsg);
     } finally {
       isThinking = false;
       document.getElementById('zc-send').disabled = false;
