@@ -120,6 +120,17 @@
   if(fHours)fHours.textContent=hours;
 })();
 </script>
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  window.ZC_EMAILJS_SERVICE          = 'service_yzgl79j';
+  window.ZC_EMAILJS_NOTIFY_TEMPLATE  = 'template_ll2lcef';
+  window.ZC_EMAILJS_REPLY_TEMPLATE   = 'template_1oar64b';
+  window.ZC_EMAILJS_PUBLIC_KEY       = 'VtwXlVzb4i3-T5WMV';
+
+  // Initialize EmailJS
+  emailjs.init({ publicKey: window.ZC_EMAILJS_PUBLIC_KEY });
+</script>
 <script src="script.js"></script>
 <script>
 // Auto-select service if coming from services page
