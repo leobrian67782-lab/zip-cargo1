@@ -495,118 +495,176 @@ document.getElementById('trackInput')?.addEventListener('keypress', e => {
 
 // ===== ROUTE MAP =====
 function showRouteMap(origin, dest, currentLocation, status) {
-  const ms = document.getElementById('trackMapSection'); if(!ms) return;
-  ms.style.display = 'block'; ms.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  document.getElementById('trackMapStatus').textContent = `Plotting route: ${origin} → ${dest}`;
+  const ms = document.getElementById('trackMapSection'); if (!ms) return;
+  ms.style.display = 'block';
+  ms.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('trackMapStatus').textContent = 'Locating cities…';
   Promise.all([geocode(origin), geocode(dest), geocode(currentLocation)])
-    .then(([o,d,c]) => {
-      if(!o||!d){ document.getElementById('trackMapStatus').textContent='Could not locate cities.'; return; }
-      initRouteMap(o, d, c||o, origin, dest, currentLocation, status);
+    .then(([o, d, c]) => {
+      if (!o || !d) { document.getElementById('trackMapStatus').textContent = 'Could not locate cities.'; return; }
+      initRouteMap(o, d, c || o, origin, dest, currentLocation, status);
     })
-    .catch(() => { document.getElementById('trackMapStatus').textContent='Map could not be loaded.'; });
+    .catch(() => { document.getElementById('trackMapStatus').textContent = 'Map could not be loaded.'; });
 }
 
 function geocode(p) {
+  if (!p) return Promise.resolve(null);
   return fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(p)}&format=json&limit=1`,
-    { headers:{'Accept-Language':'en'} })
+    { headers: { 'Accept-Language': 'en' } })
     .then(r => r.json())
-    .then(d => d&&d.length ? { lat:+d[0].lat, lng:+d[0].lon } : null)
+    .then(d => d && d.length ? { lat: +d[0].lat, lng: +d[0].lon } : null)
     .catch(() => null);
 }
 
-function getRoadRoute(oC, dC) {
-  const url = `https://router.project-osrm.org/route/v1/driving/${oC.lng},${oC.lat};${dC.lng},${dC.lat}?overview=full&geometries=geojson`;
-  return fetch(url)
-    .then(r => r.json())
-    .then(data => {
+// Great-circle arc between two points (works for any distance, including transoceanic)
+function greatCircleArc(oC, dC, steps) {
+  const toRad = d => d * Math.PI / 180;
+  const toDeg = r => r * 180 / Math.PI;
+  const pts = [];
+  const lat1 = toRad(oC.lat), lon1 = toRad(oC.lng);
+  const lat2 = toRad(dC.lat), lon2 = toRad(dC.lng);
+  for (let i = 0; i <= steps; i++) {
+    const f = i / steps;
+    const d = 2 * Math.asin(Math.sqrt(
+      Math.pow(Math.sin((lat2 - lat1) / 2), 2) +
+      Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin((lon2 - lon1) / 2), 2)
+    ));
+    if (d === 0) { pts.push([oC.lat, oC.lng]); continue; }
+    const A = Math.sin((1 - f) * d) / Math.sin(d);
+    const B = Math.sin(f * d) / Math.sin(d);
+    const x = A * Math.cos(lat1) * Math.cos(lon1) + B * Math.cos(lat2) * Math.cos(lon2);
+    const y = A * Math.cos(lat1) * Math.sin(lon1) + B * Math.cos(lat2) * Math.sin(lon2);
+    const z = A * Math.sin(lat1) + B * Math.sin(lat2);
+    pts.push([toDeg(Math.atan2(z, Math.sqrt(x * x + y * y))), toDeg(Math.atan2(y, x))]);
+  }
+  return pts;
+}
+
+// Haversine distance in km
+function haversineKm(a, b) {
+  const R = 6371, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat), dLon = toRad(b.lng - a.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+async function getBestRoute(oC, dC) {
+  const distKm = haversineKm(oC, dC);
+  // For short distances (< 2000 km) try OSRM road routing first
+  if (distKm < 2000) {
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${oC.lng},${oC.lat};${dC.lng},${dC.lat}?overview=full&geometries=geojson`;
+      const data = await fetch(url).then(r => r.json());
       if (data.routes && data.routes[0]) {
-        return data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+        return { pts: data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]), type: 'road' };
       }
-      return null;
-    })
-    .catch(() => null);
+    } catch {}
+  }
+  // For long/international distances use great-circle arc
+  const steps = Math.max(80, Math.floor(distKm / 50));
+  return { pts: greatCircleArc(oC, dC, steps), type: 'arc' };
 }
 
 function initRouteMap(oC, dC, cC, oN, dN, cN, status) {
-  const mapEl = document.getElementById('trackMap'); if(!mapEl) return;
-  if(leafletMap){ leafletMap.remove(); leafletMap=null; }
+  const mapEl = document.getElementById('trackMap'); if (!mapEl) return;
+  if (leafletMap) { leafletMap.remove(); leafletMap = null; }
 
-  new Promise(res => {
-    if(window.L){ res(); return; }
+  if (!window.L) {
     const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-    s.onload = res; document.head.appendChild(s);
-  }).then(() => {
-    leafletMap = L.map('trackMap', { zoomControl: true });
+    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    s.onload = () => buildMap(oC, dC, cC, oN, dN, cN, status);
+    document.head.appendChild(s);
+  } else {
+    buildMap(oC, dC, cC, oN, dN, cN, status);
+  }
+}
 
-    // Carto light tiles — cleaner, more professional look
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap © CARTO',
-      subdomains: 'abcd',
-      maxZoom: 19
-    }).addTo(leafletMap);
+async function buildMap(oC, dC, cC, oN, dN, cN, status) {
+  leafletMap = L.map('trackMap', { zoomControl: true, attributionControl: true });
 
-    const mkr = (color, size = 16) => L.divIcon({
-      html: `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,.45);"></div>`,
-      className: '', iconSize: [size, size], iconAnchor: [size/2, size/2]
-    });
+  // Dark professional map tiles
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(leafletMap);
 
-    const statusIcon = status === 'Delivered' ? '✓' : status === 'In Transit' ? '✈' : status === 'Out for Delivery' ? '🚚' : '📦';
-    const curIco = L.divIcon({
-      html: `<div style="background:#e8820c;width:36px;height:36px;border-radius:50%;border:3px solid white;box-shadow:0 3px 14px rgba(232,130,12,.7);display:flex;align-items:center;justify-content:center;font-size:15px;">${statusIcon}</div>`,
-      className: '', iconSize: [36, 36], iconAnchor: [18, 18]
-    });
-
-    // Place origin & destination markers
-    L.marker([oC.lat, oC.lng], { icon: mkr('#27ae60', 18) })
-      .addTo(leafletMap)
-      .bindPopup(`<strong>📍 Origin</strong><br/>${oN}`);
-    L.marker([dC.lat, dC.lng], { icon: mkr('#e74c3c', 18) })
-      .addTo(leafletMap)
-      .bindPopup(`<strong>🎯 Destination</strong><br/>${dN}`);
-
-    // Try to get real road route, fall back to straight line
-    getRoadRoute(oC, dC).then(roadPts => {
-      const pts = roadPts || [[oC.lat, oC.lng], [dC.lat, dC.lng]];
-
-      // Draw full route as faded line
-      L.polyline(pts, { color: '#e8820c', weight: 4, opacity: 0.35 }).addTo(leafletMap);
-
-      // Determine how far along the package is
-      const progressRatio = { 'Pending': 0.0, 'In Transit': 0.45, 'Out for Delivery': 0.82, 'Delivered': 1.0, 'On Hold': 0.3 }[status] ?? 0.1;
-
-      const same = Math.abs(cC.lat - oC.lat) < 0.01 && Math.abs(cC.lng - oC.lng) < 0.01;
-      let pkgPt;
-
-      if (!same) {
-        // We have a real current location — snap it to the nearest point on the route
-        pkgPt = [cC.lat, cC.lng];
-      } else {
-        // Interpolate position along the actual road route
-        const idx = Math.min(Math.floor(progressRatio * (pts.length - 1)), pts.length - 1);
-        pkgPt = pts[idx];
-      }
-
-      // Draw the "travelled" portion of route in solid orange
-      const travelledIdx = pts.findIndex(p => p[0] === pkgPt[0] && p[1] === pkgPt[1]);
-      const splitIdx = travelledIdx > 0 ? travelledIdx : Math.floor(progressRatio * (pts.length - 1));
-      const travelledPts = pts.slice(0, splitIdx + 1);
-      if (travelledPts.length > 1) {
-        L.polyline(travelledPts, { color: '#e8820c', weight: 4, opacity: 0.9 }).addTo(leafletMap);
-      }
-
-      // Place package marker
-      L.marker(pkgPt, { icon: curIco })
-        .addTo(leafletMap)
-        .bindPopup(`<strong>📦 Package</strong><br/>Status: ${status}${!same ? `<br/>📍 ${cN}` : ''}`)
-        .openPopup();
-
-      // Fit map to show origin, destination, and package
-      const bounds = L.latLngBounds([[oC.lat, oC.lng], [dC.lat, dC.lng], pkgPt]);
-      leafletMap.fitBounds(bounds, { padding: [50, 50] });
-      document.getElementById('trackMapStatus').textContent = `Route: ${oN} → ${dN}`;
-    });
+  // ── Markers ──
+  const mkrPin = (color, label) => L.divIcon({
+    html: `<div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+      <div style="background:${color};width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,.6);"></div>
+      <div style="background:${color};color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-top:3px;white-space:nowrap;font-family:Outfit,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,.4);">${label}</div>
+    </div>`,
+    className: '', iconSize: [60, 36], iconAnchor: [10, 10]
   });
+
+  const statusConfig = {
+    'Delivered':        { icon: '✓', pulse: false },
+    'In Transit':       { icon: '✈', pulse: true  },
+    'Out for Delivery': { icon: '🚚', pulse: true  },
+    'Pending':          { icon: '📦', pulse: false },
+    'On Hold':          { icon: '⏸', pulse: false },
+  };
+  const sc = statusConfig[status] || { icon: '📦', pulse: false };
+  const pulseStyle = sc.pulse
+    ? 'animation:mapPulse 1.6s ease-in-out infinite;'
+    : '';
+
+  if (!document.getElementById('mapPulseStyle')) {
+    const st = document.createElement('style'); st.id = 'mapPulseStyle';
+    st.textContent = '@keyframes mapPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,130,12,.6)}50%{box-shadow:0 0 0 10px rgba(232,130,12,0)}}';
+    document.head.appendChild(st);
+  }
+
+  const pkgIco = L.divIcon({
+    html: `<div style="background:#e8820c;width:38px;height:38px;border-radius:50%;border:3px solid white;box-shadow:0 3px 14px rgba(232,130,12,.7);display:flex;align-items:center;justify-content:center;font-size:16px;${pulseStyle}">${sc.icon}</div>`,
+    className: '', iconSize: [38, 38], iconAnchor: [19, 19]
+  });
+
+  L.marker([oC.lat, oC.lng], { icon: mkrPin('#22c55e', 'ORIGIN') })
+    .addTo(leafletMap)
+    .bindPopup(`<div style="font-family:Outfit,sans-serif;font-weight:700;">📍 ${oN}</div>`);
+  L.marker([dC.lat, dC.lng], { icon: mkrPin('#ef4444', 'DESTINATION') })
+    .addTo(leafletMap)
+    .bindPopup(`<div style="font-family:Outfit,sans-serif;font-weight:700;">🎯 ${dN}</div>`);
+
+  // ── Route ──
+  document.getElementById('trackMapStatus').textContent = 'Calculating route…';
+  const { pts, type } = await getBestRoute(oC, dC);
+
+  // Progress ratio along route
+  const progressRatio = { 'Pending': 0.0, 'In Transit': 0.45, 'Out for Delivery': 0.82, 'Delivered': 1.0, 'On Hold': 0.25 }[status] ?? 0.1;
+  const splitIdx = Math.min(Math.floor(progressRatio * (pts.length - 1)), pts.length - 2);
+
+  // Draw remaining route (dimmed dashed)
+  const remainingPts = pts.slice(splitIdx);
+  if (remainingPts.length > 1) {
+    L.polyline(remainingPts, { color: '#4a6a88', weight: 3, opacity: 0.5, dashArray: '8, 8' }).addTo(leafletMap);
+  }
+
+  // Draw travelled portion (solid bright orange)
+  const travelledPts = pts.slice(0, splitIdx + 1);
+  if (travelledPts.length > 1) {
+    // Glowing effect: thick dim layer + bright top layer
+    L.polyline(travelledPts, { color: '#e8820c', weight: 8, opacity: 0.2 }).addTo(leafletMap);
+    L.polyline(travelledPts, { color: '#e8820c', weight: 3, opacity: 1 }).addTo(leafletMap);
+  }
+
+  // Package position
+  const same = Math.abs(cC.lat - oC.lat) < 0.05 && Math.abs(cC.lng - oC.lng) < 0.05;
+  const pkgPt = same ? pts[splitIdx] : [cC.lat, cC.lng];
+
+  L.marker(pkgPt, { icon: pkgIco, zIndexOffset: 1000 })
+    .addTo(leafletMap)
+    .bindPopup(`<div style="font-family:Outfit,sans-serif;"><strong>📦 Package</strong><br/>Status: ${status}${!same ? '<br/>📍 ' + cN : ''}</div>`)
+    .openPopup();
+
+  // Fit bounds nicely
+  const bounds = L.latLngBounds([[oC.lat, oC.lng], [dC.lat, dC.lng], pkgPt]);
+  leafletMap.fitBounds(bounds, { padding: [50, 50] });
+
+  const routeType = type === 'road' ? 'Road route' : 'Flight path';
+  document.getElementById('trackMapStatus').textContent = `${routeType}: ${oN} → ${dN}`;
 }
 
 // ===== CONTACT FORM — calls /api/inquiries =====
