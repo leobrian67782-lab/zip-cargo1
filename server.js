@@ -162,15 +162,38 @@ app.post('/api/email/shipment', async (req, res) => {
       : '';
 
     const emailHtml = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
-<body style="margin:0;padding:20px;background:#f3f4f6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light"/>
+<meta name="supported-color-schemes" content="light"/>
+<style>
+  :root { color-scheme: light only; }
+  * { -webkit-text-size-adjust: 100%; }
+  body { margin:0!important; padding:0!important; background:#f3f4f6!important; }
+  .dark-bg { background:#0d1f35!important; }
+  .cost-bg { background:#0d1f35!important; }
+  @media (prefers-color-scheme: dark) {
+    body { background:#f3f4f6!important; color:#000000!important; }
+    .email-wrapper { background:#f3f4f6!important; }
+    .white-card { background:#ffffff!important; color:#0d1f35!important; }
+    .dark-bg { background:#0d1f35!important; }
+    .cost-bg { background:#0d1f35!important; }
+    .dark-text { color:#0d1f35!important; }
+    .gray-text { color:#64748b!important; }
+    .orange-text { color:#e8820c!important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:20px;background:#f3f4f6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;" class="email-wrapper">
 <div style="max-width:580px;margin:0 auto;">
 
   <!-- Orange top bar -->
   <div style="height:4px;background:#e8820c;border-radius:4px 4px 0 0;"></div>
 
   <!-- Header -->
-  <div style="background:#0d1f35;padding:24px 28px;border-radius:0 0 0 0;">
+  <div class="dark-bg" style="background:#0d1f35;padding:24px 28px;">
     <table width="100%"><tr>
       <td>
         <table><tr>
@@ -194,7 +217,7 @@ app.post('/api/email/shipment', async (req, res) => {
   </div>
 
   <!-- Route -->
-  <div style="background:white;padding:16px 28px;border-top:1px solid #e5e7eb;">
+  <div class="white-card" style="background:#ffffff;padding:16px 28px;border-top:1px solid #e5e7eb;">
     <table width="100%"><tr>
       <td style="width:42%;">
         <div style="color:#94a3b8;font-size:9px;font-weight:700;letter-spacing:.5px;">ORIGIN</div>
@@ -209,13 +232,13 @@ app.post('/api/email/shipment', async (req, res) => {
   </div>
 
   <!-- Progress -->
-  <div style="background:white;padding:16px 28px;border-top:1px solid #f1f5f9;">
+  <div class="white-card" style="background:#ffffff;padding:16px 28px;border-top:1px solid #f1f5f9;">
     <div style="color:#64748b;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:14px;">SHIPMENT PROGRESS</div>
     <table width="100%" cellspacing="0" cellpadding="0"><tr>${progressBar}</tr></table>
   </div>
 
   <!-- Sender / Recipient -->
-  <div style="background:white;padding:16px 28px;border-top:1px solid #f1f5f9;">
+  <div class="white-card" style="background:#ffffff;padding:16px 28px;border-top:1px solid #f1f5f9;">
     <table width="100%"><tr>
       <td style="width:48%;vertical-align:top;padding-right:12px;border-right:1px solid #f1f5f9;">
         <div style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">SENDER</div>
@@ -239,7 +262,7 @@ app.post('/api/email/shipment', async (req, res) => {
   </div>
 
   <!-- Package / Delivery -->
-  <div style="background:white;padding:16px 28px;border-top:1px solid #f1f5f9;">
+  <div class="white-card" style="background:#ffffff;padding:16px 28px;border-top:1px solid #f1f5f9;">
     <table width="100%"><tr>
       <td style="width:48%;vertical-align:top;padding-right:12px;border-right:1px solid #f1f5f9;">
         <div style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">PACKAGE</div>
@@ -264,7 +287,7 @@ app.post('/api/email/shipment', async (req, res) => {
   </div>
 
   <!-- Cost banner -->
-  <div style="background:#0d1f35;padding:16px 28px;">
+  <div class="cost-bg" style="background:#0d1f35;padding:16px 28px;">
     <table width="100%"><tr>
       <td>
         <div style="color:#aac4e0;font-size:10px;font-weight:700;">TOTAL SHIPPING COST</div>
@@ -277,7 +300,7 @@ app.post('/api/email/shipment', async (req, res) => {
   </div>
 
   <!-- Track button -->
-  <div style="background:white;padding:20px 28px;border-top:1px solid #f1f5f9;text-align:center;">
+  <div class="white-card" style="background:#ffffff;padding:20px 28px;border-top:1px solid #f1f5f9;text-align:center;">
     <div style="color:#0d1f35;font-size:13px;margin-bottom:14px;">
       To track your shipment visit our website and enter tracking number: <strong>${shipment.tracking}</strong>
     </div>
@@ -288,7 +311,7 @@ app.post('/api/email/shipment', async (req, res) => {
   </div>
 
   <!-- Message -->
-  <div style="background:#f8fafc;padding:20px 28px;border-top:1px solid #f1f5f9;border-radius:0 0 8px 8px;">
+  <div class="white-card" style="background:#f8fafc;padding:20px 28px;border-top:1px solid #f1f5f9;border-radius:0 0 8px 8px;">
     <p style="color:#0d1f35;font-size:13px;line-height:1.7;margin:0 0 12px;">
       Please reply to this email with any questions or concerns regarding your package.
       We recommend checking your email regularly for updates on your shipment.
