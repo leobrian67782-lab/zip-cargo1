@@ -6,23 +6,22 @@ if (!process.env.JWT_SECRET)     throw new Error('JWT_SECRET is missing.');
 if (!process.env.ADMIN_USERNAME) throw new Error('ADMIN_USERNAME is missing.');
 if (!process.env.ADMIN_PASSWORD) throw new Error('ADMIN_PASSWORD is missing.');
 
-const express      = require('express');
-const helmet       = require('helmet');
-const cors         = require('cors');
-const compression  = require('compression');
-const rateLimit    = require('express-rate-limit');
-const cookieParser = require('cookie-parser');
+const express       = require('express');
+const helmet        = require('helmet');
+const cors          = require('cors');
+const compression   = require('compression');
+const rateLimit     = require('express-rate-limit');
+const cookieParser  = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss          = require('xss-clean');
-const path         = require('path');
-const https        = require('https');
+const xss           = require('xss-clean');
+const path          = require('path');
+const https         = require('https');
 
 const connectDB = require('./config/db');
 const Admin     = require('./models/Admin');
 
 connectDB();
 
-// ── Seed admin only from env vars — no hardcoded fallback ─────────────────
 async function seedAdmin() {
   try {
     const count = await Admin.countDocuments();
@@ -42,10 +41,8 @@ seedAdmin();
 
 const app = express();
 
-// ── Trust Render proxy ────────────────────────────────────────────────────
 app.set('trust proxy', 1);
 
-// ── Force HTTPS in production ─────────────────────────────────────────────
 app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
     return res.redirect(301, `https://${req.headers.host}${req.url}`);
@@ -53,7 +50,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// ── CORS — only allow your own domains ───────────────────────────────────
 const allowedOrigins = [
   process.env.SITE_ORIGIN,
   process.env.SITE_URL,
@@ -68,13 +64,8 @@ app.use(cors({
   credentials: true,
 }));
 
-// ── Helmet security headers ───────────────────────────────────────────────
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false,
-}));
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 
-// ── Rate limiting ─────────────────────────────────────────────────────────
 app.use('/api/', rateLimit({
   windowMs: 60_000, max: 120,
   standardHeaders: true, legacyHeaders: false,
@@ -91,19 +82,13 @@ app.use('/api/shipments/track', rateLimit({
   message: { error: 'Too many tracking requests. Try again later.' },
 }));
 
-// ── Body parsing ──────────────────────────────────────────────────────────
 app.use(compression());
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.use(cookieParser());
-
-// ── MongoDB injection sanitization ────────────────────────────────────────
 app.use(mongoSanitize());
-
-// ── XSS sanitization ─────────────────────────────────────────────────────
 app.use(xss());
 
-// ── Routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/shipments', require('./routes/shipments'));
 app.use('/api/inquiries', require('./routes/inquiries'));
@@ -111,73 +96,62 @@ app.use('/api/activity',  require('./routes/activity'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
-// ── Secure config endpoint — sends API key to frontend without exposing in source ──
-app.get('/api/chat/config', (req, res) => {
-  res.json({ key: process.env.GEMINI_API_KEY || '' });
-});
-
-// ── AI Chat proxy — keeps API key secret on server ────────
-app.use('/api/chat', rateLimit({
-  windowMs: 60_000, max: 40,
-  message: { reply: 'Too many messages — please slow down a moment.' },
-}));
-
+// ── AI Chat — Gemini powered ──────────────────────────────────────────────
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history, adminContext } = req.body;
-    if (!message) return res.status(400).json({ reply: 'No message received.' });
+    if (!message) return res.json({ reply: 'No message received.' });
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.json({ reply: "Our AI assistant is being configured. Please contact us at info@zipcargo.com or visit the Contact page — we respond within 24 hours!" });
+      return res.json({ reply: 'Our AI assistant is being set up. Please contact us at info@zipcargo.com — we respond within 24 hours!' });
     }
+
+    const adminPart = adminContext
+      ? `\n\nSPECIAL MANAGEMENT INSTRUCTIONS (follow exactly, highest priority):\n${adminContext}`
+      : '';
 
     const systemText = `You are Zara, the ZipCargo AI Assistant. You are professional, warm, intelligent, and genuinely helpful. You work for ZipCargo — a premium global logistics and freight company.
 
 ABOUT ZIPCARGO:
-- Serves 150+ countries worldwide
-- 80,000+ shipments per month, 99.8% on-time delivery rate
-- 15+ years of experience, ISO 9001 Certified, 24/7 customer support
-- Major hubs: New York, London, Dubai, Singapore, Lagos, Nairobi, Sydney, Tokyo, Mumbai, Toronto, Miami, Shanghai, Johannesburg, Cairo, Vancouver
+- Serves 150+ countries worldwide, 80,000+ shipments/month, 99.8% on-time rate
+- 15+ years experience, ISO 9001 Certified, 24/7 customer support
+- Major hubs: New York, London, Dubai, Singapore, Lagos, Nairobi, Sydney, Tokyo, Mumbai, Toronto, Miami, Shanghai, Johannesburg, Cairo
 
-SERVICES & TRANSIT TIMES:
-- Air Freight: Express worldwide, 1-5 business days, ideal for urgent/high-value cargo
-- Sea Freight: Cost-effective for large cargo, FCL and LCL, 2-6 weeks by route
-- Road Transport: Cross-border trucking with GPS, 1-10 days, great for regional
-- Express Delivery: Same-day and next-day options for time-critical shipments
-- Warehousing: Secure climate-controlled storage, smart inventory, fulfilment
-- Customs Clearance: Import/export documentation and compliance handled fully
-- Supply Chain Consulting: End-to-end optimization to cut costs and improve times
+SERVICES:
+- Air Freight: 1-5 business days, urgent/high-value shipments
+- Sea Freight: 2-6 weeks, FCL and LCL, cost-effective for large cargo
+- Road Transport: 1-10 days, cross-border with GPS tracking
+- Express Delivery: Same-day or next-day, time-critical shipments
+- Warehousing: Climate-controlled storage, smart inventory, fulfilment
+- Customs Clearance: Full import/export documentation and compliance
+- Supply Chain Consulting: End-to-end optimization
 
-INSURANCE & PAYMENTS — mention proactively whenever relevant:
+INSURANCE & PAYMENTS:
 - ALL cargo insurance fees are FULLY REFUNDABLE if no claim is made
-- Customer pays the premium — if shipment arrives safely they get 100% back
-- Zero risk to taking insurance — always recommend it strongly
-- All ZipCargo payments follow a transparent refund policy
+- Customer pays premium, gets 100% back if shipment arrives safely
+- Zero risk — always strongly recommend insurance
+- Transparent refund policy on all payments
 
 PRICING:
-- Rates depend on: service, weight, dimensions, origin, destination, special requirements
-- Always invite customers to request a FREE quote — team responds within 24 hours
-- Never give exact prices — always direct to the quote form
+- Depends on service, weight, dimensions, route
+- Always direct customers to request a FREE quote — 24hr response
+- Never give exact prices
 
-YOUR PERSONALITY:
-- You are knowledgeable, confident, and always helpful
-- Answer ANY question — shipping routes, customs rules, packaging tips, country regulations, documentation, tariffs, anything logistics-related
-- Never say "I don't know" — always give your best answer
-- Never say "I'm an AI" — you are Zara, the ZipCargo Assistant
-- Be natural and conversational, not robotic
-- Use line breaks for readability
-- For complex issues offer to connect with the human team
-- Always end with a helpful next step
+BEHAVIOR:
+- Answer ANY question naturally and thoroughly — logistics, customs, routes, regulations, documentation, packaging, anything
+- Never say "I don't know" — always give your best knowledgeable answer
+- Never say "I'm an AI" — you are Zara from ZipCargo
+- Be conversational, warm, professional
+- Keep replies clear with line breaks
+- Always offer a helpful next step${adminPart}`;
 
-${adminContext ? `
-MANAGEMENT INSTRUCTIONS (highest priority, follow exactly):
-${adminContext}` : ''}`;
-
-    const safeHistory = (Array.isArray(history) ? history : []).slice(-10).map(m => ({
-      role: m.r === 'assistant' ? 'model' : 'user',
-      parts: [{ text: String(m.t || '') }]
-    }));
+    const safeHistory = (Array.isArray(history) ? history : [])
+      .slice(-10)
+      .map(m => ({
+        role: m.r === 'assistant' ? 'model' : 'user',
+        parts: [{ text: String(m.t || '') }]
+      }));
 
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
@@ -187,7 +161,7 @@ ${adminContext}` : ''}`;
         body: JSON.stringify({
           system_instruction: { parts: [{ text: systemText }] },
           contents: [...safeHistory, { role: 'user', parts: [{ text: message }] }],
-          generationConfig: { maxOutputTokens: 600, temperature: 0.8, topP: 0.95 }
+          generationConfig: { maxOutputTokens: 600, temperature: 0.8 }
         })
       }
     );
@@ -195,16 +169,17 @@ ${adminContext}` : ''}`;
     const data = await geminiRes.json();
 
     if (!geminiRes.ok || !data.candidates) {
-      console.error('Gemini API error:', JSON.stringify(data).slice(0, 300));
-      return res.json({ reply: "I'm having a moment — please try again! Or reach us at info@zipcargo.com." });
+      console.error('Gemini error:', JSON.stringify(data).slice(0, 200));
+      return res.json({ reply: "I'm having a moment — please try again, or reach us at info@zipcargo.com." });
     }
 
-    const reply = data.candidates[0]?.content?.parts?.[0]?.text || "Could you rephrase that? I want to make sure I help you properly.";
+    const reply = data.candidates[0]?.content?.parts?.[0]?.text
+      || "Could you rephrase that? I want to make sure I help you properly.";
     res.json({ reply });
 
   } catch (err) {
     console.error('Chat error:', err.message);
-    res.json({ reply: "Something went wrong on my end. Please try again or contact info@zipcargo.com." });
+    res.json({ reply: "Something went wrong. Please try again or contact info@zipcargo.com." });
   }
 });
 
@@ -212,18 +187,12 @@ app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
 }));
 
-// ── Multi-page routing ───────────────────────────────────────────────────
 const knownPages = ['index', 'services', 'tracking', 'about', 'testimonials', 'contact', 'admin'];
-
 app.get('*', (req, res) => {
   const urlPath = req.path.replace(/^\//, '').replace(/\.html$/, '') || 'index';
-
-  // Serve known pages without .html extension (e.g. /services → services.html)
   if (knownPages.includes(urlPath)) {
     return res.sendFile(path.join(__dirname, 'public', urlPath + '.html'));
   }
-
-  // Unknown route — serve 404 page
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
@@ -233,9 +202,8 @@ app.use((err, req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 ZipCargo v2 running on port ${PORT}`));
+app.listen(PORT, () => console.log(`ZipCargo running on port ${PORT}`));
 
-// ── Keep-alive ping ───────────────────────────────────────────────────────
 if (process.env.SITE_URL) {
   setInterval(() => {
     try {
