@@ -12,7 +12,7 @@
     /* ── Chat bubble ── */
     #zc-chat-bubble {
       position: fixed;
-      bottom: 28px;
+      bottom: 80px;
       right: 24px;
       width: 58px;
       height: 58px;
@@ -52,7 +52,7 @@
     /* ── Chat window ── */
     #zc-chat-window {
       position: fixed;
-      bottom: 100px;
+      bottom: 152px;
       right: 24px;
       width: 370px;
       max-width: calc(100vw - 32px);
@@ -272,8 +272,8 @@
     }
 
     @media (max-width: 420px) {
-      #zc-chat-window { right: 12px; width: calc(100vw - 24px); bottom: 90px; }
-      #zc-chat-bubble { right: 16px; bottom: 20px; }
+      #zc-chat-window { right: 12px; width: calc(100vw - 24px); bottom: 155px; }
+      #zc-chat-bubble { right: 16px; bottom: 80px; }
     }
   `;
   document.head.appendChild(style);
@@ -414,12 +414,10 @@ ${tl || '  • No updates yet'}`;
       apiMessages[apiMessages.length - 1].content += extraContext;
     }
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
         system: buildSystemPrompt(),
         messages: apiMessages,
       }),
@@ -427,7 +425,8 @@ ${tl || '  • No updates yet'}`;
 
     if (!res.ok) throw new Error('API error');
     const data = await res.json();
-    return data.content?.[0]?.text || 'Sorry, I had trouble responding. Please try again.';
+    if (data.error) throw new Error(data.error);
+    return data.reply || 'Sorry, I had trouble responding. Please try again.';
   }
 
   // ── Render message ───────────────────────────────────────
