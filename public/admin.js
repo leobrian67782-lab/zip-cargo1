@@ -199,6 +199,7 @@ async function createShipment() {
     value:  parseFloat(f('newValue'))||0,
     cost:   parseFloat(f('newCost'))||0,
     eta: f('newETA'), status: f('newStatus'), location: f('newLocation'), notes: f('newNotes'),
+    deliveryAddress: f('newDeliveryAddress') || '',
   };
 
   if (!payload.tracking||!payload.sName||!payload.rName||!payload.origin||!payload.dest) {
