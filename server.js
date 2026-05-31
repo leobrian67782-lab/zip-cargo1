@@ -116,7 +116,7 @@ app.get('/api/email/test', async (req, res) => {
   }
 });
 
-// ── Shipment notification email ──────────────────────────────────────────
+// ── Shipment notification email with professional PDF ────────────────────
 app.post('/api/email/shipment', async (req, res) => {
   try {
     const { shipment } = req.body;
@@ -125,243 +125,275 @@ app.post('/api/email/shipment', async (req, res) => {
     }
 
     const apiKey = process.env.BREVO_API_KEY;
-    if (!apiKey) {
-      return res.json({ reply: 'Email service not configured.' });
-    }
+    if (!apiKey) return res.json({ error: 'Email service not configured.' });
 
-    const siteUrl    = (req.body.settings && req.body.settings.website) || process.env.SITE_URL || 'https://zipcargo-app.onrender.com';
-    const siteEmail  = (req.body.settings && req.body.settings.email)   || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
-    const sitePhone  = (req.body.settings && req.body.settings.phone)   || '';
+    const siteUrl   = (req.body.settings && req.body.settings.website) || process.env.SITE_URL || 'https://zipcargo-app.onrender.com';
+    const siteEmail = (req.body.settings && req.body.settings.email)   || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
+    const sitePhone = (req.body.settings && req.body.settings.phone)   || '';
     const displayUrl = siteUrl.replace(/^https?:\/\//, '');
     const receiptNo  = 'ZCR-' + new Date().getFullYear() + '-' + (shipment.tracking||'').replace('ZC-','').replace(/-/g,'').slice(-6);
-    const issueDate  = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const issueDate  = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
 
-    const statusColors = { 'Delivered':'#16a34a','In Transit':'#2563eb','Pending':'#d97706','On Hold':'#dc2626','Out for Delivery':'#7c3aed' };
-    const statusColor = statusColors[shipment.status] || '#64748b';
+    // ── Build PDF ──────────────────────────────────────────────────────────
+    const PDFDocument = require('pdfkit');
+    const QRCode = require('qrcode');
 
-    const stages = ['Order Placed','In Transit','Out for Delivery','Delivered'];
-    const stageIdx = { 'Pending':0,'In Transit':1,'Out for Delivery':2,'Delivered':3,'On Hold':0 };
-    const curStage = stageIdx[shipment.status] ?? 0;
+    const qrBuffer = await QRCode.toBuffer(siteUrl + '/tracking.html?id=' + shipment.tracking, {
+      width: 90, margin: 1, color: { dark: '#0d1f35', light: '#ffffff' }
+    });
 
-    const progressBar = stages.map((s, i) => {
-      const active = i <= curStage;
-      const current = i === curStage;
-      const circle = current
-        ? `<div style="width:28px;height:28px;border-radius:50%;background:#e8820c;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;box-shadow:0 0 0 4px rgba(232,130,12,0.2)"><div style="width:10px;height:10px;border-radius:50%;background:white;"></div></div>`
-        : active
-          ? `<div style="width:20px;height:20px;border-radius:50%;background:#e8820c;margin:4px auto 10px;"></div>`
-          : `<div style="width:20px;height:20px;border-radius:50%;background:#e2e8f0;margin:4px auto 10px;"></div>`;
-      return `<td style="text-align:center;vertical-align:top;padding:0 4px;">
-        ${circle}
-        <div style="font-size:10px;color:${current?'#e8820c':active?'#0d1f35':'#94a3b8'};font-weight:${current?'700':'400'};line-height:1.3;">${s}</div>
-      </td>`;
-    }).join('<td style="padding-top:10px;"><div style="height:2px;background:#e2e8f0;margin-top:4px;"></div></td>');
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 0, size: 'A4', autoFirstPage: true });
+      const chunks = [];
+      doc.on('data', c => chunks.push(c));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
 
-    const row = (label, value) => value
-      ? `<tr><td style="padding:7px 0;color:#94a3b8;font-size:12px;width:45%;">${label}</td><td style="padding:7px 0;color:#0d1f35;font-size:12px;font-weight:700;">${value}</td></tr>`
-      : '';
+      const W = 595, pad = 36, cW = W - pad * 2;
 
-    const emailHtml = `<!DOCTYPE html>
-<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="color-scheme" content="light"/>
-<meta name="supported-color-schemes" content="light"/>
-<style>
-  :root { color-scheme: light only; }
-  * { -webkit-text-size-adjust: 100%; }
-  body { margin:0!important; padding:0!important; background:#f3f4f6!important; }
-  .dark-bg { background:#0d1f35!important; }
-  .cost-bg { background:#0d1f35!important; }
-  @media (prefers-color-scheme: dark) {
-    body { background:#f3f4f6!important; color:#000000!important; }
-    .email-wrapper { background:#f3f4f6!important; }
-    .white-card { background:#ffffff!important; color:#0d1f35!important; }
-    .dark-bg { background:#0d1f35!important; }
-    .cost-bg { background:#0d1f35!important; }
-    .dark-text { color:#0d1f35!important; }
-    .gray-text { color:#64748b!important; }
-    .orange-text { color:#e8820c!important; }
-  }
-</style>
-</head>
-<body style="margin:0;padding:20px;background:#f3f4f6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;" class="email-wrapper">
-<div style="max-width:580px;margin:0 auto;">
+      // White background
+      doc.rect(0, 0, W, 842).fill('#ffffff');
 
-  <!-- Orange top bar -->
-  <div style="height:4px;background:#e8820c;border-radius:4px 4px 0 0;"></div>
+      // ── HEADER ──
+      // Orange top border
+      doc.rect(pad, 24, cW, 3).fill('#e8820c');
 
-  <!-- Header -->
-  <div class="dark-bg" style="background:#0d1f35;padding:24px 28px;">
-    <table width="100%"><tr>
-      <td>
-        <table><tr>
-          <td><div style="background:#e8820c;width:36px;height:36px;border-radius:8px;text-align:center;line-height:36px;font-size:18px;font-weight:800;color:white;">Z</div></td>
-          <td style="padding-left:10px;">
-            <div style="color:white;font-size:18px;font-weight:800;">ZipCargo</div>
-            <div style="color:#aac4e0;font-size:11px;">Global Logistics Solutions</div>
-          </td>
-        </tr></table>
-      </td>
-      <td style="text-align:right;">
-        <div style="color:#e8820c;font-size:9px;font-weight:700;letter-spacing:1px;">O F F I C I A L &nbsp; R E C E I P T</div>
-        <div style="color:#7a9ab8;font-size:10px;margin-top:2px;">Receipt No: ${receiptNo}</div>
-        <div style="color:white;font-size:16px;font-weight:800;margin-top:2px;">${shipment.tracking}</div>
-        <div style="color:#7a9ab8;font-size:10px;margin-top:2px;">Issued: ${issueDate}</div>
-      </td>
-    </tr></table>
-    <div style="margin-top:14px;">
-      <span style="background:${statusColor};color:white;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;">${shipment.status||'Pending'}</span>
-    </div>
-  </div>
+      // Dark header card
+      doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
 
-  <!-- Route -->
-  <div class="white-card" style="background:#ffffff;padding:16px 28px;border-top:1px solid #e5e7eb;">
-    <table width="100%"><tr>
-      <td style="width:42%;">
-        <div style="color:#94a3b8;font-size:9px;font-weight:700;letter-spacing:.5px;">ORIGIN</div>
-        <div style="color:#0d1f35;font-size:14px;font-weight:800;margin-top:3px;">${shipment.origin||'-'}</div>
-      </td>
-      <td style="text-align:center;color:#e8820c;font-size:18px;font-weight:800;">&gt;&gt;</td>
-      <td style="width:42%;text-align:right;">
-        <div style="color:#94a3b8;font-size:9px;font-weight:700;letter-spacing:.5px;">DESTINATION</div>
-        <div style="color:#0d1f35;font-size:14px;font-weight:800;margin-top:3px;">${shipment.dest||'-'}</div>
-      </td>
-    </tr></table>
-  </div>
+      // Logo box
+      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+      doc.fill('white').fontSize(20).font('Helvetica-Bold').text('⚡', pad + 16, 45, { lineBreak: false });
 
-  <!-- Progress -->
-  <div class="white-card" style="background:#ffffff;padding:16px 28px;border-top:1px solid #f1f5f9;">
-    <div style="color:#64748b;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:14px;">SHIPMENT PROGRESS</div>
-    <table width="100%" cellspacing="0" cellpadding="0"><tr>${progressBar}</tr></table>
-  </div>
+      // Company name
+      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
 
-  <!-- Sender / Recipient -->
-  <div class="white-card" style="background:#ffffff;padding:16px 28px;border-top:1px solid #f1f5f9;">
-    <table width="100%"><tr>
-      <td style="width:48%;vertical-align:top;padding-right:12px;border-right:1px solid #f1f5f9;">
-        <div style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">SENDER</div>
-        <table width="100%">
-          ${row('Name', shipment.sName)}
-          ${row('Phone', shipment.sPhone)}
-          ${row('Email', shipment.sEmail)}
-        </table>
-      </td>
-      <td style="width:4%;"></td>
-      <td style="width:48%;vertical-align:top;padding-left:12px;">
-        <div style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">RECIPIENT</div>
-        <table width="100%">
-          ${row('Name', shipment.rName)}
-          ${row('Phone', shipment.rPhone)}
-          ${row('Email', shipment.rEmail)}
-          ${shipment.deliveryAddress ? row('Delivery Address', shipment.deliveryAddress) : ''}
-        </table>
-      </td>
-    </tr></table>
-  </div>
+      // Receipt info (right side)
+      doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
+         .text('O F F I C I A L  R E C E I P T', 0, 38, { align: 'right', width: W - pad - 16 });
+      doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
+         .text('Receipt No: ' + receiptNo, 0, 52, { align: 'right', width: W - pad - 16 });
+      doc.fill('white').fontSize(14).font('Helvetica-Bold')
+         .text(shipment.tracking, 0, 65, { align: 'right', width: W - pad - 16 });
+      doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
+         .text('Issued: ' + issueDate, 0, 83, { align: 'right', width: W - pad - 16 });
 
-  <!-- Package / Delivery -->
-  <div class="white-card" style="background:#ffffff;padding:16px 28px;border-top:1px solid #f1f5f9;">
-    <table width="100%"><tr>
-      <td style="width:48%;vertical-align:top;padding-right:12px;border-right:1px solid #f1f5f9;">
-        <div style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">PACKAGE</div>
-        <table width="100%">
-          ${row('Service', shipment.service)}
-          ${row('Weight', shipment.weight ? shipment.weight+' kg' : null)}
-          ${row('Declared Value', shipment.value ? '$'+shipment.value : null)}
-          ${row('Description', shipment.description)}
-        </table>
-      </td>
-      <td style="width:4%;"></td>
-      <td style="width:48%;vertical-align:top;padding-left:12px;">
-        <div style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">DELIVERY</div>
-        <table width="100%">
-          ${row('Est. Delivery', shipment.eta)}
-          ${row('Current Location', shipment.location)}
-          ${row('Status', shipment.status)}
-          ${row('Date Issued', issueDate)}
-        </table>
-      </td>
-    </tr></table>
-  </div>
+      // Status pill
+      const sColors = { 'Delivered':'#16a34a','In Transit':'#2563eb','Pending':'#f59e0b','On Hold':'#ef4444','Out for Delivery':'#8b5cf6' };
+      doc.roundedRect(pad + 14, 87, 68, 18, 9).fill(sColors[shipment.status] || '#64748b');
+      doc.fill('white').fontSize(8).font('Helvetica-Bold')
+         .text(shipment.status || 'Pending', pad + 14, 93, { width: 68, align: 'center' });
 
-  <!-- Cost banner -->
-  <div class="cost-bg" style="background:#0d1f35;padding:16px 28px;">
-    <table width="100%"><tr>
-      <td>
-        <div style="color:#aac4e0;font-size:10px;font-weight:700;">TOTAL SHIPPING COST</div>
-        <div style="color:#7a9ab8;font-size:9px;margin-top:2px;">Inclusive of all applicable fees</div>
-      </td>
-      <td style="text-align:right;">
-        <div style="color:#e8820c;font-size:24px;font-weight:800;">${shipment.cost ? '$'+parseFloat(shipment.cost).toFixed(2) : (shipment.value ? '$'+parseFloat(shipment.value).toFixed(2) : 'TBD')}</div>
-      </td>
-    </tr></table>
-  </div>
+      // ── ROUTE ──
+      let y = 128;
+      doc.roundedRect(pad, y, cW, 48, 6).fill('#f8fafc').stroke('#e2e8f0');
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica').text('ORIGIN', pad + 14, y + 10);
+      doc.fill('#0d1f35').fontSize(12).font('Helvetica-Bold').text(String(shipment.origin||'-'), pad + 14, y + 22);
+      doc.fill('#94a3b8').fontSize(8).text('DESTINATION', 0, y + 10, { align: 'right', width: W - pad - 14 });
+      doc.fill('#0d1f35').fontSize(12).font('Helvetica-Bold').text(String(shipment.dest||'-'), 0, y + 22, { align: 'right', width: W - pad - 14 });
+      // Arrow
+      doc.moveTo(W/2 - 18, y + 28).lineTo(W/2 + 2, y + 28).stroke('#e8820c');
+      doc.moveTo(W/2 - 2, y + 22).lineTo(W/2 + 10, y + 28).lineTo(W/2 - 2, y + 34).fill('#e8820c');
 
-  <!-- Track button -->
-  <div class="white-card" style="background:#ffffff;padding:20px 28px;border-top:1px solid #f1f5f9;text-align:center;">
-    <div style="color:#0d1f35;font-size:13px;margin-bottom:14px;">
-      To track your shipment visit our website and enter tracking number: <strong>${shipment.tracking}</strong>
-    </div>
-    <a href="${siteUrl}/tracking.html?id=${shipment.tracking}" style="background:#e8820c;color:white;padding:12px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;display:inline-block;">
-      Track Your Shipment →
-    </a>
-    <div style="margin-top:10px;color:#94a3b8;font-size:11px;">${displayUrl}</div>
-  </div>
+      // ── PROGRESS ──
+      y += 58;
+      doc.roundedRect(pad, y, cW, 58, 6).fill('white').stroke('#e2e8f0');
+      doc.fill('#64748b').fontSize(8).font('Helvetica-Bold').text('SHIPMENT PROGRESS', pad + 14, y + 10);
 
-  <!-- Message -->
-  <div class="white-card" style="background:#f8fafc;padding:20px 28px;border-top:1px solid #f1f5f9;border-radius:0 0 8px 8px;">
-    <p style="color:#0d1f35;font-size:13px;line-height:1.7;margin:0 0 12px;">
-      Please reply to this email with any questions or concerns regarding your package.
-      We recommend checking your email regularly for updates on your shipment.
-    </p>
-    <p style="color:#0d1f35;font-size:13px;margin:0;">
-      Thank you for choosing <strong>ZipCargo</strong>.<br/>
-      <span style="color:#94a3b8;">Best regards,</span><br/>
-      <strong>ZipCargo Logistics Team</strong><br/>
-      <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
-      ${sitePhone ? ' &nbsp;|&nbsp; ' + sitePhone : ''}
-    </p>
-  </div>
+      const stages = ['Order Placed', 'In Transit', 'Out for Delivery', 'Delivered'];
+      const sIdx = { 'Pending':0,'In Transit':1,'Out for Delivery':2,'Delivered':3,'On Hold':0 };
+      const cur = sIdx[shipment.status] ?? 0;
+      const sw = cW / stages.length;
 
-  <!-- Footer -->
-  <div style="text-align:center;padding:16px;color:#94a3b8;font-size:10px;">
-    ZipCargo Logistics — Delivering trust, one shipment at a time<br/>
-    <span style="color:#cbd5e1;">This is an official ZipCargo document. Please keep for your records.</span>
-  </div>
+      // Draw connecting line first
+      doc.moveTo(pad + sw/2, y + 34).lineTo(pad + cW - sw/2, y + 34).stroke('#e2e8f0');
 
-</div>
-</body></html>`;
+      stages.forEach((st, i) => {
+        const sx = pad + sw * i + sw / 2;
+        const active = i <= cur;
+        const current = i === cur;
 
-    // Send via Brevo API
+        // Active line segment
+        if (i < cur) {
+          doc.moveTo(sx, y + 34).lineTo(pad + sw * (i+1) + sw/2, y + 34)
+             .lineWidth(3).stroke('#e8820c');
+        }
+
+        // Circle
+        if (current) {
+          doc.circle(sx, y + 34, 10).fill('#e8820c');
+          doc.circle(sx, y + 34, 5).fill('white');
+        } else if (active) {
+          doc.circle(sx, y + 34, 7).fill('#e8820c');
+        } else {
+          doc.circle(sx, y + 34, 7).fill('#e2e8f0');
+        }
+
+        // Label
+        doc.fill(current ? '#e8820c' : active ? '#0d1f35' : '#94a3b8')
+           .fontSize(6.5).font(current ? 'Helvetica-Bold' : 'Helvetica')
+           .text(st, sx - sw/2 + 4, y + 46, { width: sw - 8, align: 'center' });
+      });
+
+      // ── SENDER / RECIPIENT ──
+      y += 66;
+      doc.roundedRect(pad, y, cW, 72, 6).fill('white').stroke('#e2e8f0');
+
+      // Left: Sender
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('SENDER', pad + 14, y + 10);
+      doc.moveTo(pad + 14, y + 22).lineTo(pad + cW/2 - 8, y + 22).lineWidth(0.5).stroke('#f1f5f9');
+      [['Name', shipment.sName], ['Phone', shipment.sPhone], ['Email', shipment.sEmail]]
+        .forEach(([l, v], i) => {
+          if (!v) return;
+          doc.fill('#94a3b8').fontSize(7).font('Helvetica').text(l, pad + 14, y + 28 + i * 15);
+          doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold').text(String(v).substring(0,26), pad + 50, y + 28 + i * 15);
+        });
+
+      // Divider
+      doc.moveTo(pad + cW/2, y + 8).lineTo(pad + cW/2, y + 64).lineWidth(0.5).stroke('#f1f5f9');
+
+      // Right: Recipient
+      const rx = pad + cW/2 + 10;
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('RECIPIENT', rx, y + 10);
+      doc.moveTo(rx, y + 22).lineTo(pad + cW - 8, y + 22).lineWidth(0.5).stroke('#f1f5f9');
+      [['Name', shipment.rName], ['Phone', shipment.rPhone], ['Email', shipment.rEmail]]
+        .forEach(([l, v], i) => {
+          if (!v) return;
+          doc.fill('#94a3b8').fontSize(7).font('Helvetica').text(l, rx, y + 28 + i * 15);
+          doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold').text(String(v).substring(0,26), rx + 50, y + 28 + i * 15);
+        });
+
+      // ── PACKAGE / DELIVERY ──
+      y += 80;
+      const hasDeliveryAddr = shipment.deliveryAddress && shipment.deliveryAddress.trim();
+      const cardH = hasDeliveryAddr ? 100 : 84;
+      doc.roundedRect(pad, y, cW, cardH, 6).fill('white').stroke('#e2e8f0');
+
+      // Left: Package
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('PACKAGE', pad + 14, y + 10);
+      doc.moveTo(pad + 14, y + 22).lineTo(pad + cW/2 - 8, y + 22).lineWidth(0.5).stroke('#f1f5f9');
+      [['Service', shipment.service], ['Weight', shipment.weight ? shipment.weight+' kg' : null],
+       ['Declared Value', shipment.value ? '$'+shipment.value : null], ['Description', shipment.description]]
+        .forEach(([l, v], i) => {
+          if (!v) return;
+          doc.fill('#94a3b8').fontSize(7).font('Helvetica').text(l, pad + 14, y + 28 + i * 15);
+          doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold').text(String(v).substring(0,20), pad + 72, y + 28 + i * 15);
+        });
+
+      // Divider
+      doc.moveTo(pad + cW/2, y + 8).lineTo(pad + cW/2, y + cardH - 8).lineWidth(0.5).stroke('#f1f5f9');
+
+      // Right: Delivery
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('DELIVERY', rx, y + 10);
+      doc.moveTo(rx, y + 22).lineTo(pad + cW - 8, y + 22).lineWidth(0.5).stroke('#f1f5f9');
+      const delRows = [
+        ['Est. Delivery', shipment.eta],
+        ['Current Location', shipment.location],
+        ['Status', shipment.status],
+        ['Date Issued', issueDate],
+      ];
+      if (hasDeliveryAddr) delRows.splice(2, 0, ['Delivery Address', shipment.deliveryAddress]);
+      delRows.slice(0, 5).forEach(([l, v], i) => {
+        if (!v) return;
+        doc.fill('#94a3b8').fontSize(7).font('Helvetica').text(l, rx, y + 28 + i * 14);
+        doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold').text(String(v).substring(0,22), rx + 72, y + 28 + i * 14);
+      });
+
+      // ── COST BANNER ──
+      y += cardH + 8;
+      doc.roundedRect(pad, y, cW, 38, 6).fill('#0d1f35');
+      doc.fill('#aac4e0').fontSize(8).font('Helvetica').text('TOTAL SHIPPING COST', pad + 14, y + 10);
+      doc.fill('#64748b').fontSize(7).text('Inclusive of all applicable fees', pad + 14, y + 23);
+      const cost = shipment.cost ? '$' + parseFloat(shipment.cost).toFixed(2) : (shipment.value ? '$' + parseFloat(shipment.value).toFixed(2) : 'TBD');
+      doc.fill('#e8820c').fontSize(20).font('Helvetica-Bold').text(cost, 0, y + 8, { align: 'right', width: W - pad - 16 });
+
+      // ── FOOTER ──
+      y += 46;
+      doc.roundedRect(pad, y, cW, 62, 6).fill('white').stroke('#e2e8f0');
+
+      // Logo
+      doc.roundedRect(pad + 12, y + 16, 26, 26, 5).fill('#0d1f35');
+      doc.fill('#e8820c').fontSize(14).font('Helvetica-Bold').text('⚡', pad + 15, y + 20, { lineBreak: false });
+      doc.fill('#0d1f35').fontSize(11).font('Helvetica-Bold').text('ZipCargo Logistics', pad + 46, y + 15);
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica').text('Ship Smarter. Deliver Faster.', pad + 46, y + 29);
+      doc.fill('#94a3b8').fontSize(7).text('Please retain for your records', pad + 46, y + 43);
+      doc.fill('#94a3b8').fontSize(6.5).text(shipment.tracking + '  •  ' + receiptNo, pad + 46, y + 53);
+
+      // QR code
+      doc.image(qrBuffer, W - pad - 62, y + 5, { width: 52, height: 52 });
+      doc.fill('#94a3b8').fontSize(6).text('Scan to track', W - pad - 62, y + 58, { width: 52, align: 'center' });
+
+      // Bottom border
+      doc.rect(pad, y + 62, cW, 3).fill('#e8820c');
+
+      doc.end();
+    });
+
+    // ── Send email with PDF ────────────────────────────────────────────────
     const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'api-key': apiKey,
-        'content-type': 'application/json',
-      },
+      headers: { 'accept': 'application/json', 'api-key': apiKey, 'content-type': 'application/json' },
       body: JSON.stringify({
         sender: { name: 'ZipCargo Logistics', email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
         to: [{ email: shipment.rEmail, name: shipment.rName }],
         replyTo: { email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
         subject: `Your ZipCargo Shipment — ${shipment.tracking}`,
-        htmlContent: emailHtml,
+        htmlContent: `<!DOCTYPE html><html><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:24px;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;">
+<div style="max-width:520px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
+  <div style="background:#0d1f35;padding:24px 28px;">
+    <div style="color:#e8820c;font-size:22px;font-weight:800;">⚡ ZipCargo</div>
+    <div style="color:#aac4e0;font-size:12px;margin-top:2px;">Global Logistics Solutions</div>
+  </div>
+  <div style="padding:28px;">
+    <p style="color:#0d1f35;font-size:15px;margin:0 0 16px;">Dear <strong>${shipment.rName}</strong>,</p>
+    <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0 0 20px;">
+      Warm regards from the team at <strong>ZipCargo!</strong><br/>
+      We are pleased to inform you that a package has been successfully registered in your name.
+    </p>
+    <div style="background:#f0f7ff;border:2px solid #0d1f35;border-radius:10px;padding:18px;text-align:center;margin:20px 0;">
+      <div style="color:#64748b;font-size:11px;font-weight:700;letter-spacing:1px;">TRACKING NUMBER</div>
+      <div style="color:#e8820c;font-size:26px;font-weight:800;letter-spacing:2px;margin-top:6px;">${shipment.tracking}</div>
+    </div>
+    <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0 0 16px;">
+      To verify the details and track the status of your shipment, kindly visit our website at:<br/>
+      <a href="${siteUrl}/tracking.html" style="color:#e8820c;font-weight:700;">${displayUrl}</a>
+    </p>
+    <div style="text-align:center;margin:20px 0;">
+      <a href="${siteUrl}/tracking.html?id=${shipment.tracking}" style="background:#e8820c;color:white;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;display:inline-block;">Track Your Shipment →</a>
+    </div>
+    <p style="color:#1e293b;font-size:13px;line-height:1.7;margin:16px 0 0;">
+      Please reply to this email with any questions or concerns regarding your package.
+      We recommend checking your email regularly for updates on the whereabouts and details of your shipment.
+    </p>
+    <p style="color:#1e293b;font-size:14px;margin:16px 0 0;">
+      Thank you for choosing <strong>ZipCargo</strong>.<br/>
+      Best regards,<br/>
+      <strong>ZipCargo Logistics Team</strong><br/>
+      <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
+    </p>
+  </div>
+  <div style="background:#0d1f35;padding:16px 28px;text-align:center;">
+    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics — Delivering trust, one shipment at a time</div>
+    <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official receipt is attached to this email.</div>
+  </div>
+</div>
+</body></html>`,
+        attachment: [{
+          name: `ZipCargo-Receipt-${shipment.tracking}.pdf`,
+          content: pdfBuffer.toString('base64'),
+        }],
       }),
     });
 
     const brevoData = await brevoRes.json();
-    if (!brevoRes.ok) {
-      console.error('Brevo error:', JSON.stringify(brevoData));
-      throw new Error(brevoData.message || 'Brevo API error');
-    }
-
-    res.json({ success: true, message: 'Shipment notification sent.' });
+    if (!brevoRes.ok) throw new Error(brevoData.message || 'Brevo error');
+    res.json({ success: true });
 
   } catch (err) {
-    console.error('Shipment email error:', err.message);
-    res.status(500).json({ error: 'Failed to send email: ' + err.message });
+    console.error('Email error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
