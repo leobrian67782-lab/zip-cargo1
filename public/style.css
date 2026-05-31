@@ -416,9 +416,15 @@ body {
 /* Smooth fade-out when clicking links */
 body.page-leaving {
   animation: pageFadeOut 0.25s ease forwards;
+  pointer-events: none;
 }
 @keyframes pageFadeOut {
   to { opacity: 0; transform: translateY(-8px); }
+}
+
+/* Ensure page is always visible when loaded via back/forward cache */
+body {
+  opacity: 1 !important;
 }
 
 /* ── STATS GRID — consistent across all devices ── */
