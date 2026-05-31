@@ -111,6 +111,51 @@ app.use('/api/activity',  require('./routes/activity'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
+// ── AI Chat proxy — keeps API key secret on server ────────
+app.use('/api/chat', rateLimit({
+  windowMs: 60_000, max: 30,
+  message: { error: 'Too many messages. Please slow down.' },
+}));
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { messages, system } = req.body;
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Invalid request.' });
+    }
+    // Limit message history to last 10 to save tokens
+    const trimmed = messages.slice(-10);
+
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'AI service not configured.' });
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
+        system: system || '',
+        messages: trimmed,
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('Anthropic API error:', data);
+      return res.status(502).json({ error: 'AI service error.' });
+    }
+    res.json({ reply: data.content?.[0]?.text || '' });
+  } catch (err) {
+    console.error('Chat proxy error:', err.message);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
 }));
