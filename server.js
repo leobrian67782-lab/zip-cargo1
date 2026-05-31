@@ -115,8 +115,19 @@ app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
 }));
 
+// ── Multi-page routing ───────────────────────────────────────────────────
+const knownPages = ['index', 'services', 'tracking', 'about', 'testimonials', 'contact', 'admin'];
+
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const urlPath = req.path.replace(/^\//, '').replace(/\.html$/, '') || 'index';
+
+  // Serve known pages without .html extension (e.g. /services → services.html)
+  if (knownPages.includes(urlPath)) {
+    return res.sendFile(path.join(__dirname, 'public', urlPath + '.html'));
+  }
+
+  // Unknown route — serve 404 page
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
 app.use((err, req, res, _next) => {
