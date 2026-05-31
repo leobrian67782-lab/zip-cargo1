@@ -325,13 +325,15 @@ async function generateReceipt() {
 
   try {
     const s = await api.get(`/api/shipments/track/${encodeURIComponent(tracking)}`);
+    window._currentReceiptData = s; // store for PDF generation
     error.textContent='';
     buildReceiptHTML(s);
     output.style.display='block';
     output.scrollIntoView({ behavior:'smooth' });
     const actDiv = output.querySelector('.receipt-actions');
     if (actDiv) actDiv.innerHTML=`
-      <button class="btn-save" onclick="printReceipt()"><i class="fa-solid fa-print"></i> Print Receipt</button>
+      <button class="btn-save" onclick="printReceipt()"><i class="fa-solid fa-print"></i> Print</button>
+      <button class="btn-save" style="background:#27ae60;" onclick="downloadPDF('${s.tracking}')"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
       <button class="btn-clear" onclick="document.getElementById('receiptOutput').style.display='none'"><i class="fa-solid fa-xmark"></i> Close</button>`;
   } catch(e) {
     error.textContent=e.message; setTimeout(()=>error.textContent='',4000);
@@ -408,6 +410,24 @@ function buildReceiptHTML(s) {
       <div style="font-size:.74rem;color:#7a9ab8;">Total Shipping Cost</div>
       <div style="font-size:2rem;font-weight:800;color:#e8820c;">${s.cost?'$'+parseFloat(s.cost).toFixed(2):'Contact Us'}</div></div>
     ${s.notes?`<div style="padding:14px 36px;background:#fffbf5;border-top:2px solid #e8820c;font-size:.87rem;color:#5a6a7a;"><strong>Notes:</strong> ${s.notes}</div>`:''}
+    <div style="padding:16px 36px;display:flex;align-items:center;justify-content:space-between;background:white;border-top:1px solid #ebe8df;">
+      <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" style="opacity:0.85;">
+        <circle cx="45" cy="45" r="42" fill="none" stroke="#27ae60" stroke-width="2.5"/>
+        <circle cx="45" cy="45" r="35" fill="none" stroke="#27ae60" stroke-width="1"/>
+        <text x="45" y="30" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="2">ZIPCARGO</text>
+        <text x="45" y="44" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#27ae60">OFFICIAL</text>
+        <text x="45" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#27ae60" letter-spacing="1">RECEIPT</text>
+        <text x="45" y="69" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#27ae60">&#10022; VERIFIED &#10022;</text>
+      </svg>
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Document verified by</div>
+        <div style="font-size:.85rem;font-weight:700;color:#0d1f35;">ZipCargo Logistics</div>
+        <div style="font-size:.72rem;color:#aaa;margin-top:2px;">${s.tracking}</div>
+      </div>
+      <div style="text-align:right;font-size:.68rem;color:#ccc;line-height:1.8;">
+        Official ZipCargo receipt.<br/>Please retain for your records.
+      </div>
+    </div>
     <div style="background:#f9f8f5;padding:20px 36px;text-align:center;border-top:1px solid #ebe8df;font-size:.79rem;color:#7a8a9a;line-height:2.2;">
       <strong style="color:#0d1f35;">ZipCargo Logistics</strong><br/>info@zipcargo.com &bull; www.zipcargo.com<br/>
       <em>Ship Smarter. Deliver Faster.</em></div>`;
@@ -452,4 +472,216 @@ function saveSettings() {
 function badgeHTML(status) {
   const m={'Pending':'badge-pending','In Transit':'badge-transit','Out for Delivery':'badge-out','Delivered':'badge-delivered','On Hold':'badge-hold'};
   return `<span class="badge ${m[status]||'badge-pending'}">${status}</span>`;
+}
+
+// ===== DOWNLOAD PDF — pure jsPDF, clean A4, no screenshot =====
+async function downloadPDF(tracking) {
+  const btn = document.querySelector(`button[onclick="downloadPDF('${tracking}')"]`);
+  if (btn) { btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Generating...'; }
+
+  function loadScript(src, cb) {
+    if (document.querySelector(`script[src="${src}"]`)) { cb(); return; }
+    const s = document.createElement('script'); s.src=src; s.onload=cb; document.head.appendChild(s);
+  }
+
+  function generate() {
+    try {
+      const { jsPDF } = window.jspdf;
+      const s = window._currentReceiptData;
+      if (!s) { alert('Please generate a receipt first.'); return; }
+
+      const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+      const W = 210, H = 297, L = 12, R = 198, MID = 105;
+      const date = s.date || new Date(s.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+
+      // Shorthand helpers
+      const F = (r,g,b) => doc.setFillColor(r,g,b);
+      const C = (r,g,b) => doc.setTextColor(r,g,b);
+      const S = (r,g,b) => doc.setDrawColor(r,g,b);
+      const B = (sz) => { doc.setFont('helvetica','bold'); doc.setFontSize(sz); };
+      const N = (sz) => { doc.setFont('helvetica','normal'); doc.setFontSize(sz); };
+      const I = (sz) => { doc.setFont('helvetica','italic'); doc.setFontSize(sz); };
+      const rect = (x,y,w,h,clr) => { F(...clr); doc.rect(x,y,w,h,'F'); };
+      const line = (x1,y1,x2,y2,clr,lw=0.3) => { S(...clr); doc.setLineWidth(lw); doc.line(x1,y1,x2,y2); };
+      const txt = (t,x,y,opts={}) => doc.text(String(t||''),x,y,opts);
+
+      // ── WATERMARK ───────────────────────────────────────────────────────────
+      doc.saveGraphicsState();
+      doc.setGState(new doc.GState({opacity:0.045}));
+      B(60); C(13,31,53);
+      txt('ZipCargo', MID, 155, {align:'center', angle:45});
+      B(24);
+      txt('OFFICIAL RECEIPT', MID, 178, {align:'center', angle:45});
+      doc.restoreGraphicsState();
+
+      // ── HEADER ──────────────────────────────────────────────────────────────
+      rect(0,0,W,40,[13,31,53]);
+
+      // ZipCargo lightning bolt logo - exact shape
+      // Points: parallelogram top, notch, parallelogram bottom
+      F(232,130,12);
+      doc.lines([
+        [5, 0],   // right along top
+        [-8, 9],  // diagonal down-left  
+        [4, 0],   // right (middle notch)
+        [-5, 8],  // diagonal down-left to bottom
+        [-3, 0],  // left along bottom
+        [8, -9],  // diagonal up-right
+        [-4, 0],  // left (middle notch back)
+        [5, -8],  // diagonal up-right to start
+      ], L+1, 7, [1,1], 'F', true);
+
+      B(19); C(255,255,255); txt('ZipCargo', L+12, 17);
+      N(7.5); C(122,154,184); txt('Global Logistics Solutions', L+12, 23);
+
+      // Right header
+      B(6.5); C(232,130,12); txt('OFFICIAL RECEIPT', R, 9, {align:'right'});
+      B(14); C(255,255,255); txt(s.tracking, R, 18, {align:'right'});
+      N(7); C(122,154,184); txt('Issued: '+date, R, 24.5, {align:'right'});
+
+      // Status badge
+      const sbg = {'Delivered':[212,237,218],'In Transit':[204,229,255],'Out for Delivery':[212,237,218],'On Hold':[248,215,218],'Pending':[255,243,205]}[s.status]||[255,243,205];
+      const sfg = {'Delivered':[21,87,36],'In Transit':[0,64,133],'Out for Delivery':[21,87,36],'On Hold':[114,28,36],'Pending':[133,100,4]}[s.status]||[133,100,4];
+      F(...sbg); doc.roundedRect(R-40,29,40,9,2,2,'F');
+      B(8); C(...sfg); txt(s.status, R-20, 34.8, {align:'center'});
+
+      // ── ROUTE BAR ───────────────────────────────────────────────────────────
+      rect(0,40,W,20,[249,248,245]);
+      line(0,60,W,60,[235,232,223]);
+
+      N(7); C(136,136,136);
+      txt('ORIGIN', L, 47); txt('DESTINATION', R, 47, {align:'right'});
+      B(11); C(13,31,53);
+      txt(s.origin, L, 56); txt(s.dest, R, 56, {align:'right'});
+      // Arrow — drawn with lines for clean look
+      const ax=MID, ay=54;
+      S(232,130,12); doc.setLineWidth(1.0);
+      doc.line(ax-8,ay,ax+7,ay);
+      doc.line(ax+3,ay-2.5,ax+7,ay);
+      doc.line(ax+3,ay+2.5,ax+7,ay);
+
+      // ── PROGRESS BAR ────────────────────────────────────────────────────────
+      const steps = ['Pending','In Transit','Out for Delivery','Delivered'];
+      const sLbls = ['Order Placed','Picked Up','Out for Delivery','Delivered'];
+      const curIdx = steps.indexOf(s.status);
+      const xs = [32, 82, 132, 178];
+      const PY = 74;
+
+      B(7); C(232,130,12); txt('SHIPMENT PROGRESS', L, 66);
+      line(L,67,L+44,67,[232,130,12],0.5);
+
+      steps.forEach((step,i) => {
+        const done = i<=curIdx && s.status!=='On Hold';
+        const active = i===curIdx && s.status!=='On Hold';
+        const x = xs[i];
+        // Connector line
+        if (i < steps.length-1) {
+          const lc = (done && i<curIdx) ? [39,174,96] : [200,200,200];
+          line(x+5.5, PY, xs[i+1]-5.5, PY, lc, 0.8);
+        }
+        // Circle
+        F(...(done?[39,174,96]:[210,210,210]));
+        doc.circle(x, PY, 5.5, 'F');
+        // Number or check
+        B(7); C(255,255,255);
+        txt(done?'OK':String(i+1), x, PY+1.2, {align:'center'});
+        // Label
+        N(6); C(active?13:150, active?31:150, active?53:150);
+        // Split long labels
+        if (sLbls[i].length > 10) {
+          const words = sLbls[i].split(' ');
+          const half = Math.ceil(words.length/2);
+          txt(words.slice(0,half).join(' '), x, PY+9, {align:'center'});
+          txt(words.slice(half).join(' '), x, PY+13.5, {align:'center'});
+        } else {
+          txt(sLbls[i], x, PY+9, {align:'center'});
+        }
+      });
+
+      // ── DATA SECTIONS ────────────────────────────────────────────────────────
+      let y = 98;
+      const c1=L, c2=MID+3, cw=90;
+      line(L,y-2,R,y-2,[235,232,223]);
+
+      function hdr(title, x, yy) {
+        B(7); C(232,130,12); txt(title, x, yy);
+        line(x,yy+1,x+cw,yy+1,[232,130,12],0.4);
+      }
+      function row(lbl, val, x, yy) {
+        N(8); C(150,150,150); txt(lbl, x, yy);
+        B(8); C(13,31,53); txt(String(val||'--'), x+cw, yy, {align:'right', maxWidth:cw});
+      }
+
+      // SENDER & RECIPIENT
+      hdr('SENDER', c1, y); hdr('RECIPIENT', c2, y); y+=7;
+      row('Name', s.sName, c1, y);      row('Name', s.rName, c2, y); y+=6;
+      row('Phone', s.sPhone, c1, y);    row('Phone', s.rPhone, c2, y); y+=6;
+      row('Email', s.sEmail, c1, y);    row('Email', s.rEmail, c2, y); y+=6;
+      row('Origin', s.origin, c1, y);   row('Destination', s.dest, c2, y); y+=12;
+
+      line(L,y-4,R,y-4,[235,232,223]);
+
+      // PACKAGE & DELIVERY
+      hdr('PACKAGE DETAILS', c1, y); hdr('DELIVERY INFO', c2, y); y+=7;
+      row('Service', s.service, c1, y);           row('Est. Delivery', s.eta, c2, y); y+=6;
+      row('Description', s.desc, c1, y);          row('Location', s.location||s.origin, c2, y); y+=6;
+      row('Weight', s.weight?s.weight+' kg':'--', c1, y); row('Status', s.status, c2, y); y+=6;
+      row('Declared Value', s.value?'$'+parseFloat(s.value).toFixed(2):'--', c1, y);
+      row('Date Issued', date, c2, y); y+=14;
+
+      // ── TOTAL BAR ────────────────────────────────────────────────────────────
+      rect(0,y,W,22,[13,31,53]);
+      N(8); C(122,154,184); txt('Total Shipping Cost', L, y+9);
+      N(6.5); C(74,106,138); txt('Inclusive of all applicable fees', L, y+15.5);
+      B(22); C(232,130,12); txt(s.cost?'$'+parseFloat(s.cost).toFixed(2):'Contact Us', R, y+15, {align:'right'});
+      y += 26;
+
+      // ── NOTES ────────────────────────────────────────────────────────────────
+      if (s.notes) {
+        rect(0,y,W,14,[255,251,245]);
+        rect(0,y,2,14,[232,130,12]);
+        B(7.5); C(13,31,53); txt('Notes:', L+4, y+6);
+        N(7.5); C(90,106,122); txt(s.notes, L+22, y+6, {maxWidth:R-L-26});
+        y += 18;
+      }
+
+      // ── OFFICIAL STAMP — inline after content ──────────────────────────
+      const stX = L+18, stY = y+18;
+      doc.saveGraphicsState();
+      doc.setGState(new doc.GState({opacity:0.85}));
+      S(39,174,96); doc.setLineWidth(1.2);
+      doc.circle(stX, stY, 14);
+      doc.setLineWidth(0.5);
+      doc.circle(stX, stY, 11);
+      B(5); C(39,174,96);
+      txt('ZIPCARGO', stX, stY-7, {align:'center'});
+      B(7); txt('OFFICIAL', stX, stY-1, {align:'center'});
+      txt('RECEIPT', stX, stY+5, {align:'center'});
+      N(5); txt('* VERIFIED *', stX, stY+9.5, {align:'center'});
+      doc.restoreGraphicsState();
+      // Stamp info text
+      N(7.5); C(100,100,100);
+      txt('Document verified by', stX+20, stY-5);
+      B(8); C(13,31,53);
+      txt('ZipCargo Logistics', stX+20, stY+1);
+      N(7); C(150,150,150);
+      txt(s.tracking, stX+20, stY+7);
+
+      // ── FOOTER ───────────────────────────────────────────────────────────────
+      rect(0,H-26,W,26,[249,248,245]);
+      line(0,H-26,W,H-26,[235,232,223]);
+      B(9); C(13,31,53); txt('ZipCargo Logistics', MID, H-17, {align:'center'});
+      N(7.5); C(120,130,154); txt('info@zipcargo.com  |  www.zipcargo.com', MID, H-11, {align:'center'});
+      I(7); C(120,130,154); txt('Ship Smarter. Deliver Faster.  --  Thank you for your business.', MID, H-5, {align:'center'});
+
+      doc.save('ZipCargo-Receipt-'+tracking+'.pdf');
+      if (btn) { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
+    } catch(e) {
+      console.error(e);
+      alert('PDF error: '+e.message);
+      if (btn) { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF'; }
+    }
+  }
+
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', generate);
 }
