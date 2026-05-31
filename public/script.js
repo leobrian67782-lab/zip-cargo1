@@ -509,8 +509,37 @@ function showRouteMap(origin, dest, currentLocation, status) {
 
 function geocode(p) {
   if (!p) return Promise.resolve(null);
-  return fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(p)}&format=json&limit=1`,
-    { headers: { 'Accept-Language': 'en' } })
+
+  // Expand common US state abbreviations so geocoder finds the right place
+  const stateMap = {
+    'AL':'Alabama','AK':'Alaska','AZ':'Arizona','AR':'Arkansas','CA':'California',
+    'CO':'Colorado','CT':'Connecticut','DE':'Delaware','FL':'Florida','GA':'Georgia',
+    'HI':'Hawaii','ID':'Idaho','IL':'Illinois','IN':'Indiana','IA':'Iowa',
+    'KS':'Kansas','KY':'Kentucky','LA':'Louisiana','ME':'Maine','MD':'Maryland',
+    'MA':'Massachusetts','MI':'Michigan','MN':'Minnesota','MS':'Mississippi','MO':'Missouri',
+    'MT':'Montana','NE':'Nebraska','NV':'Nevada','NH':'New Hampshire','NJ':'New Jersey',
+    'NM':'New Mexico','NY':'New York','NC':'North Carolina','ND':'North Dakota','OH':'Ohio',
+    'OK':'Oklahoma','OR':'Oregon','PA':'Pennsylvania','RI':'Rhode Island','SC':'South Carolina',
+    'SD':'South Dakota','TN':'Tennessee','TX':'Texas','UT':'Utah','VT':'Vermont',
+    'VA':'Virginia','WA':'Washington','WV':'West Virginia','WI':'Wisconsin','WY':'Wyoming',
+    'DC':'Washington DC'
+  };
+
+  // Replace state abbreviations: "Madison WI" → "Madison, Wisconsin, USA"
+  let q = p.trim();
+  q = q.replace(/([A-Z]{2})/g, (match) => stateMap[match] ? stateMap[match] : match);
+
+  // If it looks like a US location (has a known state name), append USA for precision
+  const usStates = Object.values(stateMap);
+  const hasUSState = usStates.some(s => q.toLowerCase().includes(s.toLowerCase()));
+  if (hasUSState && !q.toLowerCase().includes('usa') && !q.toLowerCase().includes('united states')) {
+    q = q + ', USA';
+  }
+
+  return fetch(
+    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&addressdetails=1`,
+    { headers: { 'Accept-Language': 'en' } }
+  )
     .then(r => r.json())
     .then(d => d && d.length ? { lat: +d[0].lat, lng: +d[0].lon } : null)
     .catch(() => null);
