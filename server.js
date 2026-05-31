@@ -111,6 +111,11 @@ app.use('/api/activity',  require('./routes/activity'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
+// ── Secure config endpoint — sends API key to frontend without exposing in source ──
+app.get('/api/chat/config', (req, res) => {
+  res.json({ key: process.env.GEMINI_API_KEY || '' });
+});
+
 // ── AI Chat proxy — keeps API key secret on server ────────
 app.use('/api/chat', rateLimit({
   windowMs: 60_000, max: 30,
