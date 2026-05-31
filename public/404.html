@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Page Not Found – ZipCargo</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100%; font-family: 'Outfit', sans-serif; }
+
+    .not-found-page {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d1f35 0%, #1a3a5c 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .not-found-page::before {
+      content: '404';
+      position: absolute;
+      font-size: 30vw;
+      font-weight: 800;
+      color: rgba(255,255,255,0.03);
+      pointer-events: none;
+      user-select: none;
+      line-height: 1;
+    }
+
+    .nf-logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 48px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .nf-logo i { color: #e8820c; }
+
+    .nf-icon-wrap {
+      width: 100px;
+      height: 100px;
+      background: rgba(232,130,12,0.15);
+      border: 2px solid rgba(232,130,12,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+      animation: nfFloat 3s ease-in-out infinite;
+    }
+    .nf-icon-wrap i { font-size: 2.5rem; color: #e8820c; }
+
+    @keyframes nfFloat {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-12px); }
+    }
+
+    .nf-code {
+      font-size: 5rem;
+      font-weight: 800;
+      color: white;
+      line-height: 1;
+      margin-bottom: 12px;
+      letter-spacing: -2px;
+    }
+    .nf-code span { color: #e8820c; }
+
+    .nf-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 12px;
+    }
+
+    .nf-text {
+      font-size: 1rem;
+      color: #7a9ab8;
+      max-width: 420px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .nf-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .nf-btn-primary {
+      background: #e8820c;
+      color: white;
+      padding: 14px 32px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: .95rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background .2s, transform .2s;
+    }
+    .nf-btn-primary:hover { background: #cf7109; transform: translateY(-2px); }
+
+    .nf-btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: white;
+      padding: 14px 32px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: .95rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      transition: background .2s, transform .2s;
+    }
+    .nf-btn-secondary:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); }
+
+    .nf-links {
+      margin-top: 48px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nf-links a {
+      color: #4a6a88;
+      text-decoration: none;
+      font-size: .88rem;
+      font-weight: 600;
+      transition: color .2s;
+    }
+    .nf-links a:hover { color: #e8820c; }
+
+    @media (max-width: 480px) {
+      .nf-code { font-size: 3.5rem; }
+      .nf-title { font-size: 1.2rem; }
+      .nf-buttons { flex-direction: column; align-items: center; }
+      .nf-btn-primary, .nf-btn-secondary { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="not-found-page">
+
+    <a href="index.html" class="nf-logo">
+      <i class="fa-solid fa-bolt"></i> ZipCargo
+    </a>
+
+    <div class="nf-icon-wrap">
+      <i class="fa-solid fa-truck-fast"></i>
+    </div>
+
+    <div class="nf-code">4<span>0</span>4</div>
+    <div class="nf-title">This page got lost in transit</div>
+    <p class="nf-text">The page you're looking for doesn't exist or may have been moved. Let's get you back on track.</p>
+
+    <div class="nf-buttons">
+      <a href="index.html" class="nf-btn-primary">
+        <i class="fa-solid fa-house"></i> Back to Home
+      </a>
+      <a href="tracking.html" class="nf-btn-secondary">
+        <i class="fa-solid fa-satellite-dish"></i> Track a Shipment
+      </a>
+    </div>
+
+    <div class="nf-links">
+      <a href="services.html">Services</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </div>
+
+  </div>
+</body>
+</html>

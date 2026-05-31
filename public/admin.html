@@ -61,6 +61,17 @@
 </head>
 <body>
 
+<script>
+// ── Auth guard: redirect to login if no token ──
+// We check immediately — if no token, hide everything until login
+(function() {
+  const token = (() => { try { return localStorage.getItem('zc_token'); } catch(e) { return null; } })();
+  // If no token, the login screen is shown by default (adminPanel is hidden)
+  // Nothing to do here — the page already starts on the login screen
+  // But if they DO have a token, we'll verify it after admin.js loads
+})();
+</script>
+
 <!-- TOAST -->
 <div id="adminToast">
   <div style="background:#0d1f35;color:white;padding:14px 22px;border-radius:10px;font-weight:600;font-size:.92rem;box-shadow:0 8px 30px rgba(0,0,0,.25);display:flex;align-items:center;gap:10px;min-width:260px;">

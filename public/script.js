@@ -747,3 +747,16 @@ function toggleFaq(btn) {
     if (navbar) navbar.classList.add('scrolled');
   }
 })();
+
+// ===== PAGE TRANSITION — fade out before navigating =====
+document.addEventListener('click', function(e) {
+  const link = e.target.closest('a');
+  if (!link) return;
+  const href = link.getAttribute('href');
+  // Only handle local .html links, not anchors or external
+  if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('mailto')) return;
+  if (link.target === '_blank') return;
+  e.preventDefault();
+  document.body.classList.add('page-leaving');
+  setTimeout(() => { window.location.href = href; }, 250);
+});

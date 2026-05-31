@@ -403,3 +403,20 @@ a.logo {
 .breadcrumb a { color: #aac4e0; text-decoration: none; }
 .breadcrumb a:hover { color: #e8820c; }
 .breadcrumb span { color: #e8820c; font-weight: 600; }
+
+/* ── PAGE TRANSITION FADE-IN ── */
+body {
+  animation: pageFadeIn 0.4s ease both;
+}
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Smooth fade-out when clicking links */
+body.page-leaving {
+  animation: pageFadeOut 0.25s ease forwards;
+}
+@keyframes pageFadeOut {
+  to { opacity: 0; transform: translateY(-8px); }
+}
