@@ -121,5 +121,29 @@
 })();
 </script>
 <script src="script.js"></script>
+<script>
+// Auto-select service if coming from services page
+(function() {
+  var service = sessionStorage.getItem('zc_selected_service');
+  if (service) {
+    sessionStorage.removeItem('zc_selected_service');
+    var sel = document.getElementById('fservice');
+    if (sel) {
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === service || sel.options[i].text === service) {
+          sel.selectedIndex = i;
+          // Highlight the field briefly
+          sel.style.borderColor = '#e8820c';
+          sel.style.transition = 'border-color 0.3s';
+          setTimeout(function() { sel.style.borderColor = ''; }, 2000);
+          break;
+        }
+      }
+      // Scroll to form smoothly
+      sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+})();
+</script>
 </body>
 </html>

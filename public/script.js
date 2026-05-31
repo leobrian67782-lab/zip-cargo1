@@ -30,9 +30,23 @@ document.getElementById('backToTop')?.addEventListener('click', () =>
 const hamburger = document.getElementById('hamburger');
 const navLinks  = document.getElementById('navLinks');
 if (hamburger && navLinks) {
-  hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  hamburger.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+    hamburger.classList.toggle('open');
+    // Swap icon between bars and X
+    const icon = hamburger.querySelector('i');
+    if (icon) {
+      icon.classList.toggle('fa-bars');
+      icon.classList.toggle('fa-xmark');
+    }
+  });
   navLinks.querySelectorAll('a').forEach(a =>
-    a.addEventListener('click', () => navLinks.classList.remove('open')));
+    a.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      hamburger.classList.remove('open');
+      const icon = hamburger.querySelector('i');
+      if (icon) { icon.classList.add('fa-bars'); icon.classList.remove('fa-xmark'); }
+    }));
 }
 
 // ===== SMOOTH SCROLL =====

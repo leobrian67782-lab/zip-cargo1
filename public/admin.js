@@ -99,15 +99,29 @@ async function showSection(name, clickedEl) {
 }
 
 function toggleSidebar() {
-  const s=document.getElementById('sidebar'), b=document.getElementById('sidebarBackdrop');
-  if(s.classList.contains('open')){ closeSidebar(); }
-  else { s.classList.add('open'); b.classList.add('active'); document.body.style.overflow='hidden'; }
+  const s = document.getElementById('sidebar');
+  const b = document.getElementById('sidebarBackdrop');
+  if (!s || !b) return;
+  if (s.classList.contains('open')) {
+    closeSidebar();
+  } else {
+    s.classList.add('open');
+    b.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
 }
 function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarBackdrop').classList.remove('active');
-  document.body.style.overflow='';
+  const s = document.getElementById('sidebar');
+  const b = document.getElementById('sidebarBackdrop');
+  if (s) s.classList.remove('open');
+  if (b) b.classList.remove('active');
+  document.body.style.overflow = '';
 }
+// Close sidebar when tapping backdrop
+document.addEventListener('DOMContentLoaded', function() {
+  var backdrop = document.getElementById('sidebarBackdrop');
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
+});
 
 // ===== DASHBOARD =====
 async function loadDashboard() {

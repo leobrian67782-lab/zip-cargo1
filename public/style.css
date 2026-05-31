@@ -80,7 +80,7 @@ a { text-decoration: none; color: inherit; }
 .tracking-form input:focus { border-color: #e8820c; }
 .tracking-form button { background-color: #e8820c; color: white; border: none; padding: 16px 32px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; font-family: inherit; transition: background 0.3s, transform 0.2s; }
 .tracking-form button:hover { background-color: #cf7009; transform: translateY(-2px); }
-.track-result { margin-top: 28px; padding: 20px 28px; border-radius: 10px; font-size: 1rem; font-weight: 600; display: none; }
+.track-result { margin-top: 28px; padding: 20px 28px; border-radius: 10px; font-size: 1rem; font-weight: 600; display: none; overflow-x: hidden; word-break: break-word; }
 .track-result.success { background: rgba(39,174,96,0.2); border: 1px solid rgba(39,174,96,0.5); color: #6effa8; display: block; }
 .track-result.error { background: rgba(231,76,60,0.2); border: 1px solid rgba(231,76,60,0.5); color: #ff9d9d; display: block; }
 
@@ -290,9 +290,32 @@ body.no-scroll { overflow: hidden !important; position: fixed !important; width:
 .btn-primary { animation: pulseGlow 2.5s infinite; }
 
 @media (max-width: 768px) {
-  .nav-links { display: none; }
-  .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 65px; left: 0; width: 100%; background: #0d1f35; padding: 20px 30px; gap: 18px; }
-  .hamburger { display: block; }
+  .nav-links {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 65px;
+    left: 0;
+    width: 100%;
+    background: #0d1f35;
+    padding: 0 30px;
+    gap: 0;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease, padding 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .nav-links.open {
+    max-height: 400px;
+    opacity: 1;
+    padding: 16px 30px 20px;
+  }
+  .nav-links li { border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .nav-links li:last-child { border-bottom: none; }
+  .nav-links a { display: block; padding: 12px 0; font-size: 1rem; }
+  .hamburger { display: block; transition: transform 0.3s ease; }
+  .hamburger.open { transform: rotate(90deg); }
   .btn-quote { display: none; }
   .hero h1 { font-size: 2.6rem; }
   .section-title { font-size: 1.9rem; }
@@ -453,4 +476,18 @@ body {
 #trackMap .leaflet-control-zoom a {
   color: #0d1f35 !important;
   font-weight: 700 !important;
+}
+
+/* ── FIX: Tracking result card — no horizontal scroll on mobile ── */
+.track-result, .track-result * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.track-result > div {
+  overflow-x: hidden !important;
+}
+@media (max-width: 600px) {
+  .track-result { padding: 0 !important; margin-top: 20px; }
+  #trackResult > div { border-radius: 14px !important; }
+  #trackResult .zc-fadein > div[style*="display:flex"] { flex-direction: column !important; }
 }
