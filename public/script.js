@@ -176,18 +176,26 @@ async function trackShipment() {
   result.className = '';
   result.style.cssText = 'display:block;background:white;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.1)';
   result.innerHTML = `
-    <div style="display:flex;flex-direction:column;align-items:center;padding:52px 20px;gap:18px;font-family:'Outfit',sans-serif;">
-      <div style="position:relative;width:72px;height:72px;">
-        <div style="position:absolute;inset:0;border-radius:50%;border:5px solid #e8f0f7;"></div>
-        <div style="position:absolute;inset:0;border-radius:50%;border:5px solid transparent;border-top-color:#e8920a;animation:zcSpin .85s linear infinite;"></div>
-        <div style="position:absolute;inset:11px;border-radius:50%;background:#0d1f35;display:flex;align-items:center;justify-content:center;">
-          <i class="fa-solid fa-truck" style="color:#e8920a;font-size:18px;"></i></div></div>
-      <div style="font-weight:700;color:#0d1f35;">Locating shipment…</div>
-      <div style="font-size:.85rem;color:#7a9ab8;">Searching for <strong style="color:#0d1f35;">${input}</strong></div></div>`;
+    <div style="display:flex;flex-direction:column;align-items:center;padding:52px 20px;gap:18px;font-family:'Outfit',sans-serif;background:white;border-radius:16px;box-shadow:0 8px 32px rgba(13,31,53,.1);">
+      <div style="position:relative;width:80px;height:80px;">
+        <div style="position:absolute;inset:0;border-radius:50%;border:4px solid #f0f4f8;"></div>
+        <div style="position:absolute;inset:0;border-radius:50%;border:4px solid transparent;border-top-color:#e8820c;animation:zcSpin .85s linear infinite;"></div>
+        <div style="position:absolute;inset:10px;border-radius:50%;background:linear-gradient(135deg,#0d1f35,#1a3a5c);display:flex;align-items:center;justify-content:center;">
+          <i class="fa-solid fa-satellite-dish" style="color:#e8820c;font-size:18px;"></i></div></div>
+      <div style="text-align:center;">
+        <div style="font-weight:800;color:#0d1f35;font-size:1rem;">Locating your shipment...</div>
+        <div style="font-size:.85rem;color:#64748b;margin-top:6px;">Searching for <strong style="color:#e8820c;">\${input}</strong></div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;animation:zcBounce .6s ease-in-out infinite;"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;animation:zcBounce .6s ease-in-out .15s infinite;"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;animation:zcBounce .6s ease-in-out .3s infinite;"></div>
+      </div>
+    </div>`;
 
   if (!document.getElementById('zcSpinStyle')) {
     const st = document.createElement('style'); st.id = 'zcSpinStyle';
-    st.textContent = '@keyframes zcSpin{to{transform:rotate(360deg)}}'; document.head.appendChild(st);
+    st.textContent = '@keyframes zcSpin{to{transform:rotate(360deg)}} @keyframes zcBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}'; document.head.appendChild(st);
   }
 
   try {
@@ -196,8 +204,14 @@ async function trackShipment() {
     result.style.cssText = '';
 
     if (!res.ok) {
-      result.className = 'track-result error';
-      result.innerHTML = `No shipment found for <strong>${input}</strong>. Please check your tracking number and try again.`;
+      result.className = '';
+      result.innerHTML = `<div style="background:white;border-radius:16px;padding:40px 24px;text-align:center;box-shadow:0 8px 32px rgba(13,31,53,.1);">
+        <div style="width:64px;height:64px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+          <i class="fa-solid fa-circle-xmark" style="color:#ef4444;font-size:1.8rem;"></i></div>
+        <h3 style="color:#0d1f35;font-size:1.1rem;margin-bottom:8px;font-family:'Outfit',sans-serif;">Shipment Not Found</h3>
+        <p style="color:#64748b;font-size:.9rem;margin-bottom:20px;">No results for <strong style="color:#e8820c;">\${input}</strong>.<br>Please check your tracking number and try again.</p>
+        <a href="contact.html" style="display:inline-flex;align-items:center;gap:8px;background:#0d1f35;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.85rem;">
+          <i class="fa-solid fa-headset"></i> Contact Support</a></div>`;
       const ms = document.getElementById('trackMapSection');
       if (ms) ms.style.display = 'none';
       return;
@@ -208,8 +222,14 @@ async function trackShipment() {
     showRouteMap(s.origin, s.dest, s.location || s.origin, s.status);
   } catch (err) {
     if (btn) { btn.disabled = false; btn.innerHTML = 'Track Now'; }
-    result.className = 'track-result error';
-    result.innerHTML = 'Service temporarily unavailable. Please try again.';
+    result.className = '';
+    result.innerHTML = `<div style="background:white;border-radius:16px;padding:40px 24px;text-align:center;box-shadow:0 8px 32px rgba(13,31,53,.1);">
+      <div style="width:64px;height:64px;background:#fff7ed;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;font-size:1.8rem;"></i></div>
+      <h3 style="color:#0d1f35;font-size:1.1rem;margin-bottom:8px;font-family:'Outfit',sans-serif;">Service Unavailable</h3>
+      <p style="color:#64748b;font-size:.9rem;margin-bottom:20px;">Could not reach the tracking service. Please try again.</p>
+      <button onclick="trackShipment()" style="display:inline-flex;align-items:center;gap:8px;background:#e8820c;color:white;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:.85rem;font-family:'Outfit',sans-serif;">
+        <i class="fa-solid fa-rotate-right"></i> Try Again</button></div>`;
   }
 }
 
@@ -410,7 +430,13 @@ function renderTrackingResult(s, result) {
 
     // ── PROGRESS ──
     + '<div style="padding:24px 22px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;">'
-    + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;font-weight:600;">Shipment Progress</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
+    + '<div style="font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Shipment Progress</div>'
+    + '<div style="font-size:.75rem;font-weight:700;color:' + sc.bar + ';">' + (s.status === 'Delivered' ? '100% Delivered' : s.status === 'On Hold' ? 'On Hold' : curIdx >= 0 ? Math.round(((curIdx + 1) / steps.length) * 100) + '% Complete' : 'Pending') + '</div>'
+    + '</div>'
+    + '<div style="background:#e5e7eb;border-radius:50px;height:6px;margin-bottom:20px;overflow:hidden;">'
+    + '<div style="height:100%;border-radius:50px;background:linear-gradient(90deg,' + sc.bar + ',#f59e0b);width:' + (s.status === 'Delivered' ? 100 : s.status === 'On Hold' ? 20 : curIdx >= 0 ? Math.round(((curIdx + 1) / steps.length) * 100) : 5) + '%;transition:width 1.2s ease;"></div>'
+    + '</div>'
     + '<div style="display:flex;align-items:flex-start;">' + stepsHTML + '</div>'
     + onHoldAlert
     + '</div>'
