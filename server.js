@@ -349,47 +349,16 @@ app.post('/api/email/shipment', async (req, res) => {
           clickTracking: { enabled: false },
           openTracking: { enabled: false },
         },
-        htmlContent: `<!DOCTYPE html><html><head><meta charset="UTF-8"/></head>
-<body style="margin:0;padding:24px;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;">
-<div style="max-width:520px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
-  <div style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:22px;font-weight:800;">ZipCargo</div>
-    <div style="color:#aac4e0;font-size:12px;margin-top:2px;">Global Logistics Solutions</div>
-  </div>
-  <div style="padding:28px;">
-    <p style="color:#0d1f35;font-size:15px;margin:0 0 16px;">Dear <strong>${shipment.rName}</strong>,</p>
-    <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0 0 20px;">
-      Warm regards from the team at <strong>ZipCargo!</strong><br/>
-      We are pleased to inform you that a package has been successfully registered in your name.
-    </p>
-    <div style="background:#f0f7ff;border:2px solid #0d1f35;border-radius:10px;padding:18px;text-align:center;margin:20px 0;">
-      <div style="color:#64748b;font-size:11px;font-weight:700;letter-spacing:1px;">TRACKING NUMBER</div>
-      <div style="color:#e8820c;font-size:26px;font-weight:800;letter-spacing:2px;margin-top:6px;">${shipment.tracking}</div>
-    </div>
-    <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0 0 16px;">
-      To verify the details and track the status of your shipment, kindly visit our website at:<br/>
-      <a href="${siteUrl}/tracking.html" style="color:#e8820c;font-weight:700;">${displayUrl}</a>
-    </p>
-    <div style="text-align:center;margin:20px 0;">
-      <a href="${siteUrl}/tracking.html?id=${shipment.tracking}" style="background:#e8820c;color:white;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;display:inline-block;">Track Your Shipment →</a>
-    </div>
-    <p style="color:#1e293b;font-size:13px;line-height:1.7;margin:16px 0 0;">
-      Please reply to this email with any questions or concerns regarding your package.
-      We recommend checking your email regularly for updates on the whereabouts and details of your shipment.
-    </p>
-    <p style="color:#1e293b;font-size:14px;margin:16px 0 0;">
-      Thank you for choosing <strong>ZipCargo</strong>.<br/>
-      Best regards,<br/>
-      <strong>ZipCargo Logistics Team</strong><br/>
-      <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
-    </p>
-  </div>
-  <div style="background:#0d1f35;padding:16px 28px;text-align:center;">
-    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics — Delivering trust, one shipment at a time</div>
-    <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official receipt is attached to this email.</div>
-  </div>
-</div>
-</body></html>`,
+        htmlContent: `<p>Dear ${shipment.rName},</p>
+<p>Warm regards from the team at ZipCargo!</p>
+<p>We are pleased to inform you that a package has been successfully registered in your name.</p>
+<p><strong>Tracking Number: ${shipment.tracking}</strong></p>
+<p>To verify the details and track the status of your shipment, kindly visit our website at:</p>
+<p>${siteUrl}/tracking.html</p>
+<p>And enter your tracking number: <strong>${shipment.tracking}</strong></p>
+<p>Please reply to this email with any questions or concerns regarding your package. We recommend checking your email regularly for updates on the whereabouts and details of your shipment.</p>
+<p>Thank you for choosing ZipCargo.</p>
+<p>Best regards,<br/>ZipCargo Logistics Team<br/>${siteEmail}</p>`,
         attachment: [{
           name: `ZipCargo-Receipt-${shipment.tracking}.pdf`,
           content: pdfBuffer.toString('base64'),
