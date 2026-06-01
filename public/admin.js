@@ -214,6 +214,41 @@ async function createShipment() {
       await api.put(`/api/shipments/${editingId}`, payload);
       showToast(`Shipment ${payload.tracking} updated!`,'success');
       delete document.getElementById('newTracking').dataset.editingId;
+
+      // Send status update email if recipient email exists
+      if (payload.rEmail) {
+        try {
+          const settings = {
+            website: localStorage.getItem('zc_contact_website') || '',
+            email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
+            phone:   localStorage.getItem('zc_contact_phone')   || '',
+          };
+          const updateRes = await fetch('/api/email/status-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              shipment: {
+                tracking:  payload.tracking,
+                status:    payload.status,
+                rName:     payload.rName,
+                rEmail:    payload.rEmail,
+                origin:    payload.origin,
+                dest:      payload.dest,
+                location:  payload.location,
+                eta:       payload.eta,
+                service:   payload.service,
+              },
+              settings,
+            }),
+          });
+          const updateData = await updateRes.json();
+          if (updateData.success) {
+            showToast(`📧 Status update sent to ${payload.rEmail}`, 'success');
+          }
+        } catch(e) {
+          console.warn('Status update email failed:', e.message);
+        }
+      }
     } else {
       await api.post('/api/shipments', payload);
       showToast(`Shipment ${payload.tracking} created!`,'success');
