@@ -738,6 +738,278 @@ app.post('/api/email/vaccine-invoice', async (req, res) => {
   }
 });
 
+
+// ── Insurance Invoice ─────────────────────────────────────────────────────
+app.post('/api/email/insurance-invoice', async (req, res) => {
+  try {
+    const { shipment, fee, duration, paymentMethods, settings } = req.body;
+    if (!shipment || !shipment.rEmail) return res.status(400).json({ error: 'Missing data.' });
+
+    const apiKey    = process.env.BREVO_API_KEY;
+    if (!apiKey) return res.json({ error: 'Email not configured.' });
+
+    const siteEmail  = (settings && settings.email) || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
+    const insFee     = parseFloat(fee) || 103;
+    const insDuration = duration || '8 months';
+    const invoiceNo  = 'ZII-' + Date.now().toString().slice(-8);
+    const issueDate  = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
+    const PDFDocument = require('pdfkit');
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 0, size: 'A4', autoFirstPage: true });
+      const chunks = [];
+      doc.on('data', c => chunks.push(c));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const W = 595, pad = 36, cW = W - pad * 2;
+      doc.rect(0, 0, W, 842).fill('#ffffff');
+      doc.rect(pad, 24, cW, 3).fill('#e8820c');
+
+      // Header
+      doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
+      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+      doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
+      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
+         .text('I N S U R A N C E  I N V O I C E', 0, 38, { align: 'right', width: W - pad - 16 });
+      doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
+         .text('Invoice No: ' + invoiceNo, 0, 52, { align: 'right', width: W - pad - 16 });
+      doc.fill('white').fontSize(11).font('Helvetica-Bold')
+         .text(shipment.tracking, 0, 65, { align: 'right', width: W - pad - 16 });
+      doc.fill('#7a9ab8').fontSize(8)
+         .text('Issued: ' + issueDate, 0, 81, { align: 'right', width: W - pad - 16 });
+
+      // Badge
+      doc.roundedRect(pad + 14, 87, 120, 18, 9).fill('#16a34a');
+      doc.fill('white').fontSize(8).font('Helvetica-Bold')
+         .text('FULLY REFUNDABLE', pad + 14, 93, { width: 120, align: 'center' });
+
+      // Client info
+      let y = 130;
+      doc.roundedRect(pad, y, cW, 56, 6).fill('#f8fafc').stroke('#e2e8f0');
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('BILL TO', pad + 14, y + 10);
+      doc.fill('#0d1f35').fontSize(11).font('Helvetica-Bold').text(shipment.rName, pad + 14, y + 24);
+      doc.fill('#64748b').fontSize(9).font('Helvetica').text(shipment.rEmail, pad + 14, y + 38);
+      if (shipment.rPhone) doc.fill('#64748b').fontSize(9).text(shipment.rPhone, pad + 14, y + 50);
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('SHIPMENT REF', 0, y + 10, { align: 'right', width: W - pad - 16 });
+      doc.fill('#0d1f35').fontSize(11).font('Helvetica-Bold').text(shipment.tracking, 0, y + 24, { align: 'right', width: W - pad - 16 });
+      doc.fill('#64748b').fontSize(9).font('Helvetica').text((shipment.origin||'-') + ' to ' + (shipment.dest||'-'), 0, y + 38, { align: 'right', width: W - pad - 16 });
+
+      // Table header
+      y += 66;
+      doc.roundedRect(pad, y, cW, 28, 4).fill('#0d1f35');
+      doc.fill('white').fontSize(9).font('Helvetica-Bold').text('DESCRIPTION', pad + 14, y + 9);
+      doc.fill('white').fontSize(9).text('AMOUNT', 0, y + 9, { align: 'right', width: W - pad - 14 });
+
+      // Line item
+      y += 28;
+      doc.rect(pad, y, cW, 44).fill('white').stroke('#e2e8f0');
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text('Insurance Registration Fee', pad + 14, y + 8);
+      doc.fill('#64748b').fontSize(8).font('Helvetica')
+         .text('Shipment insurance activation & coverage for ' + insDuration + ' — ' + (shipment.description || 'package') + ' transport', pad + 14, y + 22, { width: cW - 100 });
+      doc.fill('#0d1f35').fontSize(14).font('Helvetica-Bold')
+         .text('$' + insFee.toFixed(2), 0, y + 14, { align: 'right', width: W - pad - 14 });
+
+      // Refund row
+      y += 44;
+      doc.rect(pad, y, cW, 26).fill('#f0fdf4').stroke('#bbf7d0');
+      doc.fill('#15803d').fontSize(9).font('Helvetica-Bold')
+         .text('Refund Policy: 100% refunded immediately upon successful delivery of the shipment', pad + 14, y + 9);
+
+      // Coverage box
+      y += 34;
+      doc.roundedRect(pad, y, cW, 52, 4).fill('#f0f7ff').stroke('#bfdbfe');
+      doc.fill('#1d4ed8').fontSize(9).font('Helvetica-Bold').text('INSURANCE COVERAGE', pad + 14, y + 10);
+      doc.fill('#1e40af').fontSize(8).font('Helvetica')
+         .text('Coverage Duration: ' + insDuration, pad + 14, y + 24);
+      doc.fill('#1e40af').fontSize(8)
+         .text('Coverage includes: Full protection during handling & transit, customs compliance, HTS code classification and processing.', pad + 14, y + 36, { width: cW - 28 });
+
+      // Next steps
+      y += 60;
+      doc.roundedRect(pad, y, cW, 56, 4).fill('#fff7ed').stroke('#fed7aa');
+      doc.fill('#ea580c').fontSize(9).font('Helvetica-Bold').text('NEXT STEPS', pad + 14, y + 8);
+      doc.fill('#9a3412').fontSize(8).font('Helvetica')
+         .text('Upon payment, we will proceed with:\n  • Final package verification and documentation review\n  • Insurance activation and coverage confirmation\n  • Scheduling of delivery to your address', pad + 14, y + 22, { width: cW - 28 });
+
+      // Action required
+      y += 64;
+      doc.roundedRect(pad, y, cW, 28, 4).fill('#fef2f2').stroke('#fecaca');
+      doc.fill('#dc2626').fontSize(9).font('Helvetica-Bold').text('ACTION REQUIRED:', pad + 14, y + 8);
+      doc.fill('#991b1b').fontSize(8).font('Helvetica')
+         .text('Please reply to this email with your preferred payment method to proceed.', pad + 14, y + 20);
+
+      // Payment methods
+      if (paymentMethods && paymentMethods.trim()) {
+        y += 36;
+        doc.roundedRect(pad, y, cW, 28, 4).fill('#0d1f35');
+        doc.fill('white').fontSize(9).font('Helvetica-Bold').text('AVAILABLE PAYMENT METHODS', pad + 14, y + 9);
+        y += 28;
+        const pmLines = paymentMethods.trim().split(/\r?\n/).filter(l => l.trim());
+        const pmH = Math.max(pmLines.length * 18 + 24, 40);
+        doc.rect(pad, y, cW, pmH).fill('#f8fafc').stroke('#e2e8f0');
+        pmLines.forEach((line, i) => {
+          doc.fill('#0d1f35').fontSize(9).font('Helvetica-Bold')
+             .text('• ' + line.trim(), pad + 14, y + 10 + i * 18, { width: cW - 28 });
+        });
+        y += pmH;
+        doc.rect(pad, y, cW, 22).fill('#fff7ed').stroke('#fed7aa');
+        doc.fill('#9a3412').fontSize(8).font('Helvetica')
+           .text('Payment details will be provided upon confirmation of your choice.', pad + 14, y + 7);
+        y += 22;
+      }
+
+      // Total
+      y += 10;
+      doc.roundedRect(pad, y, cW, 44, 6).fill('#0d1f35');
+      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('TOTAL INSURANCE FEE', pad + 14, y + 12);
+      doc.fill('#7a9ab8').fontSize(8).text('100% refundable upon successful delivery', pad + 14, y + 26);
+      doc.fill('#e8820c').fontSize(22).font('Helvetica-Bold')
+         .text('$' + insFee.toFixed(2), 0, y + 10, { align: 'right', width: W - pad - 14 });
+
+      // STAMP
+      y += 54;
+      const cx = W / 2, cy = y + 65;
+      doc.circle(cx, cy, 72).lineWidth(5).stroke('#16a34a');
+      doc.circle(cx, cy, 62).lineWidth(2).stroke('#16a34a');
+      for (let a = 0; a < 360; a += 15) {
+        const rad = a * Math.PI / 180;
+        doc.circle(cx + 67 * Math.cos(rad), cy + 67 * Math.sin(rad), 2).fill('#16a34a');
+      }
+      doc.fill('#16a34a').fontSize(11).font('Helvetica-Bold')
+         .text('FULLY', cx - 50, cy - 22, { width: 100, align: 'center' });
+      doc.fill('#16a34a').fontSize(14).font('Helvetica-Bold')
+         .text('REFUNDABLE', cx - 50, cy - 6, { width: 100, align: 'center' });
+      doc.fill('#16a34a').fontSize(8).font('Helvetica')
+         .text('ZIPCARGO CERTIFIED', cx - 50, cy + 14, { width: 100, align: 'center' });
+
+      // Terms
+      y += 148;
+      doc.fill('#64748b').fontSize(8).font('Helvetica-Bold').text('Terms & Conditions:', pad + 14, y);
+      doc.fill('#64748b').fontSize(8).font('Helvetica')
+         .text('1. Insurance fee payment is required before delivery can be scheduled.\n2. The full amount ($' + insFee.toFixed(2) + ') will be refunded immediately upon successful delivery.\n3. Coverage remains valid for ' + insDuration + ' and applies to all shipments within that period.\n4. Please reply with your preferred payment method to proceed.', pad + 14, y + 14, { width: cW - 28, lineBreak: true });
+
+      // Footer
+      y += 75;
+      doc.roundedRect(pad, y, cW, 44, 6).fill('white').stroke('#e2e8f0');
+      doc.roundedRect(pad + 12, y + 8, 26, 26, 5).fill('#0d1f35');
+      doc.fill('#e8820c').fontSize(11).font('Helvetica-Bold').text('ZC', pad + 16, y + 15);
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text('ZipCargo Logistics', pad + 46, y + 10);
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica').text('Ship Smarter. Deliver Faster.', pad + 46, y + 24);
+      doc.fill('#94a3b8').fontSize(7).text(invoiceNo + '  •  ' + issueDate, 0, y + 28, { align: 'right', width: W - pad - 14 });
+      doc.rect(pad, y + 44, cW, 3).fill('#e8820c');
+
+      doc.end();
+    });
+
+    // Email
+    const pmHtml = (() => {
+      if (!paymentMethods || !paymentMethods.trim()) return '';
+      const lines = paymentMethods.trim().split(/\r?\n/).filter(l => l.trim());
+      const items = lines.map(l => '<div style="color:#0d1f35;font-size:13px;padding:4px 0;font-weight:600;">&#8226; ' + l.trim() + '</div>').join('');
+      return '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;"><div style="color:#0d1f35;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:10px;">AVAILABLE PAYMENT METHODS</div>' + items + '<div style="color:#94a3b8;font-size:11px;margin-top:10px;font-style:italic;">Payment details will be sent to you upon confirmation of your choice.</div></div>';
+    })();
+
+    const emailHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/><meta name="color-scheme" content="light only"/>
+<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+</head>
+<body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
+<div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
+  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions — Official Insurance Notice</div>
+  </div>
+  <div style="padding:28px;background:#ffffff;">
+    <p style="color:#0d1f35;font-size:15px;">Dear <strong>${shipment.rName}</strong>,</p>
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      During the final review of your shipment documentation, we identified that your package does not currently meet the insurance requirements needed for secure transportation. To ensure full protection during transit and compliance with international shipping regulations, an <strong>Insurance Registration</strong> must be completed before the package can be scheduled for delivery.
+    </p>
+
+    <div style="background:#f0f7ff;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:16px;margin:16px 0;">
+      <div style="color:#1d4ed8;font-size:13px;font-weight:800;margin-bottom:10px;">Why Insurance Is Required</div>
+      <div style="color:#1e40af;font-size:13px;line-height:1.8;">
+        &#8226; Full protection of the package during handling and transit<br/>
+        &#8226; Compliance with customs and transportation regulations<br/>
+        &#8226; Accurate classification and processing based on HTS codes and applicable oversight agencies
+      </div>
+    </div>
+
+    <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:16px;text-align:center;margin:20px 0;">
+      <div style="color:#64748b;font-size:11px;font-weight:700;letter-spacing:1px;">INSURANCE REGISTRATION FEE</div>
+      <div style="color:#16a34a;font-size:28px;font-weight:800;margin-top:6px;">$${insFee.toFixed(2)}</div>
+      <div style="color:#15803d;font-size:12px;font-weight:700;margin-top:4px;">100% FULLY REFUNDABLE</div>
+      <div style="color:#64748b;font-size:11px;margin-top:4px;">Refunded immediately upon successful delivery</div>
+    </div>
+
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;">
+      <div style="color:#0d1f35;font-size:13px;font-weight:800;margin-bottom:8px;">&#128737; Insurance Coverage</div>
+      <p style="color:#1e293b;font-size:13px;line-height:1.8;margin:0;">
+        Once registered, your insurance will remain valid for <strong>${insDuration}</strong> and will cover any additional shipments you choose to send or receive during that period.
+      </p>
+    </div>
+
+    <div style="background:#fff7ed;border-left:4px solid #e8820c;border-radius:0 8px 8px 0;padding:16px;margin:16px 0;">
+      <div style="color:#ea580c;font-size:13px;font-weight:800;margin-bottom:8px;">Next Steps</div>
+      <div style="color:#9a3412;font-size:13px;line-height:1.8;">
+        Please complete the insurance fee payment to allow us to proceed with:<br/>
+        &#8226; Final package verification and documentation review<br/>
+        &#8226; Insurance activation and coverage confirmation<br/>
+        &#8226; Scheduling delivery to your address
+      </div>
+    </div>
+
+    ${pmHtml}
+
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      Please respond to this email with your preferred payment method and we will send you the payment details to proceed immediately.
+    </p>
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      Thank you for your cooperation and continued trust in ZipCargo.
+    </p>
+    <p style="color:#1e293b;font-size:14px;">
+      Best regards,<br/>
+      <strong>ZipCargo Logistics Team</strong><br/>
+      <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
+    </p>
+  </div>
+  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
+    <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official insurance invoice is attached to this email.</div>
+  </div>
+</div>
+</body></html>`;
+
+    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'accept':'application/json','api-key':apiKey,'content-type':'application/json' },
+      body: JSON.stringify({
+        sender: { name: 'ZipCargo Logistics', email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        to: [{ email: shipment.rEmail, name: shipment.rName }],
+        replyTo: { email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        subject: `Insurance Registration Required — ${shipment.tracking}`,
+        htmlContent: emailHtml,
+        trackingSettings: { clickTracking: { enabled: false }, openTracking: { enabled: false } },
+        attachment: [{
+          name: `ZipCargo-Insurance-Invoice-${shipment.tracking}.pdf`,
+          content: pdfBuffer.toString('base64'),
+        }],
+      }),
+    });
+
+    const data = await brevoRes.json();
+    if (!brevoRes.ok) throw new Error(data.message || 'Brevo error');
+    res.json({ success: true });
+
+  } catch(err) {
+    console.error('Insurance invoice error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // ── Test email config ─────────────────────────────────────────────────────
 app.get('/api/email/test', async (req, res) => {
   const apiKey = process.env.BREVO_API_KEY;
