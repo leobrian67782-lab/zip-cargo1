@@ -502,6 +502,235 @@ app.post('/api/email/crate-invoice', async (req, res) => {
   }
 });
 
+
+// ── Vaccine Invoice ───────────────────────────────────────────────────────
+app.post('/api/email/vaccine-invoice', async (req, res) => {
+  try {
+    const { shipment, fee, paymentMethods, settings } = req.body;
+    if (!shipment || !shipment.rEmail) return res.status(400).json({ error: 'Missing data.' });
+
+    const apiKey    = process.env.BREVO_API_KEY;
+    if (!apiKey) return res.json({ error: 'Email not configured.' });
+
+    const siteEmail = (settings && settings.email) || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
+    const vacFee    = parseFloat(fee) || 289;
+    const invoiceNo = 'ZVI-' + Date.now().toString().slice(-8);
+    const issueDate = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
+    // ── PDF ──────────────────────────────────────────────────────────────
+    const PDFDocument = require('pdfkit');
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 0, size: 'A4', autoFirstPage: true });
+      const chunks = [];
+      doc.on('data', c => chunks.push(c));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const W = 595, pad = 36, cW = W - pad * 2;
+      doc.rect(0, 0, W, 842).fill('#ffffff');
+      doc.rect(pad, 24, cW, 3).fill('#e8820c');
+
+      // Header
+      doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
+      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+      doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
+      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
+         .text('V A C C I N A T I O N  I N V O I C E', 0, 38, { align: 'right', width: W - pad - 16 });
+      doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
+         .text('Invoice No: ' + invoiceNo, 0, 52, { align: 'right', width: W - pad - 16 });
+      doc.fill('white').fontSize(11).font('Helvetica-Bold')
+         .text(shipment.tracking, 0, 65, { align: 'right', width: W - pad - 16 });
+      doc.fill('#7a9ab8').fontSize(8)
+         .text('Issued: ' + issueDate, 0, 81, { align: 'right', width: W - pad - 16 });
+
+      // 100% REFUNDABLE badge
+      doc.roundedRect(pad + 14, 87, 110, 18, 9).fill('#16a34a');
+      doc.fill('white').fontSize(8).font('Helvetica-Bold')
+         .text('100% REFUNDABLE', pad + 14, 93, { width: 110, align: 'center' });
+
+      // Client info
+      let y = 130;
+      doc.roundedRect(pad, y, cW, 56, 6).fill('#f8fafc').stroke('#e2e8f0');
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('BILL TO', pad + 14, y + 10);
+      doc.fill('#0d1f35').fontSize(11).font('Helvetica-Bold').text(shipment.rName, pad + 14, y + 24);
+      doc.fill('#64748b').fontSize(9).font('Helvetica').text(shipment.rEmail, pad + 14, y + 38);
+      if (shipment.rPhone) doc.fill('#64748b').fontSize(9).text(shipment.rPhone, pad + 14, y + 50);
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('SHIPMENT REF', 0, y + 10, { align: 'right', width: W - pad - 16 });
+      doc.fill('#0d1f35').fontSize(11).font('Helvetica-Bold').text(shipment.tracking, 0, y + 24, { align: 'right', width: W - pad - 16 });
+      doc.fill('#64748b').fontSize(9).font('Helvetica').text((shipment.origin||'-') + ' to ' + (shipment.dest||'-'), 0, y + 38, { align: 'right', width: W - pad - 16 });
+
+      // Invoice table
+      y += 66;
+      doc.roundedRect(pad, y, cW, 28, 4).fill('#0d1f35');
+      doc.fill('white').fontSize(9).font('Helvetica-Bold').text('DESCRIPTION', pad + 14, y + 9);
+      doc.fill('white').fontSize(9).text('AMOUNT', 0, y + 9, { align: 'right', width: W - pad - 14 });
+
+      y += 28;
+      doc.rect(pad, y, cW, 44).fill('white').stroke('#e2e8f0');
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold')
+         .text('Vaccination & Processing Fee', pad + 14, y + 8);
+      doc.fill('#64748b').fontSize(8).font('Helvetica')
+         .text('Required vaccinations and health certification for ' + (shipment.description || 'pet') + ' transport compliance', pad + 14, y + 22, { width: cW - 100 });
+      doc.fill('#0d1f35').fontSize(14).font('Helvetica-Bold')
+         .text('$' + vacFee.toFixed(2), 0, y + 14, { align: 'right', width: W - pad - 14 });
+
+      // Refund policy row
+      y += 44;
+      doc.rect(pad, y, cW, 26).fill('#f0fdf4').stroke('#bbf7d0');
+      doc.fill('#15803d').fontSize(9).font('Helvetica-Bold')
+         .text('Refund Policy: 100% refunded immediately upon successful delivery of the pet', pad + 14, y + 9);
+
+      // Action required
+      y += 34;
+      doc.roundedRect(pad, y, cW, 30, 4).fill('#fff7ed').stroke('#fed7aa');
+      doc.fill('#ea580c').fontSize(9).font('Helvetica-Bold').text('ACTION REQUIRED:', pad + 14, y + 8);
+      doc.fill('#9a3412').fontSize(8).font('Helvetica')
+         .text('Please reply to this email with your preferred payment method to proceed.', pad + 14, y + 20);
+
+      // Payment methods
+      if (paymentMethods && paymentMethods.trim()) {
+        y += 38;
+        doc.roundedRect(pad, y, cW, 28, 4).fill('#0d1f35');
+        doc.fill('white').fontSize(9).font('Helvetica-Bold').text('AVAILABLE PAYMENT METHODS', pad + 14, y + 9);
+        y += 28;
+        const pmLines = paymentMethods.trim().split('\n').filter(l => l.trim());
+        const pmH = pmLines.length * 16 + 20;
+        doc.rect(pad, y, cW, pmH).fill('#f8fafc').stroke('#e2e8f0');
+        pmLines.forEach((line, i) => {
+          doc.fill('#0d1f35').fontSize(9).font('Helvetica-Bold')
+             .text(line.trim(), pad + 14, y + 10 + i * 16);
+        });
+        y += pmH;
+        doc.rect(pad, y, cW, 22).fill('#fff7ed').stroke('#fed7aa');
+        doc.fill('#9a3412').fontSize(8).font('Helvetica')
+           .text('Payment details will be provided upon confirmation.', pad + 14, y + 7);
+        y += 22;
+      }
+
+      // Total banner
+      y += 10;
+      doc.roundedRect(pad, y, cW, 44, 6).fill('#0d1f35');
+      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('TOTAL AMOUNT DUE', pad + 14, y + 12);
+      doc.fill('#7a9ab8').fontSize(8).text('100% refundable upon successful pet delivery', pad + 14, y + 26);
+      doc.fill('#e8820c').fontSize(22).font('Helvetica-Bold')
+         .text('$' + vacFee.toFixed(2), 0, y + 10, { align: 'right', width: W - pad - 14 });
+
+      // STAMP
+      y += 54;
+      const cx = W / 2, cy = y + 50;
+      doc.circle(cx, cy, 55).lineWidth(4).stroke('#16a34a');
+      doc.circle(cx, cy, 47).lineWidth(1.5).stroke('#16a34a');
+      for (let a = 0; a < 360; a += 20) {
+        const rad = a * Math.PI / 180;
+        doc.circle(cx + 51 * Math.cos(rad), cy + 51 * Math.sin(rad), 1.5).fill('#16a34a');
+      }
+      doc.fill('#16a34a').fontSize(11).font('Helvetica-Bold').text('100%', cx - 30, cy - 18, { width: 60, align: 'center' });
+      doc.fill('#16a34a').fontSize(10).font('Helvetica-Bold').text('REFUNDABLE', cx - 30, cy - 2, { width: 60, align: 'center' });
+      doc.fill('#16a34a').fontSize(7).font('Helvetica').text('ZIPCARGO CERTIFIED', cx - 30, cy + 14, { width: 60, align: 'center' });
+
+      // Terms
+      y += 115;
+      doc.fill('#64748b').fontSize(8).font('Helvetica-Bold').text('Terms & Conditions:', pad + 14, y);
+      doc.fill('#64748b').fontSize(8).font('Helvetica')
+         .text('1. Payment is required before the vaccination process can begin.\n2. The full amount ($' + vacFee.toFixed(2) + ') will be refunded immediately upon successful delivery of the pet.\n3. This fee covers all required vaccinations and health certifications per transport regulations.\n4. Please reply to confirm your payment method to proceed.', pad + 14, y + 14, { width: cW - 28, lineBreak: true });
+
+      // Footer
+      y += 80;
+      doc.roundedRect(pad, y, cW, 44, 6).fill('white').stroke('#e2e8f0');
+      doc.roundedRect(pad + 12, y + 8, 26, 26, 5).fill('#0d1f35');
+      doc.fill('#e8820c').fontSize(11).font('Helvetica-Bold').text('ZC', pad + 16, y + 15);
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text('ZipCargo Logistics', pad + 46, y + 10);
+      doc.fill('#94a3b8').fontSize(8).font('Helvetica').text('Ship Smarter. Deliver Faster.', pad + 46, y + 24);
+      doc.fill('#94a3b8').fontSize(7).text(invoiceNo + '  •  ' + issueDate, 0, y + 28, { align: 'right', width: W - pad - 14 });
+      doc.rect(pad, y + 44, cW, 3).fill('#e8820c');
+
+      doc.end();
+    });
+
+    // ── Email ────────────────────────────────────────────────────────────
+    const pmHtml = (() => {
+      if (!paymentMethods || !paymentMethods.trim()) return '';
+      const lines = paymentMethods.trim().split('\n').filter(l => l.trim());
+      const items = lines.map(l => '<div style="color:#0d1f35;font-size:13px;padding:4px 0;font-weight:600;">&#8226; ' + l.trim() + '</div>').join('');
+      return '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;"><div style="color:#0d1f35;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:10px;">AVAILABLE PAYMENT METHODS</div>' + items + '<div style="color:#94a3b8;font-size:11px;margin-top:10px;font-style:italic;">Payment details will be sent to you upon confirmation.</div></div>';
+    })();
+
+    const emailHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/><meta name="color-scheme" content="light only"/>
+<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+</head>
+<body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
+<div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
+  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions</div>
+  </div>
+  <div style="padding:28px;background:#ffffff;">
+    <p style="color:#0d1f35;font-size:15px;font-weight:700;">GREETINGS,</p>
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">We hope this message finds you well.</p>
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      During our routine review of the shipment documentation, we noted that the pets currently require the necessary vaccinations prior to final delivery. At this time, the pet is safely with our agency.
+    </p>
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      In line with agency health and transport regulations, the pet must complete the vaccination process through our agency before proceeding with delivery. This step ensures the pets safety and full compliance with transport standards.
+    </p>
+    <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:16px;text-align:center;margin:20px 0;">
+      <div style="color:#64748b;font-size:11px;font-weight:700;letter-spacing:1px;">VACCINATION & PROCESSING FEE</div>
+      <div style="color:#16a34a;font-size:28px;font-weight:800;margin-top:6px;">$${vacFee.toFixed(2)}</div>
+      <div style="color:#15803d;font-size:12px;font-weight:700;margin-top:4px;">100% REFUNDABLE</div>
+    </div>
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;"><strong>Refund Policy:</strong><br/>
+      The full amount will be refunded immediately once the pet arrives at their destination.
+    </p>
+    ${pmHtml}
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      Please respond to this email with your preferred payment method and we will send you the payment details to proceed.
+    </p>
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      Thank you for your cooperation and continued trust.
+    </p>
+    <p style="color:#1e293b;font-size:14px;">
+      Best regards,<br/>
+      <strong>ZipCargo Logistics Team</strong><br/>
+      <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
+    </p>
+  </div>
+  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
+    <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official vaccination invoice is attached to this email.</div>
+  </div>
+</div>
+</body></html>`;
+
+    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'accept':'application/json','api-key':apiKey,'content-type':'application/json' },
+      body: JSON.stringify({
+        sender: { name: 'ZipCargo Logistics', email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        to: [{ email: shipment.rEmail, name: shipment.rName }],
+        replyTo: { email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        subject: `Vaccination Fee Notice — ${shipment.tracking}`,
+        htmlContent: emailHtml,
+        trackingSettings: { clickTracking: { enabled: false }, openTracking: { enabled: false } },
+        attachment: [{
+          name: `ZipCargo-Vaccine-Invoice-${shipment.tracking}.pdf`,
+          content: pdfBuffer.toString('base64'),
+        }],
+      }),
+    });
+
+    const data = await brevoRes.json();
+    if (!brevoRes.ok) throw new Error(data.message || 'Brevo error');
+    res.json({ success: true });
+
+  } catch(err) {
+    console.error('Vaccine invoice error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Test email config ─────────────────────────────────────────────────────
 app.get('/api/email/test', async (req, res) => {
   const apiKey = process.env.BREVO_API_KEY;
