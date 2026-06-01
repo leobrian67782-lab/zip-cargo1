@@ -127,7 +127,10 @@ app.post('/api/email/shipment', async (req, res) => {
     const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) return res.json({ error: 'Email service not configured.' });
 
-    const siteUrl   = (req.body.settings && req.body.settings.website) || process.env.SITE_URL || 'https://zipcargo-app.onrender.com';
+    // Clean siteUrl — strip any trailing slash and ensure https://
+    let siteUrl = (req.body.settings && req.body.settings.website) || process.env.SITE_URL || 'https://zipcargo-app.onrender.com';
+    siteUrl = siteUrl.replace(/\/$/, ''); // remove trailing slash
+    if (!siteUrl.startsWith('http')) siteUrl = 'https://' + siteUrl;
     const siteEmail = (req.body.settings && req.body.settings.email)   || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
     const sitePhone = (req.body.settings && req.body.settings.phone)   || '';
     const displayUrl = siteUrl.replace(/^https?:\/\//, '');
