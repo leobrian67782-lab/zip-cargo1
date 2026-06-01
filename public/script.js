@@ -13,7 +13,16 @@ if (loader) {
 
 // ===== NAVBAR SCROLL =====
 window.addEventListener('scroll', () => {
-  document.getElementById('navbar')?.classList.toggle('scrolled', window.scrollY > 50);
+  const nav = document.getElementById('navbar');
+  if (nav) {
+    // On homepage — transparent until scrolled past hero
+    const isHome = document.querySelector('.hero');
+    if (isHome) {
+      nav.classList.toggle('scrolled', window.scrollY > 80);
+    } else {
+      nav.classList.add('scrolled');
+    }
+  }
   const bar = document.getElementById('progressBar');
   if (bar) bar.style.width = (window.scrollY / (document.body.scrollHeight - innerHeight)) * 100 + '%';
   document.getElementById('backToTop')?.classList.toggle('visible', window.scrollY > 400);

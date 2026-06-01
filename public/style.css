@@ -4,7 +4,7 @@ html { scroll-behavior: smooth; }
 body { font-family: 'Outfit', 'Segoe UI', sans-serif; color: #333; line-height: 1.6; overflow-x: hidden; }
 a { text-decoration: none; color: inherit; }
 
-.navbar { background-color: #0d1f35; padding: 16px 0; position: sticky; top: 0; z-index: 1000; transition: box-shadow 0.3s; }
+.navbar { background-color: transparent; padding: 16px 0; position: fixed; top: 0; left:0; right:0; z-index: 1000; transition: background .35s ease, box-shadow .35s ease, padding .35s ease; }
 .navbar.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
 .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; }
 .logo { font-size: 1.6rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
@@ -379,19 +379,22 @@ a.logo {
   text-decoration: none;
   color: inherit;
 }
-.navbar:not(.scrolled) a.logo { color: white; }
-.navbar.scrolled a.logo { color: #0d1f35; }
+.navbar a.logo { color: white; }
+.navbar.scrolled a.logo { color: white; }
+.navbar .nav-links a { color: rgba(255,255,255,0.9); }
+.navbar.scrolled .nav-links a { color: rgba(255,255,255,0.9); }
 
 /* Inner pages always have scrolled navbar */
 .navbar.scrolled {
-  background: white;
-  box-shadow: 0 2px 20px rgba(0,0,0,.08);
+  background: #0d1f35;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+  padding: 10px 0;
 }
 
 /* Page hero section */
 .page-hero {
   background: linear-gradient(135deg, #0d1f35 0%, #1a3a5c 100%);
-  padding: 140px 24px 80px;
+  padding: 160px 24px 80px;
   text-align: center;
   position: relative;
   overflow: hidden;

@@ -83,69 +83,73 @@
     box-shadow: 0 16px 32px rgba(13,31,53,0.12) !important;
   }
 
-  /* Quick Track Bar */
+  /* /* Quick Track Bar */
   .quick-track-bar {
-    background: #0d1f35;
-    padding: 28px 24px;
-    border-bottom: 3px solid #e8820c;
-  }
-  .quick-track-inner {
-    max-width: 900px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-  .quick-track-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: white;
-    font-weight: 700;
-    font-size: 1rem;
-    white-space: nowrap;
-  }
-  .quick-track-label i { color: #e8820c; font-size: 1.2rem; }
-  .quick-track-form {
-    display: flex;
-    flex: 1;
-    gap: 12px;
-    min-width: 280px;
-  }
-  .quick-track-form input {
-    flex: 1;
-    padding: 13px 18px;
-    border-radius: 8px;
-    border: 2px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.08);
-    color: white;
-    font-size: .95rem;
-    font-family: 'Outfit', sans-serif;
-    outline: none;
-    transition: border-color .2s;
-  }
-  .quick-track-form input::placeholder { color: rgba(255,255,255,0.4); }
-  .quick-track-form input:focus { border-color: #e8820c; }
-  .quick-track-form button {
-    padding: 13px 24px;
-    background: #e8820c;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: .9rem;
-    cursor: pointer;
-    font-family: 'Outfit', sans-serif;
-    white-space: nowrap;
-    transition: background .2s, transform .1s;
-  }
-  .quick-track-form button:hover { background: #d4720a; transform: translateY(-1px); }
-  @media(max-width:600px) {
-    .quick-track-inner { flex-direction: column; align-items: stretch; }
-    .quick-track-form { flex-direction: column; }
-    .quick-track-form button { width: 100%; }
-  }
+.quick-track-bar {
+  background: #0d1f35;
+  padding: 28px 24px;
+  border-bottom: 3px solid #e8820c;
+}
+.quick-track-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.quick-track-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.quick-track-label i {
+  color: #e8820c;
+  font-size: 1.2rem;
+}
+.quick-track-form {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  min-width: 280px;
+}
+.quick-track-form input {
+  flex: 1;
+  padding: 13px 18px;
+  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  color: white;
+  font-size: .95rem;
+  font-family: 'Outfit', sans-serif;
+  outline: none;
+  transition: border-color .2s;
+}
+.quick-track-form input::placeholder { color: rgba(255,255,255,0.4); }
+.quick-track-form input:focus { border-color: #e8820c; }
+.quick-track-form button {
+  padding: 13px 24px;
+  background: #e8820c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  white-space: nowrap;
+  transition: background .2s, transform .1s;
+}
+.quick-track-form button:hover { background: #d4720a; transform: translateY(-1px); }
+@media(max-width:600px) {
+  .quick-track-inner { flex-direction: column; align-items: stretch; }
+  .quick-track-form { flex-direction: column; }
+  .quick-track-form button { width: 100%; }
+}
 
   /* FAQ Styles */
   .faq-item {
@@ -169,7 +173,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Sora', sans-serif;
     transition: background .2s;
   }
   .faq-q:hover { background: #f8fafc; }
@@ -190,6 +194,28 @@
 
 </style>
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css"/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "ZipCargo Logistics",
+  "url": "https://zipcargo-app.onrender.com",
+  "logo": "https://zipcargo-app.onrender.com/favicon.ico",
+  "description": "ZipCargo provides professional worldwide logistics, pet transport, air freight, sea freight, and road transport services across 150+ countries.",
+  "email": "zipcargo99@gmail.com",
+  "serviceArea": {"@type": "Place", "name": "Worldwide"},
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Logistics Services",
+    "itemListElement": [
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Air Freight"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Sea Freight"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Road Transport"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Pet Transport"}}
+    ]
+  }
+}
+</script>
 </head>
 <body>
 
@@ -215,7 +241,6 @@
       <li><a href="about.html">About</a></li>
       <li><a href="testimonials.html">Testimonials</a></li>
       <li><a href="contact.html">Contact</a></li>
-        <li><a href="portal.html" style="color:#e8820c;font-weight:700;"><i class="fa-solid fa-user"></i> My Shipments</a></li>
     </ul>
     <a href="contact.html" class="btn-quote">Get a Quote</a>
     <div class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></div>
@@ -291,6 +316,40 @@
   </div>
 </section>
 
+
+<!-- Trusted By Section -->
+<section style="padding:40px 24px;background:white;border-bottom:1px solid #f1f5f9;" data-aos="fade-up">
+  <div style="max-width:1100px;margin:0 auto;text-align:center;">
+    <p style="color:#94a3b8;font-size:.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:28px;">Trusted by businesses worldwide</p>
+    <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:40px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">
+        <div style="width:48px;height:48px;background:#f0f4ff;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-industry" style="color:#2563eb;font-size:1.3rem;"></i></div>
+        <span style="font-size:.75rem;color:#64748b;font-weight:600;">Manufacturing</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">
+        <div style="width:48px;height:48px;background:#f0fdf4;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-store" style="color:#16a34a;font-size:1.3rem;"></i></div>
+        <span style="font-size:.75rem;color:#64748b;font-weight:600;">eCommerce</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">
+        <div style="width:48px;height:48px;background:#fff7ed;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-paw" style="color:#e8820c;font-size:1.3rem;"></i></div>
+        <span style="font-size:.75rem;color:#64748b;font-weight:600;">Pet Breeders</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">
+        <div style="width:48px;height:48px;background:#fdf4ff;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-boxes-stacked" style="color:#9333ea;font-size:1.3rem;"></i></div>
+        <span style="font-size:.75rem;color:#64748b;font-weight:600;">Wholesalers</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">
+        <div style="width:48px;height:48px;background:#fff1f2;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-hospital" style="color:#e11d48;font-size:1.3rem;"></i></div>
+        <span style="font-size:.75rem;color:#64748b;font-weight:600;">Healthcare</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">
+        <div style="width:48px;height:48px;background:#f0f9ff;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-building" style="color:#0891b2;font-size:1.3rem;"></i></div>
+        <span style="font-size:.75rem;color:#64748b;font-weight:600;">Importers</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Services Preview -->
 <section class="services" id="services" style="padding-bottom:20px;">
   <div class="section-header animate-fade" data-aos="fade-up">
@@ -298,10 +357,10 @@
     <p class="section-subtitle">End-to-end logistics solutions built for global businesses</p>
   </div>
   <div class="services-grid">
-    <div class="service-card animate-card" data-aos="fade-up" data-aos-delay="100"><div class="service-img"><img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80" alt="Air Freight"/></div><div class="service-icon"><i class="fa-solid fa-plane-departure"></i></div><h3>Air Freight</h3><p>Express worldwide delivery for urgent shipments to over 200 international destinations.</p><a href="services.html" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
-    <div class="service-card animate-card" data-aos="fade-up" data-aos-delay="100"><div class="service-img"><img src="https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=600&q=80" alt="Sea Freight"/></div><div class="service-icon"><i class="fa-solid fa-ship"></i></div><h3>Sea Freight</h3><p>Cost-effective ocean shipping for large cargo with full container and groupage options.</p><a href="services.html" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
-    <div class="service-card animate-card" data-aos="fade-up" data-aos-delay="100"><div class="service-img"><img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80" alt="Road Transport"/></div><div class="service-icon"><i class="fa-solid fa-truck-moving"></i></div><h3>Road Transport</h3><p>Cross-border trucking with real-time GPS tracking and dedicated fleet management.</p><a href="services.html" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
-    <div class="service-card animate-card" data-aos="fade-up" data-aos-delay="100"><div class="service-img"><img src="https://images.unsplash.com/photo-1586528116493-a029325540fa?w=600&q=80" alt="Warehousing"/></div><div class="service-icon"><i class="fa-solid fa-warehouse"></i></div><h3>Warehousing</h3><p>Secure, climate-controlled storage with smart inventory and fulfilment systems.</p><a href="services.html" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card" data-aos="fade-up" data-aos-delay="100"><div class="service-img"><img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80" alt="Air Freight"/ loading="lazy"></div><div class="service-icon"><i class="fa-solid fa-plane-departure"></i></div><h3>Air Freight</h3><p>Express worldwide delivery for urgent shipments to over 200 international destinations.</p><a href="services.html" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card" data-aos="fade-up" data-aos-delay="100"><div class="service-img"><img src="https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=600&q=80" alt="Sea Freight"/ loading="lazy"></div><div class="service-icon"><i class="fa-solid fa-ship"></i></div><h3>Sea Freight</h3><p>Cost-effective ocean shipping for large cargo with full container and groupage options.</p><a href="services.html" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card" data-aos="fade-up" data-aos-delay="100"><div class="service-img"><img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80" alt="Road Transport"/ loading="lazy"></div><div class="service-icon"><i class="fa-solid fa-truck-moving"></i></div><h3>Road Transport</h3><p>Cross-border trucking with real-time GPS tracking and dedicated fleet management.</p><a href="services.html" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
+    <div class="service-card animate-card" data-aos="fade-up" data-aos-delay="100"><div class="service-img"><img src="https://images.unsplash.com/photo-1586528116493-a029325540fa?w=600&q=80" alt="Warehousing"/ loading="lazy"></div><div class="service-icon"><i class="fa-solid fa-warehouse"></i></div><h3>Warehousing</h3><p>Secure, climate-controlled storage with smart inventory and fulfilment systems.</p><a href="services.html" class="card-link">Learn more <i class="fa-solid fa-arrow-right"></i></a></div>
   </div>
   <div style="text-align:center;margin-top:40px;margin-bottom:20px;">
     <a href="services.html" class="btn-primary">View All Services <i class="fa-solid fa-arrow-right"></i></a>

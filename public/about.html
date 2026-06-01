@@ -71,7 +71,7 @@
 
 <section class="about" id="about">
   <div class="about-content">
-    <div class="about-image animate-fade"><img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" alt="ZipCargo Team"/></div>
+    <div class="about-image animate-fade"><img loading="lazy" src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" alt="ZipCargo Team"/></div>
     <div class="about-text animate-fade">
       <span class="hero-badge" style="background:#e8f4ff;color:#1a2e4a;">About ZipCargo</span>
       <h2>Trusted by Businesses Worldwide</h2>
@@ -166,5 +166,12 @@
 <script src="chat.js"></script>
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 <script>AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var n=document.getElementById('navbar');
+  if(n) n.classList.add('scrolled');
+  if(n) document.body.style.paddingTop=n.offsetHeight+'px';
+});
+</script>
 </body>
 </html>
