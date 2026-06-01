@@ -498,6 +498,79 @@ async function sendVaccineInvoice() {
   }
 }
 
+// ===== INSURANCE INVOICE =====
+let insuranceShipmentData = null;
+
+async function loadInsuranceShipment() {
+  const tn = document.getElementById('insuranceTracking').value.trim().toUpperCase();
+  if (!tn) { showToast('Please enter a tracking number', 'error'); return; }
+  try {
+    const res = await fetch('/api/shipments/track/' + encodeURIComponent(tn));
+    if (!res.ok) throw new Error('Not found');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    insuranceShipmentData = data;
+    document.getElementById('insuranceClientName').textContent  = data.rName  || '-';
+    document.getElementById('insuranceClientEmail').textContent = data.rEmail || '-';
+    document.getElementById('insuranceClientDesc').textContent  = data.desc   || data.description || '-';
+    document.getElementById('insuranceClientRoute').textContent = (data.origin||'-') + ' → ' + (data.dest||'-');
+    document.getElementById('insuranceClientPreview').style.display = 'block';
+    document.getElementById('insuranceSendBtn').disabled = false;
+    showToast('Client loaded: ' + data.rName, 'success');
+  } catch(e) {
+    showToast('Shipment not found: ' + tn, 'error');
+    insuranceShipmentData = null;
+    document.getElementById('insuranceClientPreview').style.display = 'none';
+    document.getElementById('insuranceSendBtn').disabled = true;
+  }
+}
+
+async function sendInsuranceInvoice() {
+  if (!insuranceShipmentData) { showToast('Please load a shipment first', 'error'); return; }
+  const fee            = parseFloat(document.getElementById('insuranceFee').value) || 103;
+  const duration       = document.getElementById('insuranceDuration').value.trim() || '8 months';
+  const paymentMethods = document.getElementById('insurancePaymentMethods').value.trim();
+  const msg            = document.getElementById('insuranceMsg');
+  msg.style.color = '#185fa5';
+  msg.textContent = 'Generating invoice and sending email...';
+  const settings = {
+    website: localStorage.getItem('zc_contact_website') || '',
+    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
+    phone:   localStorage.getItem('zc_contact_phone')   || '',
+  };
+  try {
+    const res = await fetch('/api/email/insurance-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shipment: {
+          tracking:    insuranceShipmentData.tracking,
+          rName:       insuranceShipmentData.rName,
+          rEmail:      insuranceShipmentData.rEmail,
+          rPhone:      insuranceShipmentData.rPhone,
+          origin:      insuranceShipmentData.origin,
+          dest:        insuranceShipmentData.dest,
+          description: insuranceShipmentData.desc || insuranceShipmentData.description,
+        },
+        fee, duration, paymentMethods, settings,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.style.color = '#16a34a';
+      msg.textContent = `✅ Insurance invoice sent to ${insuranceShipmentData.rEmail}`;
+      showToast('📧 Insurance invoice sent!', 'success');
+      setTimeout(() => msg.textContent = '', 5000);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+    }
+  } catch(e) {
+    msg.style.color = '#dc2626';
+    msg.textContent = '❌ Error: ' + e.message;
+  }
+}
+
 // ===== DELETE SHIPMENT =====
 async function deleteShipment(id, tracking) {
   if (!confirm(`Delete shipment ${tracking}? This cannot be undone.`)) return;
