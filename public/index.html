@@ -15,7 +15,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ZipCargo — Global Logistics & Pet Transport | Worldwide Shipping</title>
   <link rel="stylesheet" href="style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -37,12 +37,6 @@
       .footer-bottom{flex-direction:column!important;text-align:center!important;}
       .footer-bottom-links{justify-content:center!important;}
     }
-  /* Font upgrade */
-  body { font-family: 'Inter', 'Outfit', sans-serif !important; }
-  h1, h2, h3, h4, .nav-logo, .logo, .section-title, .hero h1 {
-    font-family: 'Sora', 'Outfit', sans-serif !important;
-  }
-
   /* Hero trust badges */
   .hero-trust-badges {
     display: flex;
@@ -193,8 +187,10 @@
     font-size: .95rem;
     line-height: 1.8;
     background: white;
+    animation: fadeIn .2s ease;
   }
   .faq-a.show { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
 
 </style>
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css"/>
@@ -267,7 +263,7 @@
 <section class="quick-track-bar" data-aos="fade-up">
   <div class="quick-track-inner">
     <div class="quick-track-label">
-      <i class="fa-solid fa-satellite-dish"></i>
+      <i class="fa-solid fa-location-dot"></i>
       <span>Track Your Shipment</span>
     </div>
     <div class="quick-track-form">
