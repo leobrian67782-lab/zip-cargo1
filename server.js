@@ -1256,6 +1256,257 @@ app.post('/api/email/delivery-auth', async (req, res) => {
   }
 });
 
+
+// ── Pet Travel Permit Invoice ─────────────────────────────────────────────
+app.post('/api/email/travel-permit', async (req, res) => {
+  try {
+    const { shipment, fee, paymentMethods, settings } = req.body;
+    if (!shipment || !shipment.rEmail) return res.status(400).json({ error: 'Missing data.' });
+
+    const apiKey    = process.env.BREVO_API_KEY;
+    if (!apiKey) return res.json({ error: 'Email not configured.' });
+
+    const siteEmail  = (settings && settings.email) || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
+    const permitFee  = parseFloat(fee) || 100;
+    const invoiceNo  = 'ZTP-' + Date.now().toString().slice(-8);
+    const issueDate  = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
+    const PDFDocument = require('pdfkit');
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 0, size: 'A4', autoFirstPage: true });
+      const chunks = [];
+      doc.on('data', c => chunks.push(c));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const W = 595, pad = 36, cW = W - pad * 2;
+      doc.rect(0, 0, W, 842).fill('#ffffff');
+      doc.rect(pad, 24, cW, 3).fill('#e8820c');
+
+      // Header
+      doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
+      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+      doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
+      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
+         .text('P E T  T R A V E L  P E R M I T', 0, 38, { align: 'right', width: W - pad - 16 });
+      doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
+         .text('Invoice No: ' + invoiceNo, 0, 52, { align: 'right', width: W - pad - 16 });
+      doc.fill('white').fontSize(11).font('Helvetica-Bold')
+         .text(shipment.tracking, 0, 65, { align: 'right', width: W - pad - 16 });
+      doc.fill('#7a9ab8').fontSize(8)
+         .text('Issued: ' + issueDate, 0, 81, { align: 'right', width: W - pad - 16 });
+      doc.roundedRect(pad + 14, 87, 120, 18, 9).fill('#16a34a');
+      doc.fill('white').fontSize(8).font('Helvetica-Bold')
+         .text('FULLY REFUNDABLE', pad + 14, 93, { width: 120, align: 'center' });
+
+      // Client info
+      let y = 130;
+      doc.roundedRect(pad, y, cW, 44, 6).fill('#f8fafc').stroke('#e2e8f0');
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica-Bold').text('BILL TO', pad + 14, y + 8);
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text(shipment.rName, pad + 14, y + 19);
+      doc.fill('#64748b').fontSize(8).font('Helvetica').text(shipment.rEmail, pad + 14, y + 31);
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica-Bold').text('SHIPMENT REF', 0, y + 8, { align: 'right', width: W - pad - 16 });
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text(shipment.tracking, 0, y + 19, { align: 'right', width: W - pad - 16 });
+      doc.fill('#64748b').fontSize(8).font('Helvetica').text((shipment.origin||'-') + ' to ' + (shipment.dest||'-'), 0, y + 31, { align: 'right', width: W - pad - 16 });
+
+      // Table header
+      y += 50;
+      doc.roundedRect(pad, y, cW, 22, 3).fill('#0d1f35');
+      doc.fill('white').fontSize(8).font('Helvetica-Bold').text('DESCRIPTION', pad + 14, y + 7);
+      doc.fill('white').fontSize(8).text('AMOUNT', 0, y + 7, { align: 'right', width: W - pad - 14 });
+
+      // Line item
+      y += 22;
+      doc.rect(pad, y, cW, 36).fill('white').stroke('#e2e8f0');
+      doc.fill('#0d1f35').fontSize(9).font('Helvetica-Bold').text('Pet Travel Permit Processing Fee', pad + 14, y + 7);
+      doc.fill('#64748b').fontSize(7).font('Helvetica')
+         .text('Official travel permit issuance and processing for ' + (shipment.description || 'pet') + ' — ' + (shipment.origin||'-') + ' to ' + (shipment.dest||'-'), pad + 14, y + 20, { width: cW - 100 });
+      doc.fill('#0d1f35').fontSize(13).font('Helvetica-Bold')
+         .text('$' + permitFee.toFixed(2), 0, y + 12, { align: 'right', width: W - pad - 14 });
+
+      // Refund row
+      y += 36;
+      doc.rect(pad, y, cW, 18).fill('#f0fdf4').stroke('#bbf7d0');
+      doc.fill('#15803d').fontSize(7.5).font('Helvetica-Bold')
+         .text('Refund Policy: 100% refunded immediately upon successful delivery of your pet', pad + 14, y + 5);
+
+      // Why required + What is included (two columns)
+      y += 22;
+      const halfW = cW / 2 - 4;
+      doc.roundedRect(pad, y, halfW, 62, 4).fill('#f0f7ff').stroke('#bfdbfe');
+      doc.fill('#1d4ed8').fontSize(8).font('Helvetica-Bold').text('WHY IT IS REQUIRED', pad + 10, y + 8);
+      doc.fill('#1e40af').fontSize(7).font('Helvetica')
+         .text('International pet transport regulations require an official travel permit before crossing borders. This ensures your pet meets all entry requirements at the destination country.', pad + 10, y + 21, { width: halfW - 20 });
+
+      doc.roundedRect(pad + halfW + 8, y, halfW, 62, 4).fill('#fff7ed').stroke('#fed7aa');
+      doc.fill('#ea580c').fontSize(8).font('Helvetica-Bold').text('WHAT IS INCLUDED', pad + halfW + 18, y + 8);
+      doc.fill('#9a3412').fontSize(7).font('Helvetica')
+         .text('• Official permit documentation\n• Border crossing clearance\n• Destination country compliance\n• ZipCargo permit seal & registration', pad + halfW + 18, y + 21, { width: halfW - 20 });
+
+      // Action required
+      y += 68;
+      doc.roundedRect(pad, y, cW, 20, 3).fill('#fef2f2').stroke('#fecaca');
+      doc.fill('#dc2626').fontSize(8).font('Helvetica-Bold').text('ACTION REQUIRED: ', pad + 14, y + 6, { continued: true });
+      doc.fill('#991b1b').fontSize(8).font('Helvetica').text('Please reply with your preferred payment method to proceed.');
+
+      // Payment methods
+      if (paymentMethods && paymentMethods.trim()) {
+        y += 26;
+        doc.roundedRect(pad, y, cW, 20, 3).fill('#0d1f35');
+        doc.fill('white').fontSize(8).font('Helvetica-Bold').text('AVAILABLE PAYMENT METHODS', pad + 14, y + 6);
+        y += 20;
+        const pmLines = paymentMethods.trim().split(/\r?\n/).filter(l => l.trim());
+        const pmH = Math.max(pmLines.length * 14 + 14, 32);
+        doc.rect(pad, y, cW, pmH).fill('#f8fafc').stroke('#e2e8f0');
+        pmLines.forEach((line, i) => {
+          doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold')
+             .text('• ' + line.trim(), pad + 14, y + 7 + i * 14, { width: cW - 28 });
+        });
+        y += pmH;
+        doc.rect(pad, y, cW, 16).fill('#fff7ed').stroke('#fed7aa');
+        doc.fill('#9a3412').fontSize(7).font('Helvetica')
+           .text('Payment details provided upon confirmation of your choice.', pad + 14, y + 4);
+        y += 16;
+      }
+
+      // Total
+      y += 8;
+      doc.roundedRect(pad, y, cW, 34, 5).fill('#0d1f35');
+      doc.fill('#aac4e0').fontSize(8).font('Helvetica').text('TOTAL PERMIT FEE', pad + 14, y + 8);
+      doc.fill('#7a9ab8').fontSize(7).text('100% refundable upon successful delivery', pad + 14, y + 20);
+      doc.fill('#e8820c').fontSize(18).font('Helvetica-Bold')
+         .text('$' + permitFee.toFixed(2), 0, y + 7, { align: 'right', width: W - pad - 14 });
+
+      // Stamp + Terms
+      y += 42;
+      const scx = W - pad - 52, scy = y + 50;
+      doc.circle(scx, scy, 48).lineWidth(4).stroke('#16a34a');
+      doc.circle(scx, scy, 40).lineWidth(1.5).stroke('#16a34a');
+      for (let a = 0; a < 360; a += 20) {
+        const rad = a * Math.PI / 180;
+        doc.circle(scx + 44 * Math.cos(rad), scy + 44 * Math.sin(rad), 1.5).fill('#16a34a');
+      }
+      doc.fill('#16a34a').fontSize(8).font('Helvetica-Bold').text('FULLY', scx - 32, scy - 15, { width: 64, align: 'center' });
+      doc.fill('#16a34a').fontSize(9).font('Helvetica-Bold').text('REFUNDABLE', scx - 32, scy - 2, { width: 64, align: 'center' });
+      doc.fill('#16a34a').fontSize(6).font('Helvetica').text('ZIPCARGO CERTIFIED', scx - 32, scy + 11, { width: 64, align: 'center' });
+
+      // Terms
+      doc.fill('#64748b').fontSize(7.5).font('Helvetica-Bold').text('Terms & Conditions:', pad + 14, y + 6);
+      doc.fill('#64748b').fontSize(7).font('Helvetica')
+         .text('1. Permit fee required before processing can begin.\n2. Full $' + permitFee.toFixed(2) + ' refunded upon successful delivery.\n3. Permit is valid for the specified shipment route only.\n4. Reply with preferred payment method to proceed.', pad + 14, y + 19, { width: cW - 120, lineBreak: true });
+
+      // Footer
+      y += 112;
+      doc.roundedRect(pad, y, cW, 36, 5).fill('white').stroke('#e2e8f0');
+      doc.roundedRect(pad + 10, y + 6, 22, 22, 4).fill('#0d1f35');
+      doc.fill('#e8820c').fontSize(10).font('Helvetica-Bold').text('ZC', pad + 14, y + 12);
+      doc.fill('#0d1f35').fontSize(9).font('Helvetica-Bold').text('ZipCargo Logistics', pad + 40, y + 8);
+      doc.fill('#94a3b8').fontSize(7.5).font('Helvetica').text('Ship Smarter. Deliver Faster.', pad + 40, y + 20);
+      doc.fill('#94a3b8').fontSize(6.5).text(invoiceNo + '  •  ' + issueDate, 0, y + 22, { align: 'right', width: W - pad - 14 });
+      doc.rect(pad, y + 36, cW, 3).fill('#e8820c');
+
+      doc.end();
+    });
+
+    // Email
+    const pmHtml = (() => {
+      if (!paymentMethods || !paymentMethods.trim()) return '';
+      const lines = paymentMethods.trim().split(/\r?\n/).filter(l => l.trim());
+      const items = lines.map(l => '<div style="color:#0d1f35;font-size:13px;padding:4px 0;font-weight:600;">&#8226; ' + l.trim() + '</div>').join('');
+      return '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;"><div style="color:#0d1f35;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:10px;">AVAILABLE PAYMENT METHODS</div>' + items + '<div style="color:#94a3b8;font-size:11px;margin-top:10px;font-style:italic;">Payment details will be sent to you upon confirmation of your choice.</div></div>';
+    })();
+
+    const emailHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/><meta name="color-scheme" content="light only"/>
+<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+</head>
+<body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
+<div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
+  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <div style="color:#aac4e0;font-size:12px;">Pet Travel Permit Notice</div>
+  </div>
+  <div style="padding:28px;background:#ffffff;">
+    <p style="color:#0d1f35;font-size:15px;">Dear <strong>${shipment.rName}</strong>,</p>
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      We are writing regarding your pet shipment currently being processed for delivery. During our final documentation review, our compliance team identified that an official <strong>Pet Travel Permit</strong> is required before your ${shipment.description || 'pet'} can be cleared for international transport to ${shipment.dest || 'the destination'}.
+    </p>
+
+    <div style="background:#f0f7ff;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:16px;margin:16px 0;">
+      <div style="color:#1d4ed8;font-size:13px;font-weight:800;margin-bottom:8px;">Why This Is Required</div>
+      <div style="color:#1e40af;font-size:13px;line-height:1.8;">
+        International pet transport regulations require an official travel permit before crossing borders. This document ensures your pet meets all entry requirements at the destination country and is legally cleared for transport under international animal welfare standards.
+      </div>
+    </div>
+
+    <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:16px;text-align:center;margin:20px 0;">
+      <div style="color:#64748b;font-size:11px;font-weight:700;letter-spacing:1px;">PET TRAVEL PERMIT PROCESSING FEE</div>
+      <div style="color:#16a34a;font-size:28px;font-weight:800;margin-top:6px;">$${permitFee.toFixed(2)}</div>
+      <div style="color:#15803d;font-size:12px;font-weight:700;margin-top:4px;">100% FULLY REFUNDABLE</div>
+      <div style="color:#64748b;font-size:11px;margin-top:4px;">Refunded immediately upon successful delivery of your pet</div>
+    </div>
+
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;">
+      <div style="color:#0d1f35;font-size:13px;font-weight:800;margin-bottom:8px;">What Is Included</div>
+      <div style="color:#1e293b;font-size:13px;line-height:1.8;">
+        &#8226; Official travel permit documentation<br/>
+        &#8226; Border crossing clearance authorization<br/>
+        &#8226; Destination country compliance certification<br/>
+        &#8226; ZipCargo permit seal and registration
+      </div>
+    </div>
+
+    ${pmHtml}
+
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      Please respond to this email with your preferred payment method and we will send you the payment details to proceed. Once the permit fee is received, we will immediately begin processing your pet's travel permit and schedule delivery.
+    </p>
+    <p style="color:#1e293b;font-size:14px;line-height:1.8;">
+      We appreciate your prompt attention to this matter and look forward to completing the delivery of your ${shipment.description || 'pet'} safely and on time.
+    </p>
+    <p style="color:#1e293b;font-size:14px;">
+      Warm regards,<br/>
+      <strong>ZipCargo Pet Transport Division</strong><br/>
+      <strong>ZipCargo Logistics</strong><br/>
+      <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
+    </p>
+  </div>
+  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
+    <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official pet travel permit invoice is attached to this email.</div>
+  </div>
+</div>
+</body></html>`;
+
+    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'accept':'application/json','api-key':apiKey,'content-type':'application/json' },
+      body: JSON.stringify({
+        sender: { name: 'ZipCargo Logistics', email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        to: [{ email: shipment.rEmail, name: shipment.rName }],
+        replyTo: { email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        subject: `Pet Travel Permit Required — ${shipment.tracking}`,
+        htmlContent: emailHtml,
+        trackingSettings: { clickTracking: { enabled: false }, openTracking: { enabled: false } },
+        attachment: [{
+          name: `ZipCargo-Travel-Permit-${shipment.tracking}.pdf`,
+          content: pdfBuffer.toString('base64'),
+        }],
+      }),
+    });
+
+    const data = await brevoRes.json();
+    if (!brevoRes.ok) throw new Error(data.message || 'Brevo error');
+    res.json({ success: true });
+
+  } catch(err) {
+    console.error('Travel permit error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Test email config ─────────────────────────────────────────────────────
 app.get('/api/email/test', async (req, res) => {
   const apiKey = process.env.BREVO_API_KEY;
