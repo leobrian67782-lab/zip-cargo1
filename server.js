@@ -303,76 +303,79 @@ app.post('/api/email/crate-invoice', async (req, res) => {
       doc.fill('#0d1f35').fontSize(11).font('Helvetica-Bold').text(shipment.tracking, 0, y + 24, { align: 'right', width: W - pad - 16 });
       doc.fill('#64748b').fontSize(9).font('Helvetica').text(shipment.origin + ' → ' + shipment.dest, 0, y + 38, { align: 'right', width: W - pad - 16 });
 
-      // Invoice table header
+      // Options table header
       y += 66;
       doc.roundedRect(pad, y, cW, 28, 4).fill('#0d1f35');
-      doc.fill('white').fontSize(9).font('Helvetica-Bold').text('DESCRIPTION', pad + 14, y + 9);
-      doc.fill('white').fontSize(9).text('QTY', 0, y + 9, { align: 'center', width: W });
+      doc.fill('white').fontSize(9).font('Helvetica-Bold').text('CRATE OPTIONS', pad + 14, y + 9);
       doc.fill('white').fontSize(9).text('AMOUNT', 0, y + 9, { align: 'right', width: W - pad - 14 });
 
-      // Invoice row
+      // Option 1 — Rental
       y += 28;
-      doc.rect(pad, y, cW, 40).fill('white').stroke('#e2e8f0');
-      const itemDesc = isRent
-        ? `Air-Conditioned Crate Rental — ${shipment.description || 'Animal'} Transport`
-        : `Air-Conditioned Crate Purchase — ${shipment.description || 'Animal'} Transport`;
-      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text(itemDesc, pad + 14, y + 8, { width: cW - 100 });
-      doc.fill('#64748b').fontSize(9).font('Helvetica').text('1 unit', pad + 14, y + 24, { width: cW - 100 });
-      doc.fill('#0d1f35').fontSize(14).font('Helvetica-Bold')
-         .text('$' + price + '.00', 0, y + 14, { align: 'right', width: W - pad - 14 });
+      doc.rect(pad, y, cW, 48).fill('#eff6ff').stroke('#bfdbfe');
+      doc.fill('#1d4ed8').fontSize(10).font('Helvetica-Bold')
+         .text('OPTION 1 — RENTAL', pad + 14, y + 8);
+      doc.fill('#1e40af').fontSize(8).font('Helvetica')
+         .text('Air-Conditioned Crate Rental for ' + (shipment.description || 'Animal') + ' Transport', pad + 14, y + 22);
+      doc.fill('#1e40af').fontSize(8)
+         .text('Refund Policy: ' + refundPct + '% ($' + Math.round(rentPrice * refundPct / 100) + ') refunded upon delivery and crate return', pad + 14, y + 35);
+      doc.fill('#1d4ed8').fontSize(14).font('Helvetica-Bold')
+         .text('$' + rentPrice + '.00', 0, y + 16, { align: 'right', width: W - pad - 14 });
 
-      // Refund policy row
-      y += 40;
-      doc.rect(pad, y, cW, 28).fill(isRent ? '#eff6ff' : '#f0fdf4').stroke('#e2e8f0');
-      const policyText = isRent
-        ? `Refund Policy: ${refundPct}% refunded upon delivery and crate return`
-        : 'Refund Policy: No refund — crate becomes your property upon delivery';
-      doc.fill(isRent ? '#1d4ed8' : '#15803d').fontSize(9).font('Helvetica-Bold')
-         .text(policyText, pad + 14, y + 9, { width: cW - 28 });
+      // Option 2 — Purchase
+      y += 48;
+      doc.rect(pad, y, cW, 48).fill('#f0fdf4').stroke('#bbf7d0');
+      doc.fill('#15803d').fontSize(10).font('Helvetica-Bold')
+         .text('OPTION 2 — PURCHASE', pad + 14, y + 8);
+      doc.fill('#166534').fontSize(8).font('Helvetica')
+         .text('Air-Conditioned Crate Purchase for ' + (shipment.description || 'Animal') + ' Transport', pad + 14, y + 22);
+      doc.fill('#166534').fontSize(8)
+         .text('Refund Policy: No refund — crate becomes your permanent property upon delivery', pad + 14, y + 35);
+      doc.fill('#15803d').fontSize(14).font('Helvetica-Bold')
+         .text('$' + buyPrice + '.00', 0, y + 16, { align: 'right', width: W - pad - 14 });
 
-      // Total
-      y += 36;
-      doc.roundedRect(pad, y, cW, 44, 6).fill('#0d1f35');
-      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('TOTAL AMOUNT DUE', pad + 14, y + 12);
-      doc.fill('#64748b').fontSize(8).text('Inclusive of all applicable fees', pad + 14, y + 26);
-      doc.fill('#e8820c').fontSize(22).font('Helvetica-Bold')
-         .text('$' + price + '.00', 0, y + 10, { align: 'right', width: W - pad - 14 });
+      // Response box
+      y += 56;
+      doc.roundedRect(pad, y, cW, 32, 4).fill('#fff7ed').stroke('#fed7aa');
+      doc.fill('#ea580c').fontSize(9).font('Helvetica-Bold')
+         .text('ACTION REQUIRED:', pad + 14, y + 8);
+      doc.fill('#9a3412').fontSize(8).font('Helvetica')
+         .text('Please reply to this email with your choice: OPTION 1 (Renting) or OPTION 2 (Purchasing)', pad + 14, y + 20);
 
-      // STAMP
-      y += 54;
-      const stampColor = isRent ? '#1d4ed8' : '#15803d';
-      const stampText1 = isRent ? 'RENTAL' : 'PURCHASE';
-      const stampText2 = isRent ? refundPct + '% REFUNDABLE' : 'NO REFUND';
+      // ── TWO PROFESSIONAL STAMPS ──
+      y += 42;
 
-      // Draw stamp circle
-      const stampX = W - pad - 90, stampY = y;
-      doc.circle(stampX, stampY + 40, 55).lineWidth(3).stroke(stampColor);
-      doc.circle(stampX, stampY + 40, 48).lineWidth(1).stroke(stampColor);
-      doc.fill(stampColor).fontSize(11).font('Helvetica-Bold')
-         .text(stampText1, stampX - 35, stampY + 28, { width: 70, align: 'center' });
-      doc.fill(stampColor).fontSize(9).font('Helvetica-Bold')
-         .text(stampText2, stampX - 35, stampY + 44, { width: 70, align: 'center' });
-      doc.fill(stampColor).fontSize(7).font('Helvetica')
-         .text('ZIPCARGO', stampX - 35, stampY + 58, { width: 70, align: 'center' });
+      // Draw professional stamp helper
+      const drawStamp = (cx, cy, color, line1, line2, line3) => {
+        doc.circle(cx, cy, 50).lineWidth(4).stroke(color);
+        doc.circle(cx, cy, 42).lineWidth(1.5).stroke(color);
+        for (let a = 0; a < 360; a += 20) {
+          const rad = a * Math.PI / 180;
+          doc.circle(cx + 46 * Math.cos(rad), cy + 46 * Math.sin(rad), 1.5).fill(color);
+        }
+        doc.fill(color).fontSize(11).font('Helvetica-Bold')
+           .text(line1, cx - 34, cy - 15, { width: 68, align: 'center' });
+        doc.fill(color).fontSize(9).font('Helvetica-Bold')
+           .text(line2, cx - 34, cy + 1, { width: 68, align: 'center' });
+        doc.fill(color).fontSize(6.5).font('Helvetica')
+           .text(line3, cx - 34, cy + 16, { width: 68, align: 'center' });
+      };
+
+      drawStamp(pad + 75, y + 50, '#1d4ed8', 'RENTAL', refundPct + '% REFUND', 'ZIPCARGO CERTIFIED');
+      drawStamp(W - pad - 75, y + 50, '#15803d', 'PURCHASE', 'NO REFUND', 'ZIPCARGO CERTIFIED');
 
       // Terms
+      y += 112;
+      doc.fill('#64748b').fontSize(8).font('Helvetica-Bold').text('Terms & Conditions:', pad + 14, y);
+      const terms = `1. Payment is required before shipment proceeds.\n2. RENTAL: ${refundPct}% ($${Math.round(rentPrice * refundPct / 100)}) refunded upon delivery and crate return. Crate must be returned in original condition.\n3. PURCHASE: Crate becomes your permanent property upon delivery. No refund issued.\n4. Please reply confirming your choice before we proceed.`;
       doc.fill('#64748b').fontSize(8).font('Helvetica')
-         .text('Terms & Conditions:', pad + 14, y + 8);
-      const terms = isRent
-        ? `1. Payment of $${rentPrice} is required before shipment proceeds.
-2. Upon successful delivery and return of the crate, ${refundPct}% ($${Math.round(rentPrice * refundPct / 100)}) will be refunded.
-3. The crate must be returned in its original condition.
-4. ZipCargo reserves the right to withhold the remaining ${100-refundPct}% as a handling fee.`
-        : `1. Payment of $${buyPrice} is required before shipment proceeds.
-2. The crate becomes your permanent property upon delivery.
-3. No refund will be issued for purchased crates.
-4. The crate will be delivered alongside your ${shipment.description || 'animal'}.`;
-      doc.fill('#64748b').fontSize(8).font('Helvetica')
-         .text(terms, pad + 14, y + 22, { width: cW - 120, lineBreak: true });
+         .text(terms, pad + 14, y + 14, { width: cW - 28, lineBreak: true });
 
       // Signature line
-      y += 130;
+      y += 80;
       doc.moveTo(pad + 14, y).lineTo(pad + 160, y).lineWidth(1).stroke('#0d1f35');
+      doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold').text('Authorized by ZipCargo Logistics', pad + 14, y + 5);
+      doc.fill('#64748b').fontSize(7).font('Helvetica').text(siteEmail, pad + 14, y + 18);
+
       doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold').text('Authorized by ZipCargo Logistics', pad + 14, y + 5);
       doc.fill('#64748b').fontSize(7).font('Helvetica').text(siteEmail, pad + 14, y + 18);
 
@@ -451,7 +454,7 @@ app.post('/api/email/crate-invoice', async (req, res) => {
         sender: { name: 'ZipCargo Logistics', email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
         to: [{ email: shipment.rEmail, name: shipment.rName }],
         replyTo: { email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
-        subject: `Crate Requirement Notice — ${shipment.tracking}`,
+        subject: `Crate Requirement — Action Required — ${shipment.tracking}`,
         htmlContent: emailHtml,
         trackingSettings: { clickTracking: { enabled: false }, openTracking: { enabled: false } },
         attachment: [{
