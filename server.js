@@ -345,6 +345,10 @@ app.post('/api/email/shipment', async (req, res) => {
         to: [{ email: shipment.rEmail, name: shipment.rName }],
         replyTo: { email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
         subject: `Your ZipCargo Shipment — ${shipment.tracking}`,
+        trackingSettings: {
+          clickTracking: { enabled: false },
+          openTracking: { enabled: false },
+        },
         htmlContent: `<!DOCTYPE html><html><head><meta charset="UTF-8"/></head>
 <body style="margin:0;padding:24px;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;">
 <div style="max-width:520px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
