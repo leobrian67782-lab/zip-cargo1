@@ -235,7 +235,7 @@ app.post('/api/email/status-update', async (req, res) => {
 // ── Crate Invoice email with PDF ─────────────────────────────────────────
 app.post('/api/email/crate-invoice', async (req, res) => {
   try {
-    const { shipment, option, prices, settings, quantity: qty } = req.body;
+    const { shipment, option, prices, settings, quantity: qty, paymentMethods } = req.body;
     const quantity = parseInt(qty) || 1;
     if (!shipment || !shipment.rEmail || !option) {
       return res.status(400).json({ error: 'Missing data.' });
@@ -344,6 +344,25 @@ app.post('/api/email/crate-invoice', async (req, res) => {
       doc.fill('#9a3412').fontSize(8).font('Helvetica')
          .text('Please reply to this email with your choice: OPTION 1 (Renting) or OPTION 2 (Purchasing)', pad + 14, y + 20);
 
+      // Payment Methods section
+      if (paymentMethods && paymentMethods.trim()) {
+        y += 40;
+        doc.roundedRect(pad, y, cW, 28, 4).fill('#0d1f35');
+        doc.fill('white').fontSize(9).font('Helvetica-Bold').text('AVAILABLE PAYMENT METHODS', pad + 14, y + 9);
+        y += 28;
+        const pmLines = paymentMethods.trim().split('\n').filter(l => l.trim());
+        const pmH = Math.max(pmLines.length * 16 + 20, 40);
+        doc.rect(pad, y, cW, pmH).fill('#f8fafc').stroke('#e2e8f0');
+        pmLines.forEach((line, i) => {
+          doc.fill('#0d1f35').fontSize(9).font('Helvetica-Bold')
+             .text(line.trim(), pad + 14, y + 10 + i * 16);
+        });
+        y += pmH;
+        doc.rect(pad, y, cW, 22).fill('#fff7ed').stroke('#fed7aa');
+        doc.fill('#9a3412').fontSize(8).font('Helvetica')
+           .text('Payment details will be provided upon confirmation of your choice.', pad + 14, y + 7);
+      }
+
       // ── TWO PROFESSIONAL STAMPS ──
       y += 42;
 
@@ -429,8 +448,16 @@ app.post('/api/email/crate-invoice', async (req, res) => {
         </td>
       </tr>
     </table>
+    ${paymentMethods && paymentMethods.trim() ? `
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;">
+      <div style="color:#0d1f35;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:10px;">AVAILABLE PAYMENT METHODS</div>
+      ${paymentMethods.trim().split('\n').filter(l=>l.trim()).map(l => 
+        `<div style="color:#0d1f35;font-size:13px;padding:4px 0;font-weight:600;">• ${l.trim()}</div>`
+      ).join('')}
+      <div style="color:#94a3b8;font-size:11px;margin-top:10px;font-style:italic;">Payment details will be sent to you upon confirmation of your choice.</div>
+    </div>` : ''}
     <p style="color:#1e293b;font-size:14px;line-height:1.8;">
-      Please respond to this email with your choice <strong>(renting or purchasing)</strong> and we will send you payment instructions.
+      Please respond to this email with your choice <strong>(renting or purchasing)</strong> and your preferred payment method, and we will send you the payment details.
     </p>
     <p style="color:#1e293b;font-size:14px;line-height:1.8;">
       Thank you for your understanding.
