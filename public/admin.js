@@ -404,6 +404,7 @@ async function sendCrateInvoice() {
         },
         option,
         quantity,
+        paymentMethods: document.getElementById('cratePaymentMethods').value.trim(),
         prices: { rent: rentPrice, buy: buyPrice, refund: refundPct },
         settings,
       }),
