@@ -1,4 +1,4 @@
-=// ===== TOKEN STORAGE (fallback for mobile browsers) =====
+// ===== TOKEN STORAGE (fallback for mobile browsers) =====
 const TokenStore = {
   set: (t) => { try { localStorage.setItem('zc_token', t); } catch(e) {} },
   get: () => { try { return localStorage.getItem('zc_token'); } catch(e) { return null; } },
@@ -110,8 +110,8 @@ function closeSidebar() {
 }
 
 // ===== DASHBOARD =====
-let statusChartInstance = null;
-let serviceChartInstance = null;
+let _statusChart = null;
+let _serviceChart = null;
 
 async function loadDashboard() {
   try {
@@ -137,101 +137,51 @@ async function loadDashboard() {
         </tr>`).join('');
     }
 
-    // ── Charts ──
-    try { renderStatusChart(stats); } catch(ce) { console.warn('Status chart error:', ce.message); }
-    try { renderServiceChart(stats); } catch(ce) { console.warn('Service chart error:', ce.message); }
-
-  } catch(e) { showToast('Dashboard load failed: '+e.message,'error'); }
-}
-
-function renderStatusChart(stats) {
-  if (typeof Chart === 'undefined') return;
-  const ctx = document.getElementById('statusChart');
-  if (!ctx) return;
-  if (statusChartInstance) { try { statusChartInstance.destroy(); } catch(e) {} statusChartInstance = null; }
-
-  const pending   = stats.pending   || 0;
-  const inTransit = stats.inTransit || 0;
-  const onHold    = stats.onHold    || 0;
-  const delivered = stats.delivered || 0;
-  const total = pending + inTransit + onHold + delivered;
-
-  statusChartInstance = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Pending', 'In Transit', 'On Hold', 'Delivered'],
-      datasets: [{
-        data: [pending, inTransit, onHold, delivered],
-        backgroundColor: ['#f59e0b','#2563eb','#dc2626','#16a34a'],
-        borderWidth: 2,
-        borderColor: '#fff',
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '65%',
-      plugins: {
-        legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const pct = total > 0 ? Math.round(ctx.raw / total * 100) : 0;
-              return ` ${ctx.label}: ${ctx.raw} (${pct}%)`;
+    // Charts — safe rendering
+    if (typeof Chart !== 'undefined') {
+      try {
+        const c1 = document.getElementById('statusChart');
+        if (c1) {
+          if (_statusChart) _statusChart.destroy();
+          const p = stats.pending||0, t = stats.inTransit||0, h = stats.onHold||0, d = stats.delivered||0;
+          const total = p+t+h+d || 1;
+          _statusChart = new Chart(c1, {
+            type: 'doughnut',
+            data: {
+              labels: ['Pending','In Transit','On Hold','Delivered'],
+              datasets: [{ data:[p,t,h,d], backgroundColor:['#f59e0b','#2563eb','#dc2626','#16a34a'], borderWidth:2, borderColor:'#fff' }]
+            },
+            options: {
+              responsive:true, maintainAspectRatio:false, cutout:'65%',
+              plugins: {
+                legend:{ position:'bottom', labels:{ padding:10, font:{ size:11 } } },
+                tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/total*100)}%)` } }
+              }
             }
-          }
+          });
         }
-      }
+        const c2 = document.getElementById('serviceChart');
+        if (c2 && stats.recent) {
+          if (_serviceChart) _serviceChart.destroy();
+          const counts = {};
+          stats.recent.forEach(s => { counts[s.service] = (counts[s.service]||0)+1; });
+          const svcs = ['Air Freight','Sea Freight','Road Transport','Express Delivery'];
+          _serviceChart = new Chart(c2, {
+            type: 'bar',
+            data: {
+              labels: svcs,
+              datasets: [{ label:'Shipments', data: svcs.map(s=>counts[s]||0), backgroundColor:['#2563eb','#0891b2','#16a34a','#e8820c'], borderRadius:6, borderSkipped:false }]
+            },
+            options: {
+              responsive:true, maintainAspectRatio:false,
+              plugins:{ legend:{ display:false } },
+              scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 }, grid:{ color:'#f1f5f9' } }, x:{ grid:{ display:false } } }
+            }
+          });
+        }
+      } catch(ce) { console.warn('Chart error:', ce.message); }
     }
-  });
-}
-
-function renderServiceChart(stats) {
-  if (typeof Chart === 'undefined') return;
-  const ctx = document.getElementById('serviceChart');
-  if (!ctx) return;
-  if (serviceChartInstance) { try { serviceChartInstance.destroy(); } catch(e) {} serviceChartInstance = null; }
-
-  // Count by service from recent shipments
-  const counts = {};
-  (stats.recent || []).forEach(s => {
-    counts[s.service] = (counts[s.service] || 0) + 1;
-  });
-
-  const services = ['Air Freight','Sea Freight','Road Transport','Express Delivery'];
-  const colors   = ['#2563eb','#0891b2','#16a34a','#e8820c'];
-  const data     = services.map(s => counts[s] || 0);
-
-  serviceChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: services.map(s => s.replace(' ', '
-')),
-      datasets: [{
-        label: 'Shipments',
-        data,
-        backgroundColor: colors,
-        borderRadius: 6,
-        borderSkipped: false,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} shipments` } }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { stepSize: 1, font: { size: 11 } },
-          grid: { color: '#f1f5f9' }
-        },
-        x: { ticks: { font: { size: 10 } }, grid: { display: false } }
-      }
-    }
-  });
+  } catch(e) { showToast('Dashboard load failed: '+e.message,'error'); }
 }
 
 // ===== SHIPMENTS =====
