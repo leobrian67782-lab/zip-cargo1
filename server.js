@@ -786,120 +786,111 @@ app.post('/api/email/insurance-invoice', async (req, res) => {
       doc.fill('white').fontSize(8).font('Helvetica-Bold')
          .text('FULLY REFUNDABLE', pad + 14, 93, { width: 120, align: 'center' });
 
-      // Client info
+      // Client info — compact
       let y = 130;
-      doc.roundedRect(pad, y, cW, 56, 6).fill('#f8fafc').stroke('#e2e8f0');
-      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('BILL TO', pad + 14, y + 10);
-      doc.fill('#0d1f35').fontSize(11).font('Helvetica-Bold').text(shipment.rName, pad + 14, y + 24);
-      doc.fill('#64748b').fontSize(9).font('Helvetica').text(shipment.rEmail, pad + 14, y + 38);
-      if (shipment.rPhone) doc.fill('#64748b').fontSize(9).text(shipment.rPhone, pad + 14, y + 50);
-      doc.fill('#94a3b8').fontSize(8).font('Helvetica-Bold').text('SHIPMENT REF', 0, y + 10, { align: 'right', width: W - pad - 16 });
-      doc.fill('#0d1f35').fontSize(11).font('Helvetica-Bold').text(shipment.tracking, 0, y + 24, { align: 'right', width: W - pad - 16 });
-      doc.fill('#64748b').fontSize(9).font('Helvetica').text((shipment.origin||'-') + ' to ' + (shipment.dest||'-'), 0, y + 38, { align: 'right', width: W - pad - 16 });
+      doc.roundedRect(pad, y, cW, 44, 6).fill('#f8fafc').stroke('#e2e8f0');
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica-Bold').text('BILL TO', pad + 14, y + 8);
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text(shipment.rName, pad + 14, y + 19);
+      doc.fill('#64748b').fontSize(8).font('Helvetica').text(shipment.rEmail, pad + 14, y + 31);
+      doc.fill('#94a3b8').fontSize(7).font('Helvetica-Bold').text('SHIPMENT REF', 0, y + 8, { align: 'right', width: W - pad - 16 });
+      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text(shipment.tracking, 0, y + 19, { align: 'right', width: W - pad - 16 });
+      doc.fill('#64748b').fontSize(8).font('Helvetica').text((shipment.origin||'-') + ' to ' + (shipment.dest||'-'), 0, y + 31, { align: 'right', width: W - pad - 16 });
 
       // Table header
-      y += 66;
-      doc.roundedRect(pad, y, cW, 28, 4).fill('#0d1f35');
-      doc.fill('white').fontSize(9).font('Helvetica-Bold').text('DESCRIPTION', pad + 14, y + 9);
-      doc.fill('white').fontSize(9).text('AMOUNT', 0, y + 9, { align: 'right', width: W - pad - 14 });
+      y += 50;
+      doc.roundedRect(pad, y, cW, 22, 3).fill('#0d1f35');
+      doc.fill('white').fontSize(8).font('Helvetica-Bold').text('DESCRIPTION', pad + 14, y + 7);
+      doc.fill('white').fontSize(8).text('AMOUNT', 0, y + 7, { align: 'right', width: W - pad - 14 });
 
       // Line item
-      y += 28;
-      doc.rect(pad, y, cW, 44).fill('white').stroke('#e2e8f0');
-      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text('Insurance Registration Fee', pad + 14, y + 8);
-      doc.fill('#64748b').fontSize(8).font('Helvetica')
-         .text('Shipment insurance activation & coverage for ' + insDuration + ' — ' + (shipment.description || 'package') + ' transport', pad + 14, y + 22, { width: cW - 100 });
-      doc.fill('#0d1f35').fontSize(14).font('Helvetica-Bold')
-         .text('$' + insFee.toFixed(2), 0, y + 14, { align: 'right', width: W - pad - 14 });
+      y += 22;
+      doc.rect(pad, y, cW, 34).fill('white').stroke('#e2e8f0');
+      doc.fill('#0d1f35').fontSize(9).font('Helvetica-Bold').text('Insurance Registration Fee', pad + 14, y + 7);
+      doc.fill('#64748b').fontSize(7).font('Helvetica')
+         .text('Coverage for ' + insDuration + ' — ' + (shipment.description || 'package') + ' transport', pad + 14, y + 20, { width: cW - 100 });
+      doc.fill('#0d1f35').fontSize(13).font('Helvetica-Bold')
+         .text('$' + insFee.toFixed(2), 0, y + 10, { align: 'right', width: W - pad - 14 });
 
       // Refund row
-      y += 44;
-      doc.rect(pad, y, cW, 26).fill('#f0fdf4').stroke('#bbf7d0');
-      doc.fill('#15803d').fontSize(9).font('Helvetica-Bold')
-         .text('Refund Policy: 100% refunded immediately upon successful delivery of the shipment', pad + 14, y + 9);
-
-      // Coverage box
       y += 34;
-      doc.roundedRect(pad, y, cW, 52, 4).fill('#f0f7ff').stroke('#bfdbfe');
-      doc.fill('#1d4ed8').fontSize(9).font('Helvetica-Bold').text('INSURANCE COVERAGE', pad + 14, y + 10);
-      doc.fill('#1e40af').fontSize(8).font('Helvetica')
-         .text('Coverage Duration: ' + insDuration, pad + 14, y + 24);
-      doc.fill('#1e40af').fontSize(8)
-         .text('Coverage includes: Full protection during handling & transit, customs compliance, HTS code classification and processing.', pad + 14, y + 36, { width: cW - 28 });
+      doc.rect(pad, y, cW, 18).fill('#f0fdf4').stroke('#bbf7d0');
+      doc.fill('#15803d').fontSize(7.5).font('Helvetica-Bold')
+         .text('Refund Policy: 100% refunded immediately upon successful delivery of the shipment', pad + 14, y + 5);
 
-      // Next steps
-      y += 60;
-      doc.roundedRect(pad, y, cW, 56, 4).fill('#fff7ed').stroke('#fed7aa');
-      doc.fill('#ea580c').fontSize(9).font('Helvetica-Bold').text('NEXT STEPS', pad + 14, y + 8);
-      doc.fill('#9a3412').fontSize(8).font('Helvetica')
-         .text('Upon payment, we will proceed with:\n  • Final package verification and documentation review\n  • Insurance activation and coverage confirmation\n  • Scheduling of delivery to your address', pad + 14, y + 22, { width: cW - 28 });
+      // Coverage + Next steps columns
+      y += 22;
+      const halfW = cW / 2 - 4;
+      doc.roundedRect(pad, y, halfW, 54, 4).fill('#f0f7ff').stroke('#bfdbfe');
+      doc.fill('#1d4ed8').fontSize(8).font('Helvetica-Bold').text('INSURANCE COVERAGE', pad + 10, y + 8);
+      doc.fill('#1e40af').fontSize(7).font('Helvetica')
+         .text('Duration: ' + insDuration + '\nCovers: Transit protection, customs compliance, HTS code classification.', pad + 10, y + 21, { width: halfW - 20 });
+
+      doc.roundedRect(pad + halfW + 8, y, halfW, 54, 4).fill('#fff7ed').stroke('#fed7aa');
+      doc.fill('#ea580c').fontSize(8).font('Helvetica-Bold').text('NEXT STEPS', pad + halfW + 18, y + 8);
+      doc.fill('#9a3412').fontSize(7).font('Helvetica')
+         .text('• Final package verification\n• Insurance activation\n• Scheduling delivery to your address', pad + halfW + 18, y + 21, { width: halfW - 20 });
 
       // Action required
-      y += 64;
-      doc.roundedRect(pad, y, cW, 28, 4).fill('#fef2f2').stroke('#fecaca');
-      doc.fill('#dc2626').fontSize(9).font('Helvetica-Bold').text('ACTION REQUIRED:', pad + 14, y + 8);
-      doc.fill('#991b1b').fontSize(8).font('Helvetica')
-         .text('Please reply to this email with your preferred payment method to proceed.', pad + 14, y + 20);
+      y += 60;
+      doc.roundedRect(pad, y, cW, 20, 3).fill('#fef2f2').stroke('#fecaca');
+      doc.fill('#dc2626').fontSize(8).font('Helvetica-Bold').text('ACTION REQUIRED: ', pad + 14, y + 6, { continued: true });
+      doc.fill('#991b1b').fontSize(8).font('Helvetica').text('Please reply with your preferred payment method to proceed.');
 
       // Payment methods
       if (paymentMethods && paymentMethods.trim()) {
-        y += 36;
-        doc.roundedRect(pad, y, cW, 28, 4).fill('#0d1f35');
-        doc.fill('white').fontSize(9).font('Helvetica-Bold').text('AVAILABLE PAYMENT METHODS', pad + 14, y + 9);
-        y += 28;
+        y += 26;
+        doc.roundedRect(pad, y, cW, 20, 3).fill('#0d1f35');
+        doc.fill('white').fontSize(8).font('Helvetica-Bold').text('AVAILABLE PAYMENT METHODS', pad + 14, y + 6);
+        y += 20;
         const pmLines = paymentMethods.trim().split(/\r?\n/).filter(l => l.trim());
-        const pmH = Math.max(pmLines.length * 18 + 24, 40);
+        const pmH = Math.max(pmLines.length * 14 + 14, 32);
         doc.rect(pad, y, cW, pmH).fill('#f8fafc').stroke('#e2e8f0');
         pmLines.forEach((line, i) => {
-          doc.fill('#0d1f35').fontSize(9).font('Helvetica-Bold')
-             .text('• ' + line.trim(), pad + 14, y + 10 + i * 18, { width: cW - 28 });
+          doc.fill('#0d1f35').fontSize(8).font('Helvetica-Bold')
+             .text('• ' + line.trim(), pad + 14, y + 7 + i * 14, { width: cW - 28 });
         });
         y += pmH;
-        doc.rect(pad, y, cW, 22).fill('#fff7ed').stroke('#fed7aa');
-        doc.fill('#9a3412').fontSize(8).font('Helvetica')
-           .text('Payment details will be provided upon confirmation of your choice.', pad + 14, y + 7);
-        y += 22;
+        doc.rect(pad, y, cW, 16).fill('#fff7ed').stroke('#fed7aa');
+        doc.fill('#9a3412').fontSize(7).font('Helvetica')
+           .text('Payment details provided upon confirmation of your choice.', pad + 14, y + 4);
+        y += 16;
       }
 
-      // Total
-      y += 10;
-      doc.roundedRect(pad, y, cW, 44, 6).fill('#0d1f35');
-      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('TOTAL INSURANCE FEE', pad + 14, y + 12);
-      doc.fill('#7a9ab8').fontSize(8).text('100% refundable upon successful delivery', pad + 14, y + 26);
-      doc.fill('#e8820c').fontSize(22).font('Helvetica-Bold')
-         .text('$' + insFee.toFixed(2), 0, y + 10, { align: 'right', width: W - pad - 14 });
+      // Total banner
+      y += 8;
+      doc.roundedRect(pad, y, cW, 34, 5).fill('#0d1f35');
+      doc.fill('#aac4e0').fontSize(8).font('Helvetica').text('TOTAL INSURANCE FEE', pad + 14, y + 8);
+      doc.fill('#7a9ab8').fontSize(7).text('100% refundable upon successful delivery', pad + 14, y + 20);
+      doc.fill('#e8820c').fontSize(18).font('Helvetica-Bold')
+         .text('$' + insFee.toFixed(2), 0, y + 7, { align: 'right', width: W - pad - 14 });
 
-      // STAMP
-      y += 54;
-      const cx = W / 2, cy = y + 65;
-      doc.circle(cx, cy, 72).lineWidth(5).stroke('#16a34a');
-      doc.circle(cx, cy, 62).lineWidth(2).stroke('#16a34a');
-      for (let a = 0; a < 360; a += 15) {
+      // Stamp (right) + Terms (left) side by side
+      y += 42;
+      const scx = W - pad - 52, scy = y + 50;
+      doc.circle(scx, scy, 48).lineWidth(4).stroke('#16a34a');
+      doc.circle(scx, scy, 40).lineWidth(1.5).stroke('#16a34a');
+      for (let a = 0; a < 360; a += 20) {
         const rad = a * Math.PI / 180;
-        doc.circle(cx + 67 * Math.cos(rad), cy + 67 * Math.sin(rad), 2).fill('#16a34a');
+        doc.circle(scx + 44 * Math.cos(rad), scy + 44 * Math.sin(rad), 1.5).fill('#16a34a');
       }
-      doc.fill('#16a34a').fontSize(11).font('Helvetica-Bold')
-         .text('FULLY', cx - 50, cy - 22, { width: 100, align: 'center' });
-      doc.fill('#16a34a').fontSize(14).font('Helvetica-Bold')
-         .text('REFUNDABLE', cx - 50, cy - 6, { width: 100, align: 'center' });
-      doc.fill('#16a34a').fontSize(8).font('Helvetica')
-         .text('ZIPCARGO CERTIFIED', cx - 50, cy + 14, { width: 100, align: 'center' });
+      doc.fill('#16a34a').fontSize(9).font('Helvetica-Bold').text('FULLY', scx - 30, scy - 14, { width: 60, align: 'center' });
+      doc.fill('#16a34a').fontSize(11).font('Helvetica-Bold').text('REFUNDABLE', scx - 30, scy - 1, { width: 60, align: 'center' });
+      doc.fill('#16a34a').fontSize(6).font('Helvetica').text('ZIPCARGO CERTIFIED', scx - 30, scy + 14, { width: 60, align: 'center' });
 
-      // Terms
-      y += 148;
-      doc.fill('#64748b').fontSize(8).font('Helvetica-Bold').text('Terms & Conditions:', pad + 14, y);
-      doc.fill('#64748b').fontSize(8).font('Helvetica')
-         .text('1. Insurance fee payment is required before delivery can be scheduled.\n2. The full amount ($' + insFee.toFixed(2) + ') will be refunded immediately upon successful delivery.\n3. Coverage remains valid for ' + insDuration + ' and applies to all shipments within that period.\n4. Please reply with your preferred payment method to proceed.', pad + 14, y + 14, { width: cW - 28, lineBreak: true });
+      // Terms left of stamp
+      doc.fill('#64748b').fontSize(7.5).font('Helvetica-Bold').text('Terms & Conditions:', pad + 14, y + 6);
+      doc.fill('#64748b').fontSize(7).font('Helvetica')
+         .text('1. Insurance fee required before delivery is scheduled.\n2. Full $' + insFee.toFixed(2) + ' refunded upon successful delivery.\n3. Coverage valid for ' + insDuration + '.\n4. Reply with payment method to proceed.', pad + 14, y + 19, { width: cW - 120, lineBreak: true });
 
       // Footer
-      y += 75;
-      doc.roundedRect(pad, y, cW, 44, 6).fill('white').stroke('#e2e8f0');
-      doc.roundedRect(pad + 12, y + 8, 26, 26, 5).fill('#0d1f35');
-      doc.fill('#e8820c').fontSize(11).font('Helvetica-Bold').text('ZC', pad + 16, y + 15);
-      doc.fill('#0d1f35').fontSize(10).font('Helvetica-Bold').text('ZipCargo Logistics', pad + 46, y + 10);
-      doc.fill('#94a3b8').fontSize(8).font('Helvetica').text('Ship Smarter. Deliver Faster.', pad + 46, y + 24);
-      doc.fill('#94a3b8').fontSize(7).text(invoiceNo + '  •  ' + issueDate, 0, y + 28, { align: 'right', width: W - pad - 14 });
-      doc.rect(pad, y + 44, cW, 3).fill('#e8820c');
+      y += 112;
+      doc.roundedRect(pad, y, cW, 36, 5).fill('white').stroke('#e2e8f0');
+      doc.roundedRect(pad + 10, y + 6, 22, 22, 4).fill('#0d1f35');
+      doc.fill('#e8820c').fontSize(10).font('Helvetica-Bold').text('ZC', pad + 14, y + 12);
+      doc.fill('#0d1f35').fontSize(9).font('Helvetica-Bold').text('ZipCargo Logistics', pad + 40, y + 8);
+      doc.fill('#94a3b8').fontSize(7.5).font('Helvetica').text('Ship Smarter. Deliver Faster.', pad + 40, y + 20);
+      doc.fill('#94a3b8').fontSize(6.5).text(invoiceNo + '  •  ' + issueDate, 0, y + 22, { align: 'right', width: W - pad - 14 });
+      doc.rect(pad, y + 36, cW, 3).fill('#e8820c');
 
       doc.end();
     });
