@@ -643,6 +643,78 @@ async function sendDeliveryAuthInvoice() {
   }
 }
 
+// ===== PET TRAVEL PERMIT INVOICE =====
+let travelPermitShipmentData = null;
+
+async function loadTravelPermitShipment() {
+  const tn = document.getElementById('travelPermitTracking').value.trim().toUpperCase();
+  if (!tn) { showToast('Please enter a tracking number', 'error'); return; }
+  try {
+    const res = await fetch('/api/shipments/track/' + encodeURIComponent(tn));
+    if (!res.ok) throw new Error('Not found');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    travelPermitShipmentData = data;
+    document.getElementById('travelPermitClientName').textContent  = data.rName  || '-';
+    document.getElementById('travelPermitClientEmail').textContent = data.rEmail || '-';
+    document.getElementById('travelPermitClientDesc').textContent  = data.desc   || data.description || '-';
+    document.getElementById('travelPermitClientRoute').textContent = (data.origin||'-') + ' → ' + (data.dest||'-');
+    document.getElementById('travelPermitClientPreview').style.display = 'block';
+    document.getElementById('travelPermitSendBtn').disabled = false;
+    showToast('Client loaded: ' + data.rName, 'success');
+  } catch(e) {
+    showToast('Shipment not found: ' + tn, 'error');
+    travelPermitShipmentData = null;
+    document.getElementById('travelPermitClientPreview').style.display = 'none';
+    document.getElementById('travelPermitSendBtn').disabled = true;
+  }
+}
+
+async function sendTravelPermitInvoice() {
+  if (!travelPermitShipmentData) { showToast('Please load a shipment first', 'error'); return; }
+  const fee            = parseFloat(document.getElementById('travelPermitFee').value) || 100;
+  const paymentMethods = document.getElementById('travelPermitPaymentMethods').value.trim();
+  const msg            = document.getElementById('travelPermitMsg');
+  msg.style.color = '#185fa5';
+  msg.textContent = 'Generating invoice and sending email...';
+  const settings = {
+    website: localStorage.getItem('zc_contact_website') || '',
+    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
+    phone:   localStorage.getItem('zc_contact_phone')   || '',
+  };
+  try {
+    const res = await fetch('/api/email/travel-permit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shipment: {
+          tracking:    travelPermitShipmentData.tracking,
+          rName:       travelPermitShipmentData.rName,
+          rEmail:      travelPermitShipmentData.rEmail,
+          rPhone:      travelPermitShipmentData.rPhone,
+          origin:      travelPermitShipmentData.origin,
+          dest:        travelPermitShipmentData.dest,
+          description: travelPermitShipmentData.desc || travelPermitShipmentData.description,
+        },
+        fee, paymentMethods, settings,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.style.color = '#16a34a';
+      msg.textContent = `✅ Permit notice sent to ${travelPermitShipmentData.rEmail}`;
+      showToast('📧 Travel permit notice sent!', 'success');
+      setTimeout(() => msg.textContent = '', 5000);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+    }
+  } catch(e) {
+    msg.style.color = '#dc2626';
+    msg.textContent = '❌ Error: ' + e.message;
+  }
+}
+
 // ===== DELETE SHIPMENT =====
 async function deleteShipment(id, tracking) {
   if (!confirm(`Delete shipment ${tracking}? This cannot be undone.`)) return;
