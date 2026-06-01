@@ -244,9 +244,12 @@ async function createShipment() {
           const updateData = await updateRes.json();
           if (updateData.success) {
             showToast(`📧 Status update sent to ${payload.rEmail}`, 'success');
+          } else {
+            showToast(`⚠️ Email failed: ${updateData.error || 'Unknown error'}`, 'error');
           }
         } catch(e) {
-          console.warn('Status update email failed:', e.message);
+          showToast(`⚠️ Email error: ${e.message}`, 'error');
+          console.error('Status update email failed:', e.message);
         }
       }
     } else {
@@ -328,6 +331,7 @@ function editShipment(id) {
   set('newRecipName',s.rName);    set('newRecipPhone',s.rPhone);  set('newRecipEmail',s.rEmail);  set('newDestination',s.dest);
   set('newDescription',s.desc);   set('newWeight',s.weight);      set('newValue',s.value);        set('newCost',s.cost);
   set('newETA',s.eta);            set('newStatus',s.status);      set('newLocation',s.location);  set('newNotes',s.notes);
+  set('newDeliveryAddress',s.deliveryAddress);
   document.getElementById('newTracking').dataset.editingId = id;
   const msg=document.getElementById('createMsg');
   msg.style.color='#185fa5'; msg.textContent=`Editing ${s.tracking} — make changes and click Save.`;
