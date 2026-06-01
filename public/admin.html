@@ -354,6 +354,19 @@
           <!-- Hidden option — both shown on invoice -->
           <input type="hidden" id="crateOption" value="both"/>
 
+          <!-- Payment Methods -->
+          <div class="form-group" style="margin-bottom:20px;">
+            <label style="font-weight:700;color:#0d1f35;margin-bottom:8px;display:block;">
+              <i class="fa-solid fa-credit-card" style="color:#e8820c;margin-right:6px;"></i>Payment Methods
+            </label>
+            <p style="font-size:.78rem;color:#94a3b8;margin-bottom:8px;">List your accepted payment methods. Payment details will be sent privately after client replies.</p>
+            <textarea id="cratePaymentMethods"
+              placeholder="e.g.&#10;• PayPal&#10;• Zelle&#10;• Cash App&#10;• Bank Transfer&#10;• Western Union"
+              style="width:100%;min-height:100px;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.875rem;line-height:1.7;color:#1e293b;resize:vertical;outline:none;box-sizing:border-box;"
+              onfocus="this.style.borderColor='#e8820c'"
+              onblur="this.style.borderColor='#e2e8f0'"></textarea>
+          </div>
+
           <div style="display:flex;gap:12px;flex-wrap:wrap;">
             <button class="btn-save" id="crateSendBtn" onclick="sendCrateInvoice()" disabled>
               <i class="fa-solid fa-paper-plane"></i> Send Crate Invoice
