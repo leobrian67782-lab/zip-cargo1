@@ -149,6 +149,7 @@
       <a class="nav-item" onclick="showSection('ai',this);return false;"><i class="fa-solid fa-robot nav-icon"></i> AI Assistant</a>
       <a class="nav-item" onclick="showSection('crate',this);return false;"><i class="fa-solid fa-box nav-icon"></i> Crate Invoice</a>
       <a class="nav-item" onclick="showSection('vaccine',this);return false;"><i class="fa-solid fa-syringe nav-icon"></i> Vaccine Invoice</a>
+      <a class="nav-item" onclick="showSection('insurance',this);return false;"><i class="fa-solid fa-shield-halved nav-icon"></i> Insurance Invoice</a>
     </nav>
 
     <div class="sidebar-footer">
@@ -428,6 +429,64 @@
             </button>
           </div>
           <div id="vaccineMsg" class="create-msg" style="margin-top:12px;"></div>
+        </div>
+      </section>
+
+      <!-- INSURANCE INVOICE SECTION -->
+      <section class="section" id="sec-insurance">
+        <div class="form-card">
+          <h3><i class="fa-solid fa-shield-halved" style="color:#e8820c;margin-right:8px;"></i>Insurance Invoice Generator</h3>
+          <p style="color:#64748b;font-size:.875rem;margin-bottom:20px;line-height:1.6;">
+            Enter a tracking number to load the client details, set the insurance fee, then send the professional invoice directly to their email.
+          </p>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Tracking Number</label>
+            <div class="input-with-btn">
+              <input type="text" id="insuranceTracking" placeholder="e.g. ZC-2026-00123"/>
+              <button onclick="loadInsuranceShipment()">Load</button>
+            </div>
+          </div>
+
+          <div id="insuranceClientPreview" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:20px;">
+            <div style="font-weight:700;color:#0d1f35;margin-bottom:10px;font-size:.9rem;">Client Details</div>
+            <table style="width:100%;font-size:.83rem;">
+              <tr><td style="color:#94a3b8;padding:4px 0;">Name</td><td id="insuranceClientName" style="color:#0d1f35;font-weight:700;"></td></tr>
+              <tr><td style="color:#94a3b8;padding:4px 0;">Email</td><td id="insuranceClientEmail" style="color:#0d1f35;font-weight:700;"></td></tr>
+              <tr><td style="color:#94a3b8;padding:4px 0;">Package</td><td id="insuranceClientDesc" style="color:#0d1f35;font-weight:700;"></td></tr>
+              <tr><td style="color:#94a3b8;padding:4px 0;">Route</td><td id="insuranceClientRoute" style="color:#0d1f35;font-weight:700;"></td></tr>
+            </table>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+            <div class="form-group" style="flex:1;min-width:140px;">
+              <label>Insurance Fee ($)</label>
+              <input type="number" id="insuranceFee" value="103"/>
+            </div>
+            <div class="form-group" style="flex:1;min-width:140px;">
+              <label>Coverage Duration</label>
+              <input type="text" id="insuranceDuration" value="8 months"/>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:20px;">
+            <label style="font-weight:700;color:#0d1f35;margin-bottom:8px;display:block;">
+              <i class="fa-solid fa-credit-card" style="color:#e8820c;margin-right:6px;"></i>Payment Methods
+            </label>
+            <p style="font-size:.78rem;color:#94a3b8;margin-bottom:8px;">List accepted payment methods. Details sent privately after client replies.</p>
+            <textarea id="insurancePaymentMethods"
+              placeholder="e.g.&#10;PayPal&#10;Zelle&#10;Cash App&#10;Bank Transfer"
+              style="width:100%;min-height:90px;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.875rem;line-height:1.7;color:#1e293b;resize:vertical;outline:none;box-sizing:border-box;"
+              onfocus="this.style.borderColor='#e8820c'"
+              onblur="this.style.borderColor='#e2e8f0'"></textarea>
+          </div>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn-save" id="insuranceSendBtn" onclick="sendInsuranceInvoice()" disabled>
+              <i class="fa-solid fa-paper-plane"></i> Send Insurance Invoice
+            </button>
+          </div>
+          <div id="insuranceMsg" class="create-msg" style="margin-top:12px;"></div>
         </div>
       </section>
 
