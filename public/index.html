@@ -15,7 +15,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ZipCargo — Global Logistics & Pet Transport | Worldwide Shipping</title>
   <link rel="stylesheet" href="style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -37,7 +37,60 @@
       .footer-bottom{flex-direction:column!important;text-align:center!important;}
       .footer-bottom-links{justify-content:center!important;}
     }
-  /* Quick Track Bar */
+  /* Font upgrade */
+  body { font-family: 'Inter', 'Outfit', sans-serif !important; }
+  h1, h2, h3, h4, .nav-logo, .logo, .section-title, .hero h1 {
+    font-family: 'Sora', 'Outfit', sans-serif !important;
+  }
+
+  /* Hero trust badges */
+  .hero-trust-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .hero-trust-badges span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: .8rem;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+  }
+  .hero-trust-badges span i { color: #e8820c; }
+
+  /* Card hover improvements */
+  .service-card {
+    transition: transform .3s ease, box-shadow .3s ease !important;
+  }
+  .service-card:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 20px 40px rgba(13,31,53,0.15) !important;
+  }
+  .service-card .service-img img {
+    transition: transform .4s ease !important;
+  }
+  .service-card:hover .service-img img {
+    transform: scale(1.06) !important;
+  }
+
+  /* Step card hover */
+  .step-card {
+    transition: transform .3s ease, box-shadow .3s ease !important;
+  }
+  .step-card:hover {
+    transform: translateY(-6px) !important;
+    box-shadow: 0 16px 32px rgba(13,31,53,0.12) !important;
+  }
+
+  /* /* Quick Track Bar */
+  .quick-track-bar {
 .quick-track-bar {
   background: #0d1f35;
   padding: 28px 24px;
@@ -103,6 +156,46 @@
   .quick-track-form { flex-direction: column; }
   .quick-track-form button { width: 100%; }
 }
+
+  /* FAQ Styles */
+  .faq-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .faq-item:hover { box-shadow: 0 4px 16px rgba(13,31,53,0.08); }
+  .faq-q {
+    width: 100%;
+    background: white;
+    border: none;
+    padding: 20px 24px;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0d1f35;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Sora', sans-serif;
+    transition: background .2s;
+  }
+  .faq-q:hover { background: #f8fafc; }
+  .faq-q.open { color: #e8820c; background: #fff7ed; }
+  .faq-icon { transition: transform .3s; color: #94a3b8; }
+  .faq-q.open .faq-icon { transform: rotate(180deg); color: #e8820c; }
+  .faq-a {
+    display: none;
+    padding: 0 24px 20px;
+    color: #475569;
+    font-size: .95rem;
+    line-height: 1.8;
+    background: white;
+  }
+  .faq-a.show { display: block; }
+
 </style>
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css"/>
 </head>
@@ -146,12 +239,18 @@
   </div>
   <div class="hero-overlay"></div>
   <div class="hero-content animate-fade">
-    <span class="hero-badge"><i class="fa-solid fa-earth-americas"></i> Worldwide Delivery</span>
-    <h1>Ship Smarter.<br/>Deliver Faster.</h1>
-    <p>ZipCargo connects businesses to the world with reliable air, sea &amp; road freight solutions across 150+ countries.</p>
+    <span class="hero-badge"><i class="fa-solid fa-earth-americas"></i> Trusted Global Logistics</span>
+    <h1>Delivering Cargo<br/>Across Borders<br/><span style="color:#e8820c;">Faster & Safer</span></h1>
+    <p>ZipCargo provides premium air, sea & road freight solutions with real-time tracking, secure pet transport, and expert customs clearance across 150+ countries.</p>
     <div class="hero-buttons">
-      <a href="contact.html" class="btn-primary">Get a Free Quote</a>
-      <a href="tracking.html" class="btn-secondary">Track Shipment</a>
+      <a href="contact.html" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Get a Free Quote</a>
+      <a href="tracking.html" class="btn-secondary"><i class="fa-solid fa-satellite-dish"></i> Track Shipment</a>
+    </div>
+    <div class="hero-trust-badges">
+      <span><i class="fa-solid fa-shield-halved"></i> Insured Cargo</span>
+      <span><i class="fa-solid fa-certificate"></i> ISO 9001</span>
+      <span><i class="fa-solid fa-headset"></i> 24/7 Support</span>
+      <span><i class="fa-solid fa-rotate"></i> 100% Refundable Fees</span>
     </div>
   </div>
   <div class="hero-scroll-hint"><i class="fa-solid fa-chevron-down"></i> Scroll to explore</div>
@@ -229,6 +328,107 @@
   </div>
 </section>
 
+<!-- Why Choose Us / Certifications -->
+<section style="padding:80px 24px;background:#f8fafc;">
+  <div class="section-header animate-fade" data-aos="fade-up">
+    <h2 class="section-title">Why Choose ZipCargo</h2>
+    <p class="section-subtitle">Trusted by thousands of businesses and individuals worldwide</p>
+  </div>
+  <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px;margin-top:48px;">
+    <div data-aos="fade-up" data-aos-delay="0" style="background:white;border-radius:16px;padding:32px 28px;text-align:center;box-shadow:0 4px 20px rgba(13,31,53,0.07);border-top:4px solid #e8820c;transition:transform .3s;" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='none'">
+      <div style="width:64px;height:64px;background:#fff7ed;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><i class="fa-solid fa-certificate" style="color:#e8820c;font-size:1.6rem;"></i></div>
+      <h3 style="color:#0d1f35;font-size:1.1rem;margin-bottom:10px;">ISO 9001 Certified</h3>
+      <p style="color:#64748b;font-size:.9rem;line-height:1.7;">Internationally certified quality management system ensuring the highest standards of service delivery.</p>
+    </div>
+    <div data-aos="fade-up" data-aos-delay="100" style="background:white;border-radius:16px;padding:32px 28px;text-align:center;box-shadow:0 4px 20px rgba(13,31,53,0.07);border-top:4px solid #2563eb;transition:transform .3s;" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='none'">
+      <div style="width:64px;height:64px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><i class="fa-solid fa-shield-halved" style="color:#2563eb;font-size:1.6rem;"></i></div>
+      <h3 style="color:#0d1f35;font-size:1.1rem;margin-bottom:10px;">Fully Insured Cargo</h3>
+      <p style="color:#64748b;font-size:.9rem;line-height:1.7;">All shipments are covered with comprehensive cargo insurance. Premiums are 100% refundable on safe delivery.</p>
+    </div>
+    <div data-aos="fade-up" data-aos-delay="200" style="background:white;border-radius:16px;padding:32px 28px;text-align:center;box-shadow:0 4px 20px rgba(13,31,53,0.07);border-top:4px solid #16a34a;transition:transform .3s;" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='none'">
+      <div style="width:64px;height:64px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><i class="fa-solid fa-satellite-dish" style="color:#16a34a;font-size:1.6rem;"></i></div>
+      <h3 style="color:#0d1f35;font-size:1.1rem;margin-bottom:10px;">Real-Time GPS Tracking</h3>
+      <p style="color:#64748b;font-size:.9rem;line-height:1.7;">Track every shipment live with GPS precision. Get instant notifications at every stage of delivery.</p>
+    </div>
+    <div data-aos="fade-up" data-aos-delay="300" style="background:white;border-radius:16px;padding:32px 28px;text-align:center;box-shadow:0 4px 20px rgba(13,31,53,0.07);border-top:4px solid #7c3aed;transition:transform .3s;" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='none'">
+      <div style="width:64px;height:64px;background:#f5f3ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><i class="fa-solid fa-paw" style="color:#7c3aed;font-size:1.6rem;"></i></div>
+      <h3 style="color:#0d1f35;font-size:1.1rem;margin-bottom:10px;">Pet Transport Experts</h3>
+      <p style="color:#64748b;font-size:.9rem;line-height:1.7;">Specialized safe transport for animals with climate-controlled crates, vet-approved handling and full documentation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ Section -->
+<section style="padding:80px 24px;background:white;">
+  <div class="section-header animate-fade" data-aos="fade-up">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+    <p class="section-subtitle">Everything you need to know about shipping with ZipCargo</p>
+  </div>
+  <div style="max-width:780px;margin:48px auto 0;" id="faqList">
+
+    <div class="faq-item" data-aos="fade-up">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        How long does international shipping take?
+        <i class="fa-solid fa-chevron-down faq-icon"></i>
+      </button>
+      <div class="faq-a">Air freight typically takes 1–5 business days, sea freight 2–6 weeks depending on the route, and road transport 1–10 days for regional shipments. We always provide an estimated delivery date when your shipment is booked.</div>
+    </div>
+
+    <div class="faq-item" data-aos="fade-up">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Is cargo insurance refundable?
+        <i class="fa-solid fa-chevron-down faq-icon"></i>
+      </button>
+      <div class="faq-a">Yes — all ZipCargo insurance premiums and processing fees are 100% fully refundable if your shipment arrives safely with no claims. You pay for protection and get it back when everything goes smoothly.</div>
+    </div>
+
+    <div class="faq-item" data-aos="fade-up">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Can you ship live animals and pets?
+        <i class="fa-solid fa-chevron-down faq-icon"></i>
+      </button>
+      <div class="faq-a">Absolutely. ZipCargo specializes in pet and animal transport. We handle all required permits, vaccinations, health certificates, and use climate-controlled, IATA-compliant crates to ensure your pet travels safely and comfortably.</div>
+    </div>
+
+    <div class="faq-item" data-aos="fade-up">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        How do I track my shipment?
+        <i class="fa-solid fa-chevron-down faq-icon"></i>
+      </button>
+      <div class="faq-a">Simply enter your ZipCargo tracking number (format: ZC-YYYY-NNNNN) in the tracking bar above or visit our Tracking page. You'll see real-time status updates, current location, and estimated delivery date.</div>
+    </div>
+
+    <div class="faq-item" data-aos="fade-up">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        What documents are required for international shipping?
+        <i class="fa-solid fa-chevron-down faq-icon"></i>
+      </button>
+      <div class="faq-a">Standard requirements include a commercial invoice, packing list, and bill of lading or airway bill. For pets, additional documents such as health certificates, vaccination records, and import permits may be required. Our team handles all documentation for you.</div>
+    </div>
+
+    <div class="faq-item" data-aos="fade-up">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        How do I get a shipping quote?
+        <i class="fa-solid fa-chevron-down faq-icon"></i>
+      </button>
+      <div class="faq-a">Contact us through our Contact page or email us directly. Provide your shipment details (origin, destination, weight, dimensions, type of goods) and we'll respond with a competitive quote within 24 hours.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA Banner -->
+<section data-aos="fade-up" style="background:linear-gradient(135deg,#0d1f35,#1a3a5c);padding:80px 24px;text-align:center;">
+  <div style="max-width:700px;margin:0 auto;">
+    <h2 style="color:white;font-size:2.2rem;margin-bottom:16px;font-family:'Sora',sans-serif;">Ready to Ship With Confidence?</h2>
+    <p style="color:#aac4e0;font-size:1.05rem;margin-bottom:36px;line-height:1.7;">Join thousands of businesses and individuals who trust ZipCargo for safe, fast, and reliable global shipping.</p>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+      <a href="contact.html" class="btn-primary" style="padding:16px 36px;font-size:1rem;"><i class="fa-solid fa-paper-plane"></i> Get a Free Quote</a>
+      <a href="tracking.html" class="btn-secondary" style="padding:16px 36px;font-size:1rem;"><i class="fa-solid fa-satellite-dish"></i> Track a Shipment</a>
+    </div>
+  </div>
+</section>
+
 <footer class="footer">
   <div class="footer-content">
     <div class="footer-brand">
@@ -273,7 +473,23 @@ window.addEventListener('load', function() {
 });
 </script>
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-<script>AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });function quickTrack() {
+<script>AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-q').forEach(b => {
+    b.classList.remove('open');
+    b.nextElementSibling.classList.remove('show');
+  });
+  // Open clicked if it was closed
+  if (!isOpen) {
+    btn.classList.add('open');
+    answer.classList.add('show');
+  }
+}
+
+function quickTrack() {
   const val = document.getElementById('quickTrackInput').value.trim().toUpperCase();
   if (!val) { document.getElementById('quickTrackInput').focus(); return; }
   window.location.href = 'tracking.html?id=' + encodeURIComponent(val);
