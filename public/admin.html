@@ -147,6 +147,7 @@
       <a class="nav-item" onclick="showSection('activity',this);return false;"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Activity Log</a>
       <a class="nav-item" onclick="showSection('settings',this);return false;"><i class="fa-solid fa-gear nav-icon"></i> Settings</a>
       <a class="nav-item" onclick="showSection('ai',this);return false;"><i class="fa-solid fa-robot nav-icon"></i> AI Assistant</a>
+      <a class="nav-item" onclick="showSection('crate',this);return false;"><i class="fa-solid fa-box nav-icon"></i> Crate Invoice</a>
     </nav>
 
     <div class="sidebar-footer">
@@ -301,6 +302,68 @@
         </div>
       </div>
     </section>
+
+      <!-- CRATE INVOICE SECTION -->
+      <section class="section" id="sec-crate">
+        <div class="form-card">
+          <h3><i class="fa-solid fa-box" style="color:#e8820c;margin-right:8px;"></i>Crate Invoice Generator</h3>
+          <p style="color:#64748b;font-size:.875rem;margin-bottom:20px;line-height:1.6;">
+            Enter a tracking number to load the client details, select rental or purchase, then send the professional crate invoice directly to their email.
+          </p>
+
+          <!-- Tracking lookup -->
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Tracking Number</label>
+            <div class="input-with-btn">
+              <input type="text" id="crateTracking" placeholder="e.g. ZC-2026-00123"/>
+              <button onclick="loadCrateShipment()">Load</button>
+            </div>
+          </div>
+
+          <!-- Client preview -->
+          <div id="crateClientPreview" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:20px;">
+            <div style="font-weight:700;color:#0d1f35;margin-bottom:10px;font-size:.9rem;">Client Details</div>
+            <table style="width:100%;font-size:.83rem;">
+              <tr><td style="color:#94a3b8;padding:4px 0;">Name</td><td id="crateClientName" style="color:#0d1f35;font-weight:700;"></td></tr>
+              <tr><td style="color:#94a3b8;padding:4px 0;">Email</td><td id="crateClientEmail" style="color:#0d1f35;font-weight:700;"></td></tr>
+              <tr><td style="color:#94a3b8;padding:4px 0;">Animal/Item</td><td id="crateClientDesc" style="color:#0d1f35;font-weight:700;"></td></tr>
+              <tr><td style="color:#94a3b8;padding:4px 0;">Route</td><td id="crateClientRoute" style="color:#0d1f35;font-weight:700;"></td></tr>
+            </table>
+          </div>
+
+          <!-- Prices -->
+          <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+            <div class="form-group" style="flex:1;min-width:140px;">
+              <label>Rental Price ($)</label>
+              <input type="number" id="crateRentPrice" value="200"/>
+            </div>
+            <div class="form-group" style="flex:1;min-width:140px;">
+              <label>Purchase Price ($)</label>
+              <input type="number" id="crateBuyPrice" value="250"/>
+            </div>
+            <div class="form-group" style="flex:1;min-width:140px;">
+              <label>Refund % (Rental)</label>
+              <input type="number" id="crateRefundPct" value="98"/>
+            </div>
+          </div>
+
+          <!-- Option selection -->
+          <div class="form-group" style="margin-bottom:20px;">
+            <label>Crate Option to Invoice</label>
+            <select id="crateOption">
+              <option value="rent">Renting ($200 — 98% Refundable)</option>
+              <option value="buy">Purchasing ($250 — No Refund)</option>
+            </select>
+          </div>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn-save" id="crateSendBtn" onclick="sendCrateInvoice()" disabled>
+              <i class="fa-solid fa-paper-plane"></i> Send Crate Invoice
+            </button>
+          </div>
+          <div id="crateMsg" class="create-msg" style="margin-top:12px;"></div>
+        </div>
+      </section>
 
       <!-- AI ASSISTANT SECTION -->
       <section class="section" id="sec-ai">
