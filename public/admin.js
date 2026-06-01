@@ -345,7 +345,11 @@ async function loadCrateShipment() {
   if (!tn) { showToast('Please enter a tracking number', 'error'); return; }
 
   try {
-    const data = await api.get('/api/shipments/track/' + encodeURIComponent(tn));
+    // Use direct fetch — tracking is a public endpoint
+    const res = await fetch('/api/shipments/track/' + encodeURIComponent(tn));
+    if (!res.ok) throw new Error('Not found');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
     crateShipmentData = data;
 
     // Update preview
@@ -355,14 +359,6 @@ async function loadCrateShipment() {
     document.getElementById('crateClientRoute').textContent = (data.origin || '-') + ' → ' + (data.dest || '-');
     document.getElementById('crateClientPreview').style.display = 'block';
     document.getElementById('crateSendBtn').disabled = false;
-
-    // Update option labels
-    const rentPrice   = document.getElementById('crateRentPrice').value  || 200;
-    const buyPrice    = document.getElementById('crateBuyPrice').value   || 250;
-    const refundPct   = document.getElementById('crateRefundPct').value  || 98;
-    const sel = document.getElementById('crateOption');
-    sel.options[0].text = `Renting ($${rentPrice} — ${refundPct}% Refundable)`;
-    sel.options[1].text = `Purchasing ($${buyPrice} — No Refund)`;
 
     showToast('Client loaded: ' + data.rName, 'success');
   } catch(e) {
@@ -377,6 +373,7 @@ async function sendCrateInvoice() {
   if (!crateShipmentData) { showToast('Please load a shipment first', 'error'); return; }
 
   const option    = document.getElementById('crateOption').value;
+  const quantity  = parseInt(document.getElementById('crateQuantity').value) || 1;
   const rentPrice = parseFloat(document.getElementById('crateRentPrice').value)  || 200;
   const buyPrice  = parseFloat(document.getElementById('crateBuyPrice').value)   || 250;
   const refundPct = parseFloat(document.getElementById('crateRefundPct').value)  || 98;
@@ -406,6 +403,7 @@ async function sendCrateInvoice() {
           description: crateShipmentData.desc || crateShipmentData.description,
         },
         option,
+        quantity,
         prices: { rent: rentPrice, buy: buyPrice, refund: refundPct },
         settings,
       }),
