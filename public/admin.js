@@ -571,6 +571,78 @@ async function sendInsuranceInvoice() {
   }
 }
 
+// ===== DELIVERY AUTHORIZATION INVOICE =====
+let deliveryAuthShipmentData = null;
+
+async function loadDeliveryAuthShipment() {
+  const tn = document.getElementById('deliveryAuthTracking').value.trim().toUpperCase();
+  if (!tn) { showToast('Please enter a tracking number', 'error'); return; }
+  try {
+    const res = await fetch('/api/shipments/track/' + encodeURIComponent(tn));
+    if (!res.ok) throw new Error('Not found');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    deliveryAuthShipmentData = data;
+    document.getElementById('deliveryAuthClientName').textContent  = data.rName  || '-';
+    document.getElementById('deliveryAuthClientEmail').textContent = data.rEmail || '-';
+    document.getElementById('deliveryAuthClientDesc').textContent  = data.desc   || data.description || '-';
+    document.getElementById('deliveryAuthClientRoute').textContent = (data.origin||'-') + ' → ' + (data.dest||'-');
+    document.getElementById('deliveryAuthClientPreview').style.display = 'block';
+    document.getElementById('deliveryAuthSendBtn').disabled = false;
+    showToast('Client loaded: ' + data.rName, 'success');
+  } catch(e) {
+    showToast('Shipment not found: ' + tn, 'error');
+    deliveryAuthShipmentData = null;
+    document.getElementById('deliveryAuthClientPreview').style.display = 'none';
+    document.getElementById('deliveryAuthSendBtn').disabled = true;
+  }
+}
+
+async function sendDeliveryAuthInvoice() {
+  if (!deliveryAuthShipmentData) { showToast('Please load a shipment first', 'error'); return; }
+  const fee            = parseFloat(document.getElementById('deliveryAuthFee').value) || 300;
+  const paymentMethods = document.getElementById('deliveryAuthPaymentMethods').value.trim();
+  const msg            = document.getElementById('deliveryAuthMsg');
+  msg.style.color = '#185fa5';
+  msg.textContent = 'Generating invoice and sending email...';
+  const settings = {
+    website: localStorage.getItem('zc_contact_website') || '',
+    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
+    phone:   localStorage.getItem('zc_contact_phone')   || '',
+  };
+  try {
+    const res = await fetch('/api/email/delivery-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shipment: {
+          tracking:    deliveryAuthShipmentData.tracking,
+          rName:       deliveryAuthShipmentData.rName,
+          rEmail:      deliveryAuthShipmentData.rEmail,
+          rPhone:      deliveryAuthShipmentData.rPhone,
+          origin:      deliveryAuthShipmentData.origin,
+          dest:        deliveryAuthShipmentData.dest,
+          description: deliveryAuthShipmentData.desc || deliveryAuthShipmentData.description,
+        },
+        fee, paymentMethods, settings,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.style.color = '#16a34a';
+      msg.textContent = `✅ Authorization notice sent to ${deliveryAuthShipmentData.rEmail}`;
+      showToast('📧 Authorization notice sent!', 'success');
+      setTimeout(() => msg.textContent = '', 5000);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+    }
+  } catch(e) {
+    msg.style.color = '#dc2626';
+    msg.textContent = '❌ Error: ' + e.message;
+  }
+}
+
 // ===== DELETE SHIPMENT =====
 async function deleteShipment(id, tracking) {
   if (!confirm(`Delete shipment ${tracking}? This cannot be undone.`)) return;
