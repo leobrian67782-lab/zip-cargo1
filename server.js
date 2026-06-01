@@ -96,6 +96,14 @@ app.use('/api/activity',  require('./routes/activity'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
+// ── Sitemap & Robots ──────────────────────────────────────────────────────
+app.get('/sitemap.xml', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
+});
+
 // ── Shipment status update email ──────────────────────────────────────────
 app.post('/api/email/status-update', async (req, res) => {
   try {
