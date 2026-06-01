@@ -37,6 +37,7 @@
       .hubs-grid{grid-template-columns:repeat(2,1fr)!important;}
     }
   </style>
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css"/>
 </head>
 <body>
 
@@ -90,14 +91,14 @@
 </section>
 
 <section class="stats">
-  <div class="stat-item animate-slide"><h2 data-target="150" data-suffix="+">150+</h2><p>Countries Served</p></div>
-  <div class="stat-item animate-slide"><h2 data-target="80000" data-suffix="+">80,000+</h2><p>Deliveries Monthly</p></div>
-  <div class="stat-item animate-slide"><h2 data-target="99.8" data-suffix="%" data-decimal="true">99.8%</h2><p>On-Time Rate</p></div>
-  <div class="stat-item animate-slide"><h2 data-target="15" data-suffix="+">15+</h2><p>Years Experience</p></div>
+  <div class="stat-item animate-slide" data-aos="zoom-in"><h2 data-target="150" data-suffix="+">150+</h2><p>Countries Served</p></div>
+  <div class="stat-item animate-slide" data-aos="zoom-in"><h2 data-target="80000" data-suffix="+">80,000+</h2><p>Deliveries Monthly</p></div>
+  <div class="stat-item animate-slide" data-aos="zoom-in"><h2 data-target="99.8" data-suffix="%" data-decimal="true">99.8%</h2><p>On-Time Rate</p></div>
+  <div class="stat-item animate-slide" data-aos="zoom-in"><h2 data-target="15" data-suffix="+">15+</h2><p>Years Experience</p></div>
 </section>
 
 <section class="map-section" id="map">
-  <div class="section-header animate-fade"><h2 class="section-title">Our Global Network</h2><p class="section-subtitle">ZipCargo operates across every major continent</p></div>
+  <div class="section-header animate-fade" data-aos="fade-up"><h2 class="section-title">Our Global Network</h2><p class="section-subtitle">ZipCargo operates across every major continent</p></div>
   <div class="map-container">
     <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d50000000!2d-50!3d35!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus" width="100%" height="450" style="border:0;border-radius:12px;" allowfullscreen="" loading="lazy"></iframe>
   </div>
@@ -163,5 +164,7 @@
 <script src="script.js"></script>
 
 <script src="chat.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });</script>
 </body>
 </html>
