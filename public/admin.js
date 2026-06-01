@@ -337,6 +337,96 @@ function editShipment(id) {
   msg.style.color='#185fa5'; msg.textContent=`Editing ${s.tracking} — make changes and click Save.`;
 }
 
+// ===== CRATE INVOICE =====
+let crateShipmentData = null;
+
+async function loadCrateShipment() {
+  const tn = document.getElementById('crateTracking').value.trim().toUpperCase();
+  if (!tn) { showToast('Please enter a tracking number', 'error'); return; }
+
+  try {
+    const data = await api.get('/api/shipments/track/' + encodeURIComponent(tn));
+    crateShipmentData = data;
+
+    // Update preview
+    document.getElementById('crateClientName').textContent  = data.rName  || '-';
+    document.getElementById('crateClientEmail').textContent = data.rEmail || '-';
+    document.getElementById('crateClientDesc').textContent  = data.desc   || data.description || '-';
+    document.getElementById('crateClientRoute').textContent = (data.origin || '-') + ' → ' + (data.dest || '-');
+    document.getElementById('crateClientPreview').style.display = 'block';
+    document.getElementById('crateSendBtn').disabled = false;
+
+    // Update option labels
+    const rentPrice   = document.getElementById('crateRentPrice').value  || 200;
+    const buyPrice    = document.getElementById('crateBuyPrice').value   || 250;
+    const refundPct   = document.getElementById('crateRefundPct').value  || 98;
+    const sel = document.getElementById('crateOption');
+    sel.options[0].text = `Renting ($${rentPrice} — ${refundPct}% Refundable)`;
+    sel.options[1].text = `Purchasing ($${buyPrice} — No Refund)`;
+
+    showToast('Client loaded: ' + data.rName, 'success');
+  } catch(e) {
+    showToast('Shipment not found: ' + tn, 'error');
+    crateShipmentData = null;
+    document.getElementById('crateClientPreview').style.display = 'none';
+    document.getElementById('crateSendBtn').disabled = true;
+  }
+}
+
+async function sendCrateInvoice() {
+  if (!crateShipmentData) { showToast('Please load a shipment first', 'error'); return; }
+
+  const option    = document.getElementById('crateOption').value;
+  const rentPrice = parseFloat(document.getElementById('crateRentPrice').value)  || 200;
+  const buyPrice  = parseFloat(document.getElementById('crateBuyPrice').value)   || 250;
+  const refundPct = parseFloat(document.getElementById('crateRefundPct').value)  || 98;
+
+  const msg = document.getElementById('crateMsg');
+  msg.style.color = '#185fa5';
+  msg.textContent = 'Generating invoice and sending email...';
+
+  const settings = {
+    website: localStorage.getItem('zc_contact_website') || '',
+    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
+    phone:   localStorage.getItem('zc_contact_phone')   || '',
+  };
+
+  try {
+    const res = await fetch('/api/email/crate-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shipment: {
+          tracking:    crateShipmentData.tracking,
+          rName:       crateShipmentData.rName,
+          rEmail:      crateShipmentData.rEmail,
+          rPhone:      crateShipmentData.rPhone,
+          origin:      crateShipmentData.origin,
+          dest:        crateShipmentData.dest,
+          description: crateShipmentData.desc || crateShipmentData.description,
+        },
+        option,
+        prices: { rent: rentPrice, buy: buyPrice, refund: refundPct },
+        settings,
+      }),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      msg.style.color = '#16a34a';
+      msg.textContent = `✅ Crate invoice sent to ${crateShipmentData.rEmail}`;
+      showToast('📧 Crate invoice sent!', 'success');
+      setTimeout(() => msg.textContent = '', 5000);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+    }
+  } catch(e) {
+    msg.style.color = '#dc2626';
+    msg.textContent = '❌ Error: ' + e.message;
+  }
+}
+
 // ===== DELETE SHIPMENT =====
 async function deleteShipment(id, tracking) {
   if (!confirm(`Delete shipment ${tracking}? This cannot be undone.`)) return;
