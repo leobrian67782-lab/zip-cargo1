@@ -235,7 +235,8 @@ app.post('/api/email/status-update', async (req, res) => {
 // ── Crate Invoice email with PDF ─────────────────────────────────────────
 app.post('/api/email/crate-invoice', async (req, res) => {
   try {
-    const { shipment, option, prices, settings } = req.body;
+    const { shipment, option, prices, settings, quantity: qty } = req.body;
+    const quantity = parseInt(qty) || 1;
     if (!shipment || !shipment.rEmail || !option) {
       return res.status(400).json({ error: 'Missing data.' });
     }
@@ -244,8 +245,10 @@ app.post('/api/email/crate-invoice', async (req, res) => {
     if (!apiKey) return res.json({ error: 'Email not configured.' });
 
     const siteEmail = (settings && settings.email) || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
-    const rentPrice = (prices && prices.rent) || 200;
-    const buyPrice  = (prices && prices.buy)  || 250;
+    const rentPrice = ((prices && prices.rent) || 200) * quantity;
+    const buyPrice  = ((prices && prices.buy)  || 250) * quantity;
+    const unitRent  = (prices && prices.rent) || 200;
+    const unitBuy   = (prices && prices.buy)  || 250;
     const refundPct = (prices && prices.refund) || 98;
     const isRent    = option === 'rent';
     const price     = isRent ? rentPrice : buyPrice;
@@ -315,7 +318,7 @@ app.post('/api/email/crate-invoice', async (req, res) => {
       doc.fill('#1d4ed8').fontSize(10).font('Helvetica-Bold')
          .text('OPTION 1 — RENTAL', pad + 14, y + 8);
       doc.fill('#1e40af').fontSize(8).font('Helvetica')
-         .text('Air-Conditioned Crate Rental for ' + (shipment.description || 'Animal') + ' Transport', pad + 14, y + 22);
+         .text(quantity + 'x Air-Conditioned Crate Rental for ' + (shipment.description || 'Animal') + ' Transport', pad + 14, y + 22);
       doc.fill('#1e40af').fontSize(8)
          .text('Refund Policy: ' + refundPct + '% ($' + Math.round(rentPrice * refundPct / 100) + ') refunded upon delivery and crate return', pad + 14, y + 35);
       doc.fill('#1d4ed8').fontSize(14).font('Helvetica-Bold')
@@ -327,7 +330,7 @@ app.post('/api/email/crate-invoice', async (req, res) => {
       doc.fill('#15803d').fontSize(10).font('Helvetica-Bold')
          .text('OPTION 2 — PURCHASE', pad + 14, y + 8);
       doc.fill('#166534').fontSize(8).font('Helvetica')
-         .text('Air-Conditioned Crate Purchase for ' + (shipment.description || 'Animal') + ' Transport', pad + 14, y + 22);
+         .text(quantity + 'x Air-Conditioned Crate Purchase for ' + (shipment.description || 'Animal') + ' Transport', pad + 14, y + 22);
       doc.fill('#166534').fontSize(8)
          .text('Refund Policy: No refund — crate becomes your permanent property upon delivery', pad + 14, y + 35);
       doc.fill('#15803d').fontSize(14).font('Helvetica-Bold')
