@@ -426,6 +426,78 @@ async function sendCrateInvoice() {
   }
 }
 
+// ===== VACCINE INVOICE =====
+let vaccineShipmentData = null;
+
+async function loadVaccineShipment() {
+  const tn = document.getElementById('vaccineTracking').value.trim().toUpperCase();
+  if (!tn) { showToast('Please enter a tracking number', 'error'); return; }
+  try {
+    const res = await fetch('/api/shipments/track/' + encodeURIComponent(tn));
+    if (!res.ok) throw new Error('Not found');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    vaccineShipmentData = data;
+    document.getElementById('vaccineClientName').textContent  = data.rName  || '-';
+    document.getElementById('vaccineClientEmail').textContent = data.rEmail || '-';
+    document.getElementById('vaccineClientDesc').textContent  = data.desc   || data.description || '-';
+    document.getElementById('vaccineClientRoute').textContent = (data.origin || '-') + ' → ' + (data.dest || '-');
+    document.getElementById('vaccineClientPreview').style.display = 'block';
+    document.getElementById('vaccineSendBtn').disabled = false;
+    showToast('Client loaded: ' + data.rName, 'success');
+  } catch(e) {
+    showToast('Shipment not found: ' + tn, 'error');
+    vaccineShipmentData = null;
+    document.getElementById('vaccineClientPreview').style.display = 'none';
+    document.getElementById('vaccineSendBtn').disabled = true;
+  }
+}
+
+async function sendVaccineInvoice() {
+  if (!vaccineShipmentData) { showToast('Please load a shipment first', 'error'); return; }
+  const fee            = parseFloat(document.getElementById('vaccineFee').value) || 289;
+  const paymentMethods = document.getElementById('vaccinePaymentMethods').value.trim();
+  const msg            = document.getElementById('vaccineMsg');
+  msg.style.color = '#185fa5';
+  msg.textContent = 'Generating invoice and sending email...';
+  const settings = {
+    website: localStorage.getItem('zc_contact_website') || '',
+    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
+    phone:   localStorage.getItem('zc_contact_phone')   || '',
+  };
+  try {
+    const res = await fetch('/api/email/vaccine-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shipment: {
+          tracking:    vaccineShipmentData.tracking,
+          rName:       vaccineShipmentData.rName,
+          rEmail:      vaccineShipmentData.rEmail,
+          rPhone:      vaccineShipmentData.rPhone,
+          origin:      vaccineShipmentData.origin,
+          dest:        vaccineShipmentData.dest,
+          description: vaccineShipmentData.desc || vaccineShipmentData.description,
+        },
+        fee, paymentMethods, settings,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.style.color = '#16a34a';
+      msg.textContent = `✅ Vaccine invoice sent to ${vaccineShipmentData.rEmail}`;
+      showToast('📧 Vaccine invoice sent!', 'success');
+      setTimeout(() => msg.textContent = '', 5000);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+    }
+  } catch(e) {
+    msg.style.color = '#dc2626';
+    msg.textContent = '❌ Error: ' + e.message;
+  }
+}
+
 // ===== DELETE SHIPMENT =====
 async function deleteShipment(id, tracking) {
   if (!confirm(`Delete shipment ${tracking}? This cannot be undone.`)) return;
