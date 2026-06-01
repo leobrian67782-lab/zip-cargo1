@@ -83,73 +83,69 @@
     box-shadow: 0 16px 32px rgba(13,31,53,0.12) !important;
   }
 
-  /* /* Quick Track Bar */
+  /* Quick Track Bar */
   .quick-track-bar {
-.quick-track-bar {
-  background: #0d1f35;
-  padding: 28px 24px;
-  border-bottom: 3px solid #e8820c;
-}
-.quick-track-inner {
-  max-width: 900px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.quick-track-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: white;
-  font-weight: 700;
-  font-size: 1rem;
-  white-space: nowrap;
-}
-.quick-track-label i {
-  color: #e8820c;
-  font-size: 1.2rem;
-}
-.quick-track-form {
-  display: flex;
-  flex: 1;
-  gap: 12px;
-  min-width: 280px;
-}
-.quick-track-form input {
-  flex: 1;
-  padding: 13px 18px;
-  border-radius: 8px;
-  border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.08);
-  color: white;
-  font-size: .95rem;
-  font-family: 'Outfit', sans-serif;
-  outline: none;
-  transition: border-color .2s;
-}
-.quick-track-form input::placeholder { color: rgba(255,255,255,0.4); }
-.quick-track-form input:focus { border-color: #e8820c; }
-.quick-track-form button {
-  padding: 13px 24px;
-  background: #e8820c;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: .9rem;
-  cursor: pointer;
-  font-family: 'Outfit', sans-serif;
-  white-space: nowrap;
-  transition: background .2s, transform .1s;
-}
-.quick-track-form button:hover { background: #d4720a; transform: translateY(-1px); }
-@media(max-width:600px) {
-  .quick-track-inner { flex-direction: column; align-items: stretch; }
-  .quick-track-form { flex-direction: column; }
-  .quick-track-form button { width: 100%; }
-}
+    background: #0d1f35;
+    padding: 28px 24px;
+    border-bottom: 3px solid #e8820c;
+  }
+  .quick-track-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .quick-track-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+  .quick-track-label i { color: #e8820c; font-size: 1.2rem; }
+  .quick-track-form {
+    display: flex;
+    flex: 1;
+    gap: 12px;
+    min-width: 280px;
+  }
+  .quick-track-form input {
+    flex: 1;
+    padding: 13px 18px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.08);
+    color: white;
+    font-size: .95rem;
+    font-family: 'Outfit', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .quick-track-form input::placeholder { color: rgba(255,255,255,0.4); }
+  .quick-track-form input:focus { border-color: #e8820c; }
+  .quick-track-form button {
+    padding: 13px 24px;
+    background: #e8820c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: .9rem;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    white-space: nowrap;
+    transition: background .2s, transform .1s;
+  }
+  .quick-track-form button:hover { background: #d4720a; transform: translateY(-1px); }
+  @media(max-width:600px) {
+    .quick-track-inner { flex-direction: column; align-items: stretch; }
+    .quick-track-form { flex-direction: column; }
+    .quick-track-form button { width: 100%; }
+  }
 
   /* FAQ Styles */
   .faq-item {
