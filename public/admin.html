@@ -151,6 +151,7 @@
       <a class="nav-item" onclick="showSection('vaccine',this);return false;"><i class="fa-solid fa-syringe nav-icon"></i> Vaccine Invoice</a>
       <a class="nav-item" onclick="showSection('insurance',this);return false;"><i class="fa-solid fa-shield-halved nav-icon"></i> Insurance Invoice</a>
       <a class="nav-item" onclick="showSection('delivery-auth',this);return false;"><i class="fa-solid fa-truck-fast nav-icon"></i> Delivery Authorization</a>
+      <a class="nav-item" onclick="showSection('travel-permit',this);return false;"><i class="fa-solid fa-passport nav-icon"></i> Pet Travel Permit</a>
     </nav>
 
     <div class="sidebar-footer">
@@ -542,6 +543,60 @@
             </button>
           </div>
           <div id="deliveryAuthMsg" class="create-msg" style="margin-top:12px;"></div>
+        </div>
+      </section>
+
+      <!-- PET TRAVEL PERMIT SECTION -->
+      <section class="section" id="sec-travel-permit">
+        <div class="form-card">
+          <h3><i class="fa-solid fa-passport" style="color:#e8820c;margin-right:8px;"></i>Pet Travel Permit Invoice</h3>
+          <p style="color:#64748b;font-size:.875rem;margin-bottom:20px;line-height:1.6;">
+            Send a pet travel permit notice with a refundable processing fee invoice to the client.
+          </p>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Tracking Number</label>
+            <div class="input-with-btn">
+              <input type="text" id="travelPermitTracking" placeholder="e.g. ZC-2026-00123"/>
+              <button onclick="loadTravelPermitShipment()">Load</button>
+            </div>
+          </div>
+
+          <div id="travelPermitClientPreview" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:20px;">
+            <div style="font-weight:700;color:#0d1f35;margin-bottom:10px;font-size:.9rem;">Client Details</div>
+            <table style="width:100%;font-size:.83rem;">
+              <tr><td style="color:#94a3b8;padding:4px 0;">Name</td><td id="travelPermitClientName" style="color:#0d1f35;font-weight:700;"></td></tr>
+              <tr><td style="color:#94a3b8;padding:4px 0;">Email</td><td id="travelPermitClientEmail" style="color:#0d1f35;font-weight:700;"></td></tr>
+              <tr><td style="color:#94a3b8;padding:4px 0;">Pet/Item</td><td id="travelPermitClientDesc" style="color:#0d1f35;font-weight:700;"></td></tr>
+              <tr><td style="color:#94a3b8;padding:4px 0;">Route</td><td id="travelPermitClientRoute" style="color:#0d1f35;font-weight:700;"></td></tr>
+            </table>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+            <div class="form-group" style="flex:1;min-width:140px;">
+              <label>Permit Fee ($)</label>
+              <input type="number" id="travelPermitFee" value="100"/>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:20px;">
+            <label style="font-weight:700;color:#0d1f35;margin-bottom:8px;display:block;">
+              <i class="fa-solid fa-credit-card" style="color:#e8820c;margin-right:6px;"></i>Payment Methods
+            </label>
+            <p style="font-size:.78rem;color:#94a3b8;margin-bottom:8px;">List accepted payment methods. Details sent privately after client replies.</p>
+            <textarea id="travelPermitPaymentMethods"
+              placeholder="e.g.&#10;PayPal&#10;Zelle&#10;Cash App&#10;Bank Transfer"
+              style="width:100%;min-height:90px;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.875rem;line-height:1.7;color:#1e293b;resize:vertical;outline:none;box-sizing:border-box;"
+              onfocus="this.style.borderColor='#e8820c'"
+              onblur="this.style.borderColor='#e2e8f0'"></textarea>
+          </div>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn-save" id="travelPermitSendBtn" onclick="sendTravelPermitInvoice()" disabled>
+              <i class="fa-solid fa-paper-plane"></i> Send Permit Notice
+            </button>
+          </div>
+          <div id="travelPermitMsg" class="create-msg" style="margin-top:12px;"></div>
         </div>
       </section>
 
