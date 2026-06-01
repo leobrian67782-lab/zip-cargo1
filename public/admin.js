@@ -1,4 +1,4 @@
-// ===== TOKEN STORAGE (fallback for mobile browsers) =====
+=// ===== TOKEN STORAGE (fallback for mobile browsers) =====
 const TokenStore = {
   set: (t) => { try { localStorage.setItem('zc_token', t); } catch(e) {} },
   get: () => { try { return localStorage.getItem('zc_token'); } catch(e) { return null; } },
@@ -138,16 +138,17 @@ async function loadDashboard() {
     }
 
     // ── Charts ──
-    renderStatusChart(stats);
-    renderServiceChart(stats);
+    try { renderStatusChart(stats); } catch(ce) { console.warn('Status chart error:', ce.message); }
+    try { renderServiceChart(stats); } catch(ce) { console.warn('Service chart error:', ce.message); }
 
   } catch(e) { showToast('Dashboard load failed: '+e.message,'error'); }
 }
 
 function renderStatusChart(stats) {
+  if (typeof Chart === 'undefined') return;
   const ctx = document.getElementById('statusChart');
   if (!ctx) return;
-  if (statusChartInstance) statusChartInstance.destroy();
+  if (statusChartInstance) { try { statusChartInstance.destroy(); } catch(e) {} statusChartInstance = null; }
 
   const pending   = stats.pending   || 0;
   const inTransit = stats.inTransit || 0;
@@ -186,9 +187,10 @@ function renderStatusChart(stats) {
 }
 
 function renderServiceChart(stats) {
+  if (typeof Chart === 'undefined') return;
   const ctx = document.getElementById('serviceChart');
-  if (!ctx || !stats.recent) return;
-  if (serviceChartInstance) serviceChartInstance.destroy();
+  if (!ctx) return;
+  if (serviceChartInstance) { try { serviceChartInstance.destroy(); } catch(e) {} serviceChartInstance = null; }
 
   // Count by service from recent shipments
   const counts = {};
