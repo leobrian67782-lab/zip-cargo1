@@ -96,6 +96,141 @@ app.use('/api/activity',  require('./routes/activity'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
+// ── Shipment status update email ──────────────────────────────────────────
+app.post('/api/email/status-update', async (req, res) => {
+  try {
+    const { shipment, settings } = req.body;
+    if (!shipment || !shipment.rEmail) {
+      return res.status(400).json({ error: 'Missing data.' });
+    }
+
+    const apiKey = process.env.BREVO_API_KEY;
+    if (!apiKey) return res.json({ error: 'Email not configured.' });
+
+    const siteEmail = (settings && settings.email) || process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com';
+
+    const statusEmoji = {
+      'Pending':          '⏳',
+      'In Transit':       '✈️',
+      'Out for Delivery': '🚚',
+      'Delivered':        '✅',
+      'On Hold':          '⚠️',
+    }[shipment.status] || '📦';
+
+    const statusMessages = {
+      'Pending':          'Your shipment has been received and is being prepared.',
+      'In Transit':       'Great news! Your shipment is now on its way.',
+      'Out for Delivery': 'Your shipment is out for delivery today!',
+      'Delivered':        'Your shipment has been delivered successfully. Thank you for choosing ZipCargo!',
+      'On Hold':          'Your shipment is currently on hold. Please contact us for more information.',
+    };
+
+    const statusMsg = statusMessages[shipment.status] || 'Your shipment status has been updated.';
+
+    const emailHtml = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+</head>
+<body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
+<div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
+
+  <!-- Header -->
+  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+    <div style="color:#e8820c;font-size:20px;font-weight:800;font-family:Helvetica,Arial,sans-serif;">&#9889; ZipCargo</div>
+    <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;">Shipment Status Update</div>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:28px;background:#ffffff;">
+    <p style="color:#0d1f35;font-size:15px;font-family:Helvetica,Arial,sans-serif;">Dear <strong>${shipment.rName}</strong>,</p>
+
+    <!-- Status Banner -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+      <tr>
+        <td bgcolor="#f0f7ff" style="background:#f0f7ff;border-left:4px solid #e8820c;border-radius:0 8px 8px 0;padding:16px 20px;">
+          <div style="font-size:22px;margin-bottom:6px;">${statusEmoji}</div>
+          <div style="color:#0d1f35;font-size:16px;font-weight:800;font-family:Helvetica,Arial,sans-serif;">${shipment.status}</div>
+          <div style="color:#64748b;font-size:13px;margin-top:4px;font-family:Helvetica,Arial,sans-serif;">${statusMsg}</div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Tracking Number -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+      <tr>
+        <td style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;text-align:center;">
+          <div style="color:#64748b;font-size:10px;font-weight:700;letter-spacing:1px;font-family:Helvetica,Arial,sans-serif;">TRACKING NUMBER</div>
+          <div style="color:#e8820c;font-size:20px;font-weight:800;margin-top:4px;font-family:Helvetica,Arial,sans-serif;">${shipment.tracking}</div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Details -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;font-size:13px;font-family:Helvetica,Arial,sans-serif;">
+      ${shipment.location ? `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0;color:#64748b;">Current Location</td><td style="padding:8px 0;color:#0d1f35;font-weight:700;">${shipment.location}</td></tr>` : ''}
+      <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0;color:#64748b;">From</td><td style="padding:8px 0;color:#0d1f35;font-weight:700;">${shipment.origin}</td></tr>
+      <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0;color:#64748b;">To</td><td style="padding:8px 0;color:#0d1f35;font-weight:700;">${shipment.dest}</td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;">Est. Delivery</td><td style="padding:8px 0;color:#0d1f35;font-weight:700;">${shipment.eta || 'TBD'}</td></tr>
+    </table>
+
+    <!-- Track Button -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+      <tr>
+        <td align="center">
+          <a href="https://zipcargo-app.onrender.com/tracking.html?id=${shipment.tracking}"
+             style="background:#e8820c;color:#ffffff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;display:inline-block;font-family:Helvetica,Arial,sans-serif;">
+            Track Your Shipment &#8594;
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="color:#1e293b;font-size:13px;line-height:1.7;font-family:Helvetica,Arial,sans-serif;">
+      Please reply to this email with any questions or concerns.<br/>
+      Thank you for choosing <strong>ZipCargo</strong>.
+    </p>
+    <p style="color:#1e293b;font-size:13px;font-family:Helvetica,Arial,sans-serif;">
+      Best regards,<br/>
+      <strong>ZipCargo Logistics Team</strong><br/>
+      <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+    <div style="color:#aac4e0;font-size:11px;font-family:Helvetica,Arial,sans-serif;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
+  </div>
+</div>
+</body>
+</html>`;
+
+    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'accept': 'application/json', 'api-key': apiKey, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        sender: { name: 'ZipCargo Logistics', email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        to: [{ email: shipment.rEmail, name: shipment.rName }],
+        replyTo: { email: process.env.BREVO_SENDER_EMAIL || 'zipcargo99@gmail.com' },
+        subject: `Shipment Update: ${shipment.status} — ${shipment.tracking}`,
+        htmlContent: emailHtml,
+        trackingSettings: { clickTracking: { enabled: false }, openTracking: { enabled: false } },
+      }),
+    });
+
+    const data = await brevoRes.json();
+    if (!brevoRes.ok) throw new Error(data.message || 'Brevo error');
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('Status update email error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Test email config ─────────────────────────────────────────────────────
 app.get('/api/email/test', async (req, res) => {
   const apiKey = process.env.BREVO_API_KEY;
