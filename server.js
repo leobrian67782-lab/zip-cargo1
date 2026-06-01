@@ -873,9 +873,9 @@ app.post('/api/email/insurance-invoice', async (req, res) => {
         const rad = a * Math.PI / 180;
         doc.circle(scx + 44 * Math.cos(rad), scy + 44 * Math.sin(rad), 1.5).fill('#16a34a');
       }
-      doc.fill('#16a34a').fontSize(9).font('Helvetica-Bold').text('FULLY', scx - 30, scy - 14, { width: 60, align: 'center' });
-      doc.fill('#16a34a').fontSize(11).font('Helvetica-Bold').text('REFUNDABLE', scx - 30, scy - 1, { width: 60, align: 'center' });
-      doc.fill('#16a34a').fontSize(6).font('Helvetica').text('ZIPCARGO CERTIFIED', scx - 30, scy + 14, { width: 60, align: 'center' });
+      doc.fill('#16a34a').fontSize(8).font('Helvetica-Bold').text('FULLY', scx - 32, scy - 15, { width: 64, align: 'center' });
+      doc.fill('#16a34a').fontSize(9).font('Helvetica-Bold').text('REFUNDABLE', scx - 32, scy - 2, { width: 64, align: 'center' });
+      doc.fill('#16a34a').fontSize(6).font('Helvetica').text('ZIPCARGO CERTIFIED', scx - 32, scy + 11, { width: 64, align: 'center' });
 
       // Terms left of stamp
       doc.fill('#64748b').fontSize(7.5).font('Helvetica-Bold').text('Terms & Conditions:', pad + 14, y + 6);
