@@ -88,7 +88,10 @@
     }
     .sidebar-nav .nav-item:hover { background: #e8f4ff; color: #0d1f35; }
     .sidebar-nav .nav-item.active { background: #e8820c; color: white; }
-  </style>
+    #chartsRow { grid-template-columns: 1fr 1fr; }
+  @media(max-width:768px) { #chartsRow { grid-template-columns: 1fr !important; } }
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -174,12 +177,31 @@
 
     <!-- DASHBOARD -->
     <section class="section active" id="sec-dashboard">
+      <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card blue"><div class="stat-icon-wrap"><i class="fa-solid fa-boxes-stacked"></i></div><div class="stat-info"><h3 id="totalShipments">0</h3><p>Total Shipments</p></div></div>
         <div class="stat-card green"><div class="stat-icon-wrap"><i class="fa-solid fa-circle-check"></i></div><div class="stat-info"><h3 id="deliveredCount">0</h3><p>Delivered</p></div></div>
         <div class="stat-card orange"><div class="stat-icon-wrap"><i class="fa-solid fa-truck-fast"></i></div><div class="stat-info"><h3 id="transitCount">0</h3><p>In Transit</p></div></div>
         <div class="stat-card red"><div class="stat-icon-wrap"><i class="fa-solid fa-comments"></i></div><div class="stat-info"><h3 id="inquiryCount">0</h3><p>Inquiries</p></div></div>
       </div>
+
+      <!-- Charts Row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;" id="chartsRow">
+        <div class="dash-card">
+          <h3><i class="fa-solid fa-chart-pie" style="color:#e8820c;"></i> Shipment Status</h3>
+          <div style="position:relative;height:220px;display:flex;align-items:center;justify-content:center;">
+            <canvas id="statusChart"></canvas>
+          </div>
+        </div>
+        <div class="dash-card">
+          <h3><i class="fa-solid fa-chart-bar" style="color:#e8820c;"></i> Shipments by Service</h3>
+          <div style="position:relative;height:220px;">
+            <canvas id="serviceChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent + Quick Actions -->
       <div class="dashboard-grid">
         <div class="dash-card"><h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Shipments</h3><table class="mini-table"><thead><tr><th>Tracking #</th><th>Recipient</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentShipmentsBody"><tr><td colspan="4" class="empty-msg">No shipments yet</td></tr></tbody></table></div>
         <div class="dash-card"><h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3><div class="quick-actions">

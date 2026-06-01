@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="description" content="ZipCargo Customer Portal — view and track all your shipments in one place."/>
+  <meta name="robots" content="noindex"/>
+  <title>Customer Portal | ZipCargo</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif; background: #f0f2f7; min-height: 100vh; }
+
+    /* ── Navbar ── */
+    .portal-nav {
+      background: #0d1f35;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .portal-nav .logo { color: white; font-size: 1.2rem; font-weight: 800; text-decoration: none; }
+    .portal-nav .logo i { color: #e8820c; }
+    .portal-nav-right { display: flex; align-items: center; gap: 16px; }
+    .portal-nav-right a { color: #aac4e0; font-size: .875rem; text-decoration: none; }
+    .portal-nav-right a:hover { color: white; }
+
+    /* ── Login Screen ── */
+    .portal-login {
+      min-height: calc(100vh - 60px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(13,31,53,0.12);
+      text-align: center;
+    }
+    .login-icon {
+      width: 72px; height: 72px;
+      background: #fff7ed;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+    }
+    .login-icon i { color: #e8820c; font-size: 1.8rem; }
+    .login-card h2 { color: #0d1f35; font-size: 1.6rem; margin-bottom: 8px; }
+    .login-card p { color: #64748b; font-size: .9rem; margin-bottom: 32px; line-height: 1.6; }
+    .portal-input {
+      width: 100%; padding: 14px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: .95rem;
+      font-family: 'Outfit', sans-serif;
+      color: #0d1f35;
+      outline: none;
+      transition: border-color .2s;
+      margin-bottom: 14px;
+    }
+    .portal-input:focus { border-color: #e8820c; }
+    .portal-btn {
+      width: 100%; padding: 14px;
+      background: #e8820c; color: white;
+      border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer; font-family: 'Outfit', sans-serif;
+      transition: background .2s;
+    }
+    .portal-btn:hover { background: #d4720a; }
+    .login-error {
+      background: #fef2f2; color: #dc2626;
+      border: 1px solid #fecaca;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: .85rem; margin-top: 14px;
+      display: none;
+    }
+
+    /* ── Portal Dashboard ── */
+    .portal-dashboard { display: none; min-height: calc(100vh - 60px); }
+    .portal-header {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .portal-welcome h2 { color: #0d1f35; font-size: 1.3rem; }
+    .portal-welcome p { color: #64748b; font-size: .85rem; margin-top: 2px; }
+    .portal-logout {
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      color: #64748b; padding: 8px 16px;
+      border-radius: 8px; cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: .85rem; font-weight: 600;
+      transition: all .2s;
+    }
+    .portal-logout:hover { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+
+    .portal-body { padding: 28px; max-width: 1000px; margin: 0 auto; }
+
+    /* ── Shipment Cards ── */
+    .portal-shipments-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .portal-shipment-card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.07);
+      border-left: 4px solid #e8820c;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .portal-shipment-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(13,31,53,0.12);
+    }
+    .psc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .psc-tracking { color: #e8820c; font-size: 1.1rem; font-weight: 800; }
+    .psc-date { color: #94a3b8; font-size: .8rem; }
+    .psc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .psc-field label { color: #94a3b8; font-size: .75rem; font-weight: 600; letter-spacing: .3px; display: block; margin-bottom: 3px; }
+    .psc-field span { color: #0d1f35; font-size: .9rem; font-weight: 600; }
+    .psc-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid #f1f5f9;
+    }
+    .psc-track-btn {
+      background: #0d1f35; color: white;
+      padding: 8px 18px; border-radius: 8px;
+      text-decoration: none; font-size: .85rem;
+      font-weight: 700; transition: background .2s;
+    }
+    .psc-track-btn:hover { background: #e8820c; }
+
+    /* Status badges */
+    .badge { padding: 4px 12px; border-radius: 50px; font-size: .78rem; font-weight: 700; }
+    .badge-pending  { background: #fef3c7; color: #d97706; }
+    .badge-transit  { background: #dbeafe; color: #2563eb; }
+    .badge-delivery { background: #f3e8ff; color: #7c3aed; }
+    .badge-delivered{ background: #dcfce7; color: #16a34a; }
+    .badge-hold     { background: #fee2e2; color: #dc2626; }
+
+    /* Progress bar */
+    .psc-progress { margin-bottom: 14px; }
+    .psc-progress-track {
+      background: #f1f5f9; border-radius: 50px;
+      height: 6px; overflow: hidden; margin-top: 6px;
+    }
+    .psc-progress-fill {
+      height: 100%; border-radius: 50px;
+      background: linear-gradient(90deg, #e8820c, #f59e0b);
+      transition: width .6s ease;
+    }
+    .psc-progress-label {
+      display: flex; justify-content: space-between;
+      font-size: .75rem; color: #94a3b8; margin-top: 4px;
+    }
+
+    .portal-empty {
+      text-align: center; padding: 60px 24px;
+      color: #94a3b8;
+    }
+    .portal-empty i { font-size: 3rem; margin-bottom: 16px; color: #e2e8f0; }
+    .portal-empty h3 { color: #64748b; margin-bottom: 8px; }
+
+    .portal-loading {
+      text-align: center; padding: 60px 24px; color: #64748b;
+    }
+    .portal-loading i { font-size: 2rem; color: #e8820c; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media(max-width: 600px) {
+      .login-card { padding: 32px 24px; }
+      .portal-body { padding: 16px; }
+      .psc-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="portal-nav">
+    <a href="index.html" class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</a>
+    <div class="portal-nav-right">
+      <a href="tracking.html">Track Shipment</a>
+      <a href="contact.html">Contact</a>
+    </div>
+  </nav>
+
+  <!-- Login Screen -->
+  <div class="portal-login" id="loginScreen">
+    <div class="login-card">
+      <div class="login-icon"><i class="fa-solid fa-user-shield"></i></div>
+      <h2>Customer Portal</h2>
+      <p>Enter your email address and tracking number to access your shipment dashboard.</p>
+      <input type="email" class="portal-input" id="portalEmail" placeholder="Your email address"/>
+      <input type="text" class="portal-input" id="portalTracking" placeholder="Tracking number e.g. ZC-2026-00123"/>
+      <button class="portal-btn" onclick="portalLogin()">
+        <i class="fa-solid fa-right-to-bracket"></i> Access My Shipments
+      </button>
+      <div class="login-error" id="loginError"></div>
+      <p style="margin-top:20px;font-size:.8rem;color:#94a3b8;">
+        Don't have a tracking number? <a href="contact.html" style="color:#e8820c;">Contact us</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Portal Dashboard -->
+  <div class="portal-dashboard" id="portalDashboard">
+    <div class="portal-header">
+      <div class="portal-welcome">
+        <h2>Welcome, <span id="portalClientName">—</span></h2>
+        <p id="portalClientEmail" style="color:#64748b;font-size:.85rem;"></p>
+      </div>
+      <button class="portal-logout" onclick="portalLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+      </button>
+    </div>
+    <div class="portal-body">
+      <div id="portalShipmentsList">
+        <div class="portal-loading"><i class="fa-solid fa-spinner"></i><p style="margin-top:12px;">Loading your shipments...</p></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const statusProgress = { 'Pending':10, 'In Transit':45, 'Out for Delivery':80, 'Delivered':100, 'On Hold':30 };
+  const statusBadge = {
+    'Pending':        '<span class="badge badge-pending">Pending</span>',
+    'In Transit':     '<span class="badge badge-transit">In Transit</span>',
+    'Out for Delivery':'<span class="badge badge-delivery">Out for Delivery</span>',
+    'Delivered':      '<span class="badge badge-delivered">Delivered</span>',
+    'On Hold':        '<span class="badge badge-hold">On Hold</span>',
+  };
+
+  // Check if already logged in
+  window.addEventListener('load', () => {
+    const saved = sessionStorage.getItem('zc_portal_session');
+    if (saved) {
+      const session = JSON.parse(saved);
+      showPortal(session.email, session.name, session.shipments);
+    }
+  });
+
+  async function portalLogin() {
+    const email    = document.getElementById('portalEmail').value.trim().toLowerCase();
+    const tracking = document.getElementById('portalTracking').value.trim().toUpperCase();
+    const errEl    = document.getElementById('loginError');
+    errEl.style.display = 'none';
+
+    if (!email || !tracking) {
+      errEl.textContent = 'Please enter both your email and tracking number.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.querySelector('.portal-btn');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+    btn.disabled = true;
+
+    try {
+      // Look up shipment by tracking number
+      const res = await fetch('/api/shipments/track/' + encodeURIComponent(tracking));
+      if (!res.ok) throw new Error('not_found');
+      const shipment = await res.json();
+      if (shipment.error) throw new Error('not_found');
+
+      // Verify email matches sender or recipient
+      const rEmail = (shipment.rEmail || '').toLowerCase();
+      const sEmail = (shipment.sEmail || '').toLowerCase();
+      if (email !== rEmail && email !== sEmail) throw new Error('email_mismatch');
+
+      // Find the client name
+      const clientName = email === rEmail ? shipment.rName : shipment.sName;
+
+      // Load all shipments for this email
+      const allShipments = await loadShipmentsForEmail(email, tracking, shipment);
+
+      // Save session
+      sessionStorage.setItem('zc_portal_session', JSON.stringify({ email, name: clientName, shipments: allShipments }));
+      showPortal(email, clientName, allShipments);
+
+    } catch(e) {
+      const msgs = {
+        'not_found': 'Tracking number not found. Please check and try again.',
+        'email_mismatch': 'Email address does not match our records for this shipment.',
+      };
+      errEl.textContent = msgs[e.message] || 'Verification failed. Please try again.';
+      errEl.style.display = 'block';
+    } finally {
+      btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Access My Shipments';
+      btn.disabled = false;
+    }
+  }
+
+  async function loadShipmentsForEmail(email, primaryTracking, primaryShipment) {
+    // Start with the primary shipment
+    const shipments = [primaryShipment];
+    return shipments;
+  }
+
+  function showPortal(email, name, shipments) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('portalDashboard').style.display = 'block';
+    document.getElementById('portalClientName').textContent = name || email;
+    document.getElementById('portalClientEmail').textContent = email;
+    renderShipments(shipments);
+  }
+
+  function renderShipments(shipments) {
+    const container = document.getElementById('portalShipmentsList');
+    if (!shipments || !shipments.length) {
+      container.innerHTML = `<div class="portal-empty">
+        <i class="fa-solid fa-box-open"></i>
+        <h3>No shipments found</h3>
+        <p>Your shipments will appear here once created.</p>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = shipments.map(s => {
+      const progress = statusProgress[s.status] || 10;
+      const badge    = statusBadge[s.status] || statusBadge['Pending'];
+      const date     = new Date(s.createdAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
+      return `<div class="portal-shipment-card">
+        <div class="psc-header">
+          <div>
+            <div class="psc-tracking">${s.tracking}</div>
+            <div class="psc-date">Created ${date}</div>
+          </div>
+          ${badge}
+        </div>
+
+        <div class="psc-progress">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:.8rem;color:#64748b;font-weight:600;">Delivery Progress</span>
+            <span style="font-size:.8rem;color:#e8820c;font-weight:700;">${progress}%</span>
+          </div>
+          <div class="psc-progress-track">
+            <div class="psc-progress-fill" style="width:${progress}%"></div>
+          </div>
+          <div class="psc-progress-label">
+            <span>Order Placed</span>
+            <span>In Transit</span>
+            <span>Delivered</span>
+          </div>
+        </div>
+
+        <div class="psc-grid">
+          <div class="psc-field"><label>FROM</label><span>${s.origin || '—'}</span></div>
+          <div class="psc-field"><label>TO</label><span>${s.dest || '—'}</span></div>
+          <div class="psc-field"><label>SERVICE</label><span>${s.service || '—'}</span></div>
+          <div class="psc-field"><label>EST. DELIVERY</label><span>${s.eta || 'TBD'}</span></div>
+          ${s.location ? `<div class="psc-field"><label>CURRENT LOCATION</label><span>${s.location}</span></div>` : ''}
+          ${s.weight ? `<div class="psc-field"><label>WEIGHT</label><span>${s.weight} kg</span></div>` : ''}
+        </div>
+
+        <div class="psc-footer">
+          <div style="font-size:.8rem;color:#94a3b8;">
+            <i class="fa-solid fa-user" style="margin-right:4px;"></i>
+            Recipient: <strong>${s.rName || '—'}</strong>
+          </div>
+          <a href="tracking.html?id=${s.tracking}" class="psc-track-btn">
+            <i class="fa-solid fa-satellite-dish"></i> Track Live
+          </a>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function portalLogout() {
+    sessionStorage.removeItem('zc_portal_session');
+    document.getElementById('portalDashboard').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('portalEmail').value = '';
+    document.getElementById('portalTracking').value = '';
+  }
+
+  // Enter key support
+  document.addEventListener('DOMContentLoaded', () => {
+    ['portalEmail','portalTracking'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') portalLogin();
+      });
+    });
+  });
+</script>
+</body>
+</html>

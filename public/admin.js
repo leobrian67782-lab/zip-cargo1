@@ -110,6 +110,9 @@ function closeSidebar() {
 }
 
 // ===== DASHBOARD =====
+let statusChartInstance = null;
+let serviceChartInstance = null;
+
 async function loadDashboard() {
   try {
     const [stats, inqData] = await Promise.all([
@@ -122,17 +125,111 @@ async function loadDashboard() {
     document.getElementById('inquiryCount').textContent   = inqData.total;
 
     const tbody = document.getElementById('recentShipmentsBody');
-    if (!stats.recent.length) {
-      tbody.innerHTML='<tr><td colspan="4" class="empty-msg">No shipments yet</td></tr>'; return;
+    if (!stats.recent || !stats.recent.length) {
+      tbody.innerHTML='<tr><td colspan="4" class="empty-msg">No shipments yet</td></tr>';
+    } else {
+      tbody.innerHTML = stats.recent.map(s => `
+        <tr>
+          <td><strong>${s.tracking}</strong></td>
+          <td>${s.rName}</td>
+          <td>${badgeHTML(s.status)}</td>
+          <td>${new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+        </tr>`).join('');
     }
-    tbody.innerHTML = stats.recent.map(s => `
-      <tr>
-        <td><strong>${s.tracking}</strong></td>
-        <td>${s.rName}</td>
-        <td>${badgeHTML(s.status)}</td>
-        <td>${new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
-      </tr>`).join('');
+
+    // ── Charts ──
+    renderStatusChart(stats);
+    renderServiceChart(stats);
+
   } catch(e) { showToast('Dashboard load failed: '+e.message,'error'); }
+}
+
+function renderStatusChart(stats) {
+  const ctx = document.getElementById('statusChart');
+  if (!ctx) return;
+  if (statusChartInstance) statusChartInstance.destroy();
+
+  const pending   = stats.pending   || 0;
+  const inTransit = stats.inTransit || 0;
+  const onHold    = stats.onHold    || 0;
+  const delivered = stats.delivered || 0;
+  const total = pending + inTransit + onHold + delivered;
+
+  statusChartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Pending', 'In Transit', 'On Hold', 'Delivered'],
+      datasets: [{
+        data: [pending, inTransit, onHold, delivered],
+        backgroundColor: ['#f59e0b','#2563eb','#dc2626','#16a34a'],
+        borderWidth: 2,
+        borderColor: '#fff',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const pct = total > 0 ? Math.round(ctx.raw / total * 100) : 0;
+              return ` ${ctx.label}: ${ctx.raw} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderServiceChart(stats) {
+  const ctx = document.getElementById('serviceChart');
+  if (!ctx || !stats.recent) return;
+  if (serviceChartInstance) serviceChartInstance.destroy();
+
+  // Count by service from recent shipments
+  const counts = {};
+  (stats.recent || []).forEach(s => {
+    counts[s.service] = (counts[s.service] || 0) + 1;
+  });
+
+  const services = ['Air Freight','Sea Freight','Road Transport','Express Delivery'];
+  const colors   = ['#2563eb','#0891b2','#16a34a','#e8820c'];
+  const data     = services.map(s => counts[s] || 0);
+
+  serviceChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: services.map(s => s.replace(' ', '
+')),
+      datasets: [{
+        label: 'Shipments',
+        data,
+        backgroundColor: colors,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} shipments` } }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, font: { size: 11 } },
+          grid: { color: '#f1f5f9' }
+        },
+        x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
 }
 
 // ===== SHIPMENTS =====
