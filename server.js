@@ -448,14 +448,12 @@ app.post('/api/email/crate-invoice', async (req, res) => {
         </td>
       </tr>
     </table>
-    ${paymentMethods && paymentMethods.trim() ? `
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;">
-      <div style="color:#0d1f35;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:10px;">AVAILABLE PAYMENT METHODS</div>
-      ${paymentMethods.trim().split('\n').filter(l=>l.trim()).map(l => 
-        `<div style="color:#0d1f35;font-size:13px;padding:4px 0;font-weight:600;">• ${l.trim()}</div>`
-      ).join('')}
-      <div style="color:#94a3b8;font-size:11px;margin-top:10px;font-style:italic;">Payment details will be sent to you upon confirmation of your choice.</div>
-    </div>` : ''}
+    ${(() => {
+      if (!paymentMethods || !paymentMethods.trim()) return '';
+      const lines = paymentMethods.trim().split('\n').filter(l => l.trim());
+      const items = lines.map(l => '<div style="color:#0d1f35;font-size:13px;padding:4px 0;font-weight:600;">&#8226; ' + l.trim() + '</div>').join('');
+      return '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;"><div style="color:#0d1f35;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:10px;">AVAILABLE PAYMENT METHODS</div>' + items + '<div style="color:#94a3b8;font-size:11px;margin-top:10px;font-style:italic;">Payment details will be sent to you upon confirmation of your choice.</div></div>';
+    })()}
     <p style="color:#1e293b;font-size:14px;line-height:1.8;">
       Please respond to this email with your choice <strong>(renting or purchasing)</strong> and your preferred payment method, and we will send you the payment details.
     </p>
