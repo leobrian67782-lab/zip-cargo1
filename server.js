@@ -595,17 +595,17 @@ app.post('/api/email/vaccine-invoice', async (req, res) => {
         doc.roundedRect(pad, y, cW, 28, 4).fill('#0d1f35');
         doc.fill('white').fontSize(9).font('Helvetica-Bold').text('AVAILABLE PAYMENT METHODS', pad + 14, y + 9);
         y += 28;
-        const pmLines = paymentMethods.trim().split('\n').filter(l => l.trim());
-        const pmH = pmLines.length * 16 + 20;
+        const pmLines = paymentMethods.trim().split(/\r?\n/).filter(l => l.trim());
+        const pmH = Math.max(pmLines.length * 18 + 24, 40);
         doc.rect(pad, y, cW, pmH).fill('#f8fafc').stroke('#e2e8f0');
         pmLines.forEach((line, i) => {
           doc.fill('#0d1f35').fontSize(9).font('Helvetica-Bold')
-             .text(line.trim(), pad + 14, y + 10 + i * 16);
+             .text('• ' + line.trim(), pad + 14, y + 10 + i * 18, { width: cW - 28 });
         });
         y += pmH;
         doc.rect(pad, y, cW, 22).fill('#fff7ed').stroke('#fed7aa');
         doc.fill('#9a3412').fontSize(8).font('Helvetica')
-           .text('Payment details will be provided upon confirmation.', pad + 14, y + 7);
+           .text('Payment details will be provided upon confirmation of your choice.', pad + 14, y + 7);
         y += 22;
       }
 
@@ -617,18 +617,25 @@ app.post('/api/email/vaccine-invoice', async (req, res) => {
       doc.fill('#e8820c').fontSize(22).font('Helvetica-Bold')
          .text('$' + vacFee.toFixed(2), 0, y + 10, { align: 'right', width: W - pad - 14 });
 
-      // STAMP
+      // STAMP — large centered
       y += 54;
-      const cx = W / 2, cy = y + 50;
-      doc.circle(cx, cy, 55).lineWidth(4).stroke('#16a34a');
-      doc.circle(cx, cy, 47).lineWidth(1.5).stroke('#16a34a');
-      for (let a = 0; a < 360; a += 20) {
+      const cx = W / 2, cy = y + 65;
+      // Outer ring
+      doc.circle(cx, cy, 72).lineWidth(5).stroke('#16a34a');
+      // Inner ring
+      doc.circle(cx, cy, 62).lineWidth(2).stroke('#16a34a');
+      // Decorative dots
+      for (let a = 0; a < 360; a += 15) {
         const rad = a * Math.PI / 180;
-        doc.circle(cx + 51 * Math.cos(rad), cy + 51 * Math.sin(rad), 1.5).fill('#16a34a');
+        doc.circle(cx + 67 * Math.cos(rad), cy + 67 * Math.sin(rad), 2).fill('#16a34a');
       }
-      doc.fill('#16a34a').fontSize(11).font('Helvetica-Bold').text('100%', cx - 30, cy - 18, { width: 60, align: 'center' });
-      doc.fill('#16a34a').fontSize(10).font('Helvetica-Bold').text('REFUNDABLE', cx - 30, cy - 2, { width: 60, align: 'center' });
-      doc.fill('#16a34a').fontSize(7).font('Helvetica').text('ZIPCARGO CERTIFIED', cx - 30, cy + 14, { width: 60, align: 'center' });
+      // Text — centered inside
+      doc.fill('#16a34a').fontSize(18).font('Helvetica-Bold')
+         .text('100%', cx - 50, cy - 26, { width: 100, align: 'center' });
+      doc.fill('#16a34a').fontSize(13).font('Helvetica-Bold')
+         .text('REFUNDABLE', cx - 50, cy - 2, { width: 100, align: 'center' });
+      doc.fill('#16a34a').fontSize(8).font('Helvetica')
+         .text('ZIPCARGO CERTIFIED', cx - 50, cy + 18, { width: 100, align: 'center' });
 
       // Terms
       y += 115;
