@@ -1982,7 +1982,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
 }));
 
-const knownPages = ['index', 'services', 'tracking', 'about', 'testimonials', 'contact', 'admin', 'privacy', 'terms', 'cookies'];
+const knownPages = ['index', 'services', 'tracking', 'about', 'testimonials', 'contact', 'admin', 'privacy', 'terms', 'cookies', 'portal'];
 app.get('*', (req, res) => {
   const urlPath = req.path.replace(/^\//, '').replace(/\.html$/, '') || 'index';
   if (knownPages.includes(urlPath)) {
