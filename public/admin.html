@@ -347,14 +347,8 @@
             </div>
           </div>
 
-          <!-- Option selection -->
-          <div class="form-group" style="margin-bottom:20px;">
-            <label>Crate Option to Invoice</label>
-            <select id="crateOption">
-              <option value="rent">Renting ($200 — 98% Refundable)</option>
-              <option value="buy">Purchasing ($250 — No Refund)</option>
-            </select>
-          </div>
+          <!-- Hidden option — both shown on invoice -->
+          <input type="hidden" id="crateOption" value="both"/>
 
           <div style="display:flex;gap:12px;flex-wrap:wrap;">
             <button class="btn-save" id="crateSendBtn" onclick="sendCrateInvoice()" disabled>
