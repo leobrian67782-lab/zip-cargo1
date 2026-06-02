@@ -947,6 +947,83 @@ window.addEventListener('load', () => {
 });
 
 
+
+// ===== ADMIN DIRECT CHAT =====
+const adminChatHist = [];
+
+function adminChatAddMsg(role, text) {
+  const msgs = document.getElementById('adminChatMsgs');
+  if (!msgs) return;
+  const div = document.createElement('div');
+  div.style.cssText = `display:flex;gap:8px;align-items:flex-end;${role==='user'?'flex-direction:row-reverse':''}`;
+  const avatar = `<div style="width:30px;height:30px;border-radius:50%;background:${role==='user'?'linear-gradient(135deg,#0d1f35,#1a3a5c)':'linear-gradient(135deg,#e8820c,#cf6a00)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.6rem;color:white;"><i class="fa-solid fa-${role==='user'?'user-shield':'robot'}"></i></div>`;
+  const bubble = `<div style="max-width:80%;padding:10px 14px;border-radius:12px;font-size:.83rem;line-height:1.6;font-family:'Outfit',sans-serif;${role==='user'?'background:linear-gradient(135deg,#0d1f35,#1a3a5c);color:white;border-bottom-right-radius:3px;':'background:white;color:#1e293b;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.06);border-bottom-left-radius:3px;'}">${text.replace(/
+/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>`;
+  div.innerHTML = role==='user' ? bubble+avatar : avatar+bubble;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function adminQuickAsk(text) {
+  document.getElementById('adminChatInput').value = text;
+  sendAdminChat();
+}
+
+async function sendAdminChat() {
+  const input = document.getElementById('adminChatInput');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  adminChatAddMsg('user', text);
+  adminChatHist.push({ r: 'user', t: text });
+
+  // Typing indicator
+  const msgs = document.getElementById('adminChatMsgs');
+  const typing = document.createElement('div');
+  typing.id = 'adminTyping';
+  typing.style.cssText = 'display:flex;gap:8px;align-items:flex-end;';
+  typing.innerHTML = `<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#e8820c,#cf6a00);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:white;flex-shrink:0;"><i class="fa-solid fa-robot"></i></div><div style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:10px 14px;"><div style="display:flex;gap:4px;">${[1,2,3].map(i=>`<span style="width:6px;height:6px;background:#cbd5e1;border-radius:50%;animation:zdb .9s ease-in-out ${(i-1)*.15}s infinite;display:block;"></span>`).join('')}</div></div>`;
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const adminCtx = (localStorage.getItem('zc_ai_context')||'') + '
+
+ADMIN MODE: You are speaking directly with the ZipCargo admin/owner. Be detailed, professional, and provide complete information. You can discuss internal operations, fee structures, client handling strategies, and business advice.';
+    
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history: adminChatHist.slice(-10),
+        adminContext: adminCtx
+      })
+    });
+    const data = await res.json();
+    document.getElementById('adminTyping')?.remove();
+    const reply = data.reply || 'Sorry, I could not process that. Please try again.';
+    adminChatAddMsg('assistant', reply);
+    adminChatHist.push({ r: 'assistant', t: reply });
+  } catch(e) {
+    document.getElementById('adminTyping')?.remove();
+    adminChatAddMsg('assistant', 'Connection error. Please check your internet and try again.');
+  }
+}
+
+// Enter key for admin chat
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('adminChatInput');
+  if (inp) {
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') sendAdminChat();
+    });
+  }
+});
+
+
 // ===== DELETE SHIPMENT =====
 async function deleteShipment(id, tracking) {
   if (!confirm(`Delete shipment ${tracking}? This cannot be undone.`)) return;

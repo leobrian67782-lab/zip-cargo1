@@ -209,12 +209,12 @@
 
   // Welcome message
   async function welcome() {
-    showTyping(); await wait(800); hideTyping();
-    const t=`👋 Hi! I'm **Zara**, your ZipCargo assistant.\n\nI can help you with anything — tracking shipments, services, pricing, insurance, customs, or connecting you with our team.\n\nWhat can I help you with today?`;
+    showTyping(); await wait(600); hideTyping();
+    const t=`👋 Hi there! I'm **Zara**, ZipCargo's AI assistant.\n\nI can help you with:\n• **Tracking** your shipment\n• **Pet & animal transport**\n• **Shipping services & pricing**\n• **Insurance & refund policy**\n• **Customs & documentation**\n\nWhat can I help you with today?`;
     addMsg('assistant',t); hist.push({r:'assistant',t});
-    setQR(['Track my shipment','Our services','Insurance info','Get a quote','How does shipping work?']);
+    setQR(['Track my shipment','Pet transport info','Insurance info','Get a free quote']);
     const ctx=(()=>{try{return localStorage.getItem('zc_ai_context')||'';}catch{return'';}})();
-    if(ctx){await wait(600);showTyping();await wait(700);hideTyping();addMsg('assistant',`📢 **Notice:** ${ctx}`);}
+    if(ctx){await wait(400);showTyping();await wait(500);hideTyping();addMsg('assistant',`📢 ${ctx}`);}
   }
 
   // Main send
@@ -254,34 +254,42 @@
       // Smart follow-up suggestions
       const low=reply.toLowerCase();
       const q=[];
-      if(low.includes('track')||low.includes('shipment')) q.push('Track my shipment');
-      if(low.includes('quot')||low.includes('pric')) q.push({label:'📝 Get a Free Quote',href:'contact.html'});
-      if(low.includes('insur')) q.push('Tell me more about insurance');
-      if(low.includes('contact')||low.includes('team')||low.includes('support')) q.push({label:'Contact Page',href:'contact.html'});
-      if(q.length===0) q.push('Tell me more','Get a quote','Contact support');
+      if(low.includes('track')||low.includes('tracking number')) q.push('Track my shipment');
+      if(low.includes('pet')||low.includes('animal')||low.includes('dog')||low.includes('cat')) q.push('Pet transport info');
+      if(low.includes('quot')||low.includes('pric')||low.includes('cost')) q.push({label:'📝 Get a Free Quote',href:'contact.html'});
+      if(low.includes('insur')||low.includes('refund')||low.includes('fee')) q.push('Insurance & fees info');
+      if(low.includes('custom')||low.includes('document')) q.push('Customs info');
+      if(low.includes('contact')||low.includes('team')||low.includes('support')) q.push({label:'Contact Us',href:'contact.html'});
+      if(q.length===0) q.push('Tell me more','Get a free quote',{label:'Contact Us',href:'contact.html'});
       setQR(q.slice(0,3));
     } else {
-      // Fallback when Gemini unavailable
+      // Fallback when AI unavailable
       const low=text.toLowerCase();
       let r,q=[];
-      if(low.includes('insur')||low.includes('refund')||low.includes('payment')){
-        r=`🛡️ All ZipCargo insurance fees are **fully refundable** if no claim is made. You pay the insurance, and if your shipment arrives safely, every penny comes back to you. Zero risk — we strongly recommend insuring your cargo.`;
-        q=['Get a quote','How does shipping work?'];
+      if(low.includes('pet')||low.includes('dog')||low.includes('cat')||low.includes('animal')||low.includes('bird')){
+        r=`🐾 ZipCargo specializes in **pet and animal transport**!\n\nWe handle everything:\n• IATA-compliant climate-controlled crates\n• Health certificates & vaccination records\n• Travel permits & import permits\n• Vet-approved handling throughout transit\n\n**Required fees (all 100% refundable on delivery):**\n• Vaccination Fee: $289\n• Pet Travel Permit: $100\n• Crate Rental: $200 | Purchase: $250\n• Insurance: $103\n\nAll fees are fully refunded once your pet arrives safely! 🐾`;
+        q=['Insurance info','Get a quote',{label:'Contact Us',href:'contact.html'}];
+      } else if(low.includes('insur')||low.includes('refund')||low.includes('fee')){
+        r=`🛡️ **ZipCargo Refundable Fees:**\n\n• Insurance Fee: **$103** — 100% refundable\n• Vaccination Fee: **$289** — 100% refundable\n• Delivery Authorization: **$300** — 100% refundable\n• Pet Travel Permit: **$100** — 100% refundable\n\nEvery single fee is **fully refunded** the moment your shipment or pet arrives safely. You pay for protection — if everything goes well, you get it all back. Zero risk!`;
+        q=['Pet transport info','Get a quote',{label:'Contact Us',href:'contact.html'}];
       } else if(low.includes('service')||low.includes('offer')||low.includes('freight')){
-        r=`✈️ **ZipCargo Services:**\n\n• **Air Freight** — 1-5 business days worldwide\n• **Sea Freight** — cost-effective, 2-6 weeks\n• **Road Transport** — cross-border, 1-10 days\n• **Express Delivery** — same or next day\n• **Warehousing** — secure storage & fulfilment\n• **Customs Clearance** — full documentation handled\n• **Supply Chain** — end-to-end consulting`;
-        q=['Get a quote','Insurance info',{label:'Contact Us',href:'contact.html'}];
+        r=`✈️ **ZipCargo Services:**\n\n• **Air Freight** — 1-5 business days worldwide\n• **Sea Freight** — 2-6 weeks, cost-effective\n• **Road Transport** — 1-10 days, GPS tracked\n• **Express Delivery** — same or next day\n• **Pet Transport** — full documentation handled\n• **Warehousing** — secure climate-controlled storage\n• **Customs Clearance** — we handle all paperwork`;
+        q=['Pet transport info','Insurance info',{label:'Get a Free Quote',href:'contact.html'}];
       } else if(low.includes('price')||low.includes('cost')||low.includes('quot')||low.includes('how much')){
-        r=`💰 Our rates depend on service type, weight, dimensions, and route. The best way to get an accurate number is a **free quote** — just fill out our form and we'll respond within 24 hours with a competitive price.`;
-        q=[{label:'📝 Get a Free Quote',href:'contact.html'},'Our services'];
-      } else if(low.includes('track')||low.includes('package')||low.includes('shipment')){
-        r=`📦 To track your shipment, just type your **ZipCargo tracking number** and I'll pull up the live details immediately.\n\nFormat: **ZC-2026-00123**`;
-        q=[];
-      } else if(low.includes('hello')||low.includes('hi')||low.includes('hey')){
-        r=`👋 Hello! I'm Zara, your ZipCargo assistant. I'm here to help with tracking, services, pricing, insurance, and more.\n\nWhat can I help you with?`;
-        q=['Track my shipment','Our services','Get a quote'];
+        r=`💰 Our rates depend on service type, weight, dimensions, and route.\n\nThe best way to get an accurate price is a **free quote** — fill out our contact form and we respond within 24 hours with a competitive price tailored to your shipment.`;
+        q=[{label:'📝 Get a Free Quote',href:'contact.html'},'Our services','Pet transport info'];
+      } else if(low.includes('track')||low.includes('package')||low.includes('where')){
+        r=`📦 To track your shipment, just type your **ZipCargo tracking number** and I'll pull up the live details immediately.\n\nFormat: **ZC-2026-00123**\n\nOr visit our tracking page directly.`;
+        q=[{label:'Go to Tracking',href:'tracking.html'}];
+      } else if(low.includes('hello')||low.includes('hi')||low.includes('hey')||low.includes('good')){
+        r=`👋 Hello! I'm **Zara**, your ZipCargo assistant. How can I help you today?\n\nI can assist with shipment tracking, pet transport, pricing, insurance, and more!`;
+        q=['Track my shipment','Pet transport info','Insurance info','Get a quote'];
+      } else if(low.includes('custom')||low.includes('import')||low.includes('export')||low.includes('document')){
+        r=`📋 **Customs & Documentation:**\n\nZipCargo handles all customs clearance for you:\n• Import & export documentation\n• HTS code classification\n• Customs compliance & regulations\n• Bill of lading & airway bills\n• For pets: health certs, permits, vaccination records\n\nOur team manages everything so you don't have to worry about paperwork.`;
+        q=['Pet transport info','Get a quote',{label:'Contact Us',href:'contact.html'}];
       } else {
-        r=`I'm here to help with all your logistics needs! You can ask me about:\n\n• **Tracking** a shipment\n• **Services** — air, sea, road, express\n• **Pricing** — get a free quote\n• **Insurance** — fully refundable\n• **Customs & documentation**`;
-        q=['Track my shipment','Our services','Insurance info','Get a quote'];
+        r=`I'm here to help with all your shipping needs! Ask me about:\n\n• **Tracking** a shipment\n• **Pet transport** — dogs, cats, birds & more\n• **Services** — air, sea, road, express\n• **Pricing** — free quote in 24hrs\n• **Insurance** — all fees 100% refundable\n• **Customs & documentation**`;
+        q=['Track my shipment','Pet transport info','Insurance info','Get a quote'];
       }
       addMsg('assistant',r); hist.push({r:'assistant',t:r}); setQR(q);
     }
