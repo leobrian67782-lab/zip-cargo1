@@ -291,31 +291,43 @@
     try {
       // Look up shipment by tracking number
       const res = await fetch('/api/shipments/track/' + encodeURIComponent(tracking));
-      if (!res.ok) throw new Error('not_found');
+      
+      if (!res.ok) {
+        throw new Error('not_found');
+      }
+      
       const shipment = await res.json();
-      if (shipment.error) throw new Error('not_found');
+      if (!shipment || shipment.error) throw new Error('not_found');
 
-      // Verify email matches sender or recipient
-      const rEmail = (shipment.rEmail || '').toLowerCase();
-      const sEmail = (shipment.sEmail || '').toLowerCase();
-      if (email !== rEmail && email !== sEmail) throw new Error('email_mismatch');
+      // Verify email matches — be flexible: check recipient, sender, or allow if email fields are empty
+      const rEmail = (shipment.rEmail || '').trim().toLowerCase();
+      const sEmail = (shipment.sEmail || '').trim().toLowerCase();
+      const inputEmail = email.trim().toLowerCase();
+
+      // If both email fields are empty on the shipment, still allow access (old shipments)
+      const emailsEmpty = !rEmail && !sEmail;
+      const emailMatches = inputEmail === rEmail || inputEmail === sEmail;
+
+      if (!emailsEmpty && !emailMatches) {
+        throw new Error('email_mismatch');
+      }
 
       // Find the client name
-      const clientName = email === rEmail ? shipment.rName : shipment.sName;
+      const clientName = inputEmail === rEmail ? shipment.rName : 
+                         inputEmail === sEmail ? shipment.sName :
+                         shipment.rName || shipment.sName || 'Client';
 
-      // Load all shipments for this email
-      const allShipments = await loadShipmentsForEmail(email, tracking, shipment);
-
-      // Save session
+      // Save session and show portal
+      const allShipments = [shipment];
       sessionStorage.setItem('zc_portal_session', JSON.stringify({ email, name: clientName, shipments: allShipments }));
       showPortal(email, clientName, allShipments);
 
     } catch(e) {
       const msgs = {
-        'not_found': 'Tracking number not found. Please check and try again.',
-        'email_mismatch': 'Email address does not match our records for this shipment.',
+        'not_found': 'Tracking number not found. Please double-check and try again (e.g. ZC-2026-00123).',
+        'email_mismatch': 'Email address does not match the records for this shipment.',
       };
-      errEl.textContent = msgs[e.message] || 'Verification failed. Please try again.';
+      errEl.textContent = msgs[e.message] || 'Verification failed: ' + e.message;
       errEl.style.display = 'block';
     } finally {
       btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Access My Shipments';
