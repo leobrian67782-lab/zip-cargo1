@@ -159,14 +159,19 @@
 <script src="script.js"></script>
 
 <script src="chat.js"></script>
-<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-<script>AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });</script>
+
 <script>
 document.addEventListener('DOMContentLoaded',function(){
   var n=document.getElementById('navbar');
   if(n) n.classList.add('scrolled');
   if(n) document.body.style.paddingTop=n.offsetHeight+'px';
 });
+</script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+  if (typeof AOS !== 'undefined') {
+    AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });
+  }
 </script>
 </body>
 </html>

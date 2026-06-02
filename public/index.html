@@ -323,7 +323,7 @@
 <section style="padding:40px 24px;background:white;border-bottom:1px solid #f1f5f9;" data-aos="fade-up">
   <div style="max-width:1100px;margin:0 auto;text-align:center;">
     <p style="color:#94a3b8;font-size:.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:28px;">Trusted by businesses worldwide</p>
-    <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:40px;">
+    <div class="trusted-logos" style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:40px;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">
         <div style="width:48px;height:48px;background:#f0f4ff;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-industry" style="color:#2563eb;font-size:1.3rem;"></i></div>
         <span style="font-size:.75rem;color:#64748b;font-weight:600;">Manufacturing</span>
@@ -526,8 +526,7 @@ window.addEventListener('load', function() {
   }, 2200);
 });
 </script>
-<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-<script>AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });
+<script>
 function toggleFaq(btn) {
   const answer = btn.nextElementSibling;
   const isOpen = btn.classList.contains('open');
@@ -556,6 +555,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+</script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+  if (typeof AOS !== 'undefined') {
+    AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });
+  }
 </script>
 </body>
 </html>
