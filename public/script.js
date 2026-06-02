@@ -38,24 +38,44 @@ document.getElementById('backToTop')?.addEventListener('click', () =>
 // ===== HAMBURGER =====
 const hamburger = document.getElementById('hamburger');
 const navLinks  = document.getElementById('navLinks');
+const navOverlay = document.getElementById('navOverlay');
+
+function openMenu() {
+  navLinks.classList.add('open');
+  hamburger.classList.add('open');
+  navOverlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMenu() {
+  navLinks.classList.remove('open');
+  hamburger.classList.remove('open');
+  if (navOverlay) navOverlay.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
 if (hamburger && navLinks) {
   hamburger.addEventListener('click', () => {
-    navLinks.classList.toggle('open');
-    hamburger.classList.toggle('open');
-    // Swap icon between bars and X
-    const icon = hamburger.querySelector('i');
-    if (icon) {
-      icon.classList.toggle('fa-bars');
-      icon.classList.toggle('fa-xmark');
+    if (navLinks.classList.contains('open')) {
+      closeMenu();
+    } else {
+      openMenu();
     }
   });
+
+  // Close when clicking a link
   navLinks.querySelectorAll('a').forEach(a =>
-    a.addEventListener('click', () => {
-      navLinks.classList.remove('open');
-      hamburger.classList.remove('open');
-      const icon = hamburger.querySelector('i');
-      if (icon) { icon.classList.add('fa-bars'); icon.classList.remove('fa-xmark'); }
-    }));
+    a.addEventListener('click', closeMenu));
+
+  // Close when clicking overlay
+  if (navOverlay) {
+    navOverlay.addEventListener('click', closeMenu);
+  }
+
+  // Close on escape key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeMenu();
+  });
 }
 
 // ===== SMOOTH SCROLL =====
