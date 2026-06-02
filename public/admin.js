@@ -764,6 +764,189 @@ async function sendTravelPermitInvoice() {
   }
 }
 
+
+// ===== NOTIFICATION SYSTEM =====
+const NOTIF_KEY = 'zc_admin_notifications';
+const NOTIF_SEEN_KEY = 'zc_notif_last_seen';
+
+function getNotifications() {
+  try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveNotifications(notifs) {
+  localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs.slice(0, 50)));
+}
+
+function addNotification(type, title, desc, link) {
+  const notifs = getNotifications();
+  const notif = {
+    id: Date.now(),
+    type,
+    title,
+    desc,
+    link: link || null,
+    time: new Date().toISOString(),
+    read: false,
+  };
+  notifs.unshift(notif);
+  saveNotifications(notifs);
+  renderNotifications();
+  // Ring bell
+  const bell = document.getElementById('notifBell');
+  if (bell) {
+    bell.classList.remove('has-unread');
+    void bell.offsetWidth;
+    bell.classList.add('has-unread');
+  }
+}
+
+function renderNotifications() {
+  const notifs = getNotifications();
+  const unread = notifs.filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  const list  = document.getElementById('notifList');
+  if (!badge || !list) return;
+
+  // Badge
+  if (unread > 0) {
+    badge.textContent = unread > 9 ? '9+' : unread;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+
+  // List
+  if (!notifs.length) {
+    list.innerHTML = '<div class="notif-empty"><i class="fa-solid fa-bell-slash"></i><p>No notifications yet</p></div>';
+    return;
+  }
+
+  const iconMap = {
+    inquiry:   { cls: 'inquiry',  icon: 'fa-comments' },
+    shipment:  { cls: 'shipment', icon: 'fa-box' },
+    status:    { cls: 'status',   icon: 'fa-rotate' },
+    delivered: { cls: 'delivered',icon: 'fa-circle-check' },
+    hold:      { cls: 'hold',     icon: 'fa-circle-pause' },
+  };
+
+  list.innerHTML = notifs.map(n => {
+    const im = iconMap[n.type] || iconMap.status;
+    const timeAgo = getTimeAgo(n.time);
+    return `<div class="notif-item ${n.read ? '' : 'unread'}" onclick="openNotif(${n.id})">
+      <div class="notif-icon ${im.cls}"><i class="fa-solid ${im.icon}"></i></div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-time">${timeAgo}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openNotif(id) {
+  const notifs = getNotifications();
+  const n = notifs.find(x => x.id === id);
+  if (!n) return;
+  n.read = true;
+  saveNotifications(notifs);
+  renderNotifications();
+  closeNotifDropdown();
+  if (n.link) {
+    if (n.link.startsWith('section:')) {
+      const sName = n.link.replace('section:', '');
+      if (typeof showSection === 'function') showSection(sName, null);
+      else if (typeof window.showSection === 'function') window.showSection(sName, null);
+    }
+  }
+}
+
+function toggleNotifications() {
+  const dd = document.getElementById('notifDropdown');
+  if (!dd) return;
+  dd.classList.toggle('open');
+}
+
+function closeNotifDropdown() {
+  document.getElementById('notifDropdown')?.classList.remove('open');
+}
+
+function markAllRead() {
+  const notifs = getNotifications();
+  notifs.forEach(n => n.read = true);
+  saveNotifications(notifs);
+  renderNotifications();
+}
+
+function getTimeAgo(iso) {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60)  return 'Just now';
+  if (diff < 3600) return Math.floor(diff/60) + ' min ago';
+  if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
+  return Math.floor(diff/86400) + ' day ago';
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  const wrapper = document.getElementById('notifWrapper');
+  if (wrapper && !wrapper.contains(e.target)) closeNotifDropdown();
+});
+
+// Poll for new inquiries and shipments every 60 seconds
+let _lastInquiryCount = 0;
+let _lastShipmentCount = 0;
+
+async function pollForUpdates() {
+  try {
+    const [stats, inqData] = await Promise.all([
+      api.get('/api/shipments/stats'),
+      api.get('/api/inquiries'),
+    ]);
+
+    // New inquiry notification
+    const newInqCount = inqData.total || 0;
+    if (_lastInquiryCount > 0 && newInqCount > _lastInquiryCount) {
+      const diff = newInqCount - _lastInquiryCount;
+      addNotification('inquiry',
+        `${diff} new inquir${diff > 1 ? 'ies' : 'y'} received`,
+        'Someone has sent a message through your contact form',
+        'section:inquiries'
+      );
+    }
+    _lastInquiryCount = newInqCount;
+
+    // New shipment notification
+    const newShipCount = stats.total || 0;
+    if (_lastShipmentCount > 0 && newShipCount > _lastShipmentCount) {
+      const diff = newShipCount - _lastShipmentCount;
+      addNotification('shipment',
+        `${diff} new shipment${diff > 1 ? 's' : ''} created`,
+        'A new shipment has been added to the system',
+        'section:shipments'
+      );
+    }
+    _lastShipmentCount = newShipCount;
+
+  } catch(e) { /* silent fail */ }
+}
+
+// Init notifications on load
+window.addEventListener('load', () => {
+  try { renderNotifications(); } catch(e) {}
+  setTimeout(async () => {
+    try {
+      const [stats, inqData] = await Promise.all([
+        api.get('/api/shipments/stats'),
+        api.get('/api/inquiries'),
+      ]);
+      _lastInquiryCount = inqData.total || 0;
+      _lastShipmentCount = stats.total || 0;
+    } catch(e) {}
+    setInterval(pollForUpdates, 60000);
+  }, 4000);
+});
+
+
 // ===== DELETE SHIPMENT =====
 async function deleteShipment(id, tracking) {
   if (!confirm(`Delete shipment ${tracking}? This cannot be undone.`)) return;
