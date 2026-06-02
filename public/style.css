@@ -5,7 +5,7 @@ body { font-family: 'Outfit', 'Segoe UI', sans-serif; color: #333; line-height: 
 a { text-decoration: none; color: inherit; }
 
 .navbar { background-color: transparent; padding: 16px 0; position: fixed; top: 0; left:0; right:0; z-index: 1000; transition: background .35s ease, box-shadow .35s ease, padding .35s ease; }
-.navbar.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+.navbar.scrolled { background: #0d1f35 !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4); padding: 10px 0; }
 .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; }
 .logo { font-size: 1.6rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
 .nav-links { list-style: none; display: flex; gap: 32px; }
