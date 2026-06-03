@@ -827,13 +827,13 @@
           <div id="adminChatMsgs" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
           <div style="display:flex;gap:10px;">
             <input type="text" id="adminChatInput" placeholder="Ask Zara anything… e.g. How many shipments are pending?" style="flex:1;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.875rem;outline:none;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='#e2e8f0'"/>
-            <button onclick="sendAdminChat()" class="btn-save" style="padding:12px 20px;"><i class="fa-solid fa-paper-plane"></i></button>
+            <button onclick="if(typeof sendAdminChat==='function')sendAdminChat()" class="btn-save" style="padding:12px 20px;"><i class="fa-solid fa-paper-plane"></i></button>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-            <button onclick="adminQuickAsk('How many shipments do I have in total?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📦 Shipment summary</button>
-            <button onclick="adminQuickAsk('What should I know about pet transport regulations?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">🐾 Pet regulations</button>
-            <button onclick="adminQuickAsk('What are all the refundable fees and amounts?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">💰 Fee amounts</button>
-            <button onclick="adminQuickAsk('How do I handle a customs clearance issue for a client?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📋 Customs help</button>
+            <button onclick="if(typeof adminQuickAsk==='function')adminQuickAsk('How many shipments do I have in total?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📦 Shipment summary</button>
+            <button onclick="if(typeof adminQuickAsk==='function')adminQuickAsk('What should I know about pet transport regulations?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">🐾 Pet regulations</button>
+            <button onclick="if(typeof adminQuickAsk==='function')adminQuickAsk('What are all the refundable fees and amounts?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">💰 Fee amounts</button>
+            <button onclick="if(typeof adminQuickAsk==='function')adminQuickAsk('How do I handle a customs clearance issue for a client?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📋 Customs help</button>
           </div>
         </div>
       </section>
