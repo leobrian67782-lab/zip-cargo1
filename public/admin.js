@@ -954,12 +954,23 @@ const adminChatHist = [];
 function adminChatAddMsg(role, text) {
   const msgs = document.getElementById('adminChatMsgs');
   if (!msgs) return;
+  // Process text safely outside template literal
+  const safeText = text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .split('\n').join('<br>')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  const isUser = role === 'user';
+  const avatarBg = isUser ? 'linear-gradient(135deg,#0d1f35,#1a3a5c)' : 'linear-gradient(135deg,#e8820c,#cf6a00)';
+  const avatarIcon = isUser ? 'user-shield' : 'robot';
+  const bubbleStyle = isUser
+    ? 'background:linear-gradient(135deg,#0d1f35,#1a3a5c);color:white;border-bottom-right-radius:3px;'
+    : 'background:white;color:#1e293b;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.06);border-bottom-left-radius:3px;';
   const div = document.createElement('div');
-  div.style.cssText = `display:flex;gap:8px;align-items:flex-end;${role==='user'?'flex-direction:row-reverse':''}`;
-  const avatar = `<div style="width:30px;height:30px;border-radius:50%;background:${role==='user'?'linear-gradient(135deg,#0d1f35,#1a3a5c)':'linear-gradient(135deg,#e8820c,#cf6a00)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.6rem;color:white;"><i class="fa-solid fa-${role==='user'?'user-shield':'robot'}"></i></div>`;
-  const bubble = `<div style="max-width:80%;padding:10px 14px;border-radius:12px;font-size:.83rem;line-height:1.6;font-family:'Outfit',sans-serif;${role==='user'?'background:linear-gradient(135deg,#0d1f35,#1a3a5c);color:white;border-bottom-right-radius:3px;':'background:white;color:#1e293b;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.06);border-bottom-left-radius:3px;'}">${text.replace(/
-/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>`;
-  div.innerHTML = role==='user' ? bubble+avatar : avatar+bubble;
+  div.style.cssText = 'display:flex;gap:8px;align-items:flex-end;' + (isUser ? 'flex-direction:row-reverse;' : '');
+  div.innerHTML =
+    '<div style="width:30px;height:30px;border-radius:50%;background:' + avatarBg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.6rem;color:white;"><i class="fa-solid fa-' + avatarIcon + '"></i></div>' +
+    '<div style="max-width:80%;padding:10px 14px;border-radius:12px;font-size:.83rem;line-height:1.6;font-family:Outfit,sans-serif;' + bubbleStyle + '">' + safeText + '</div>';
+  if (isUser) div.innerHTML = div.innerHTML.split('</div><div').reverse().join('</div><div');
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -989,9 +1000,7 @@ async function sendAdminChat() {
   msgs.scrollTop = msgs.scrollHeight;
 
   try {
-    const adminCtx = (localStorage.getItem('zc_ai_context')||'') + '
-
-ADMIN MODE: You are speaking directly with the ZipCargo admin/owner. Be detailed, professional, and provide complete information. You can discuss internal operations, fee structures, client handling strategies, and business advice.';
+    const adminCtx = (localStorage.getItem('zc_ai_context')||'') + '\n\nADMIN MODE: You are speaking directly with the ZipCargo admin/owner. Be detailed, professional, and provide complete information. You can discuss internal operations, fee structures, client handling strategies, and business advice.';
     
     const res = await fetch('/api/chat', {
       method: 'POST',
