@@ -31,7 +31,7 @@ function showToast(msg, type='success') {
   const msgEl  = document.getElementById('adminToastMsg');
   const iconEl = document.getElementById('adminToastIcon');
   if (!toast) return;
-  iconEl.textContent = {success:'✅',error:'❌',info:'ℹ️'}[type]||'✅';
+  iconEl.innerHTML = {success:'<i class="fa-solid fa-circle-check" style="color:#22c55e;"></i>',error:'<i class="fa-solid fa-circle-xmark" style="color:#ef4444;"></i>',info:'<i class="fa-solid fa-circle-info" style="color:#3b82f6;"></i>'}[type]||'<i class="fa-solid fa-circle-check"></i>';
   msgEl.textContent  = msg;
   toast.style.display = 'block';
   clearTimeout(toast._t);
@@ -292,12 +292,12 @@ async function createShipment() {
           });
           const updateData = await updateRes.json();
           if (updateData.success) {
-            showToast(`📧 Status update sent to ${payload.rEmail}`, 'success');
+            showToast(`Status update sent to ${payload.rEmail}`, 'success');
           } else {
-            showToast(`⚠️ Email failed: ${updateData.error || 'Unknown error'}`, 'error');
+            showToast(`Email failed: ${updateData.error || 'Unknown error'}`, 'error');
           }
         } catch(e) {
-          showToast(`⚠️ Email error: ${e.message}`, 'error');
+          showToast(`Email error: ${e.message}`, 'error');
           console.error('Status update email failed:', e.message);
         }
       }
@@ -351,13 +351,13 @@ async function createShipment() {
             }
           }
           if (emailData && emailData.success) {
-            showToast(`📧 Receipt sent to ${payload.rEmail}`, 'success');
+            showToast(`Receipt sent to ${payload.rEmail}`, 'success');
           } else {
-            showToast(`⚠️ Shipment saved but email failed: ${emailData ? emailData.error : 'Unknown error'}`, 'error');
+            showToast(`Shipment saved but email failed: ${emailData ? emailData.error : 'Unknown error'}`, 'error');
           }
         } catch(emailErr) {
           console.error('Email send error:', emailErr);
-          showToast('⚠️ Shipment saved but email could not be sent.', 'error');
+          showToast('️ Shipment saved but email could not be sent.', 'error');
         }
       }
     }
@@ -462,16 +462,16 @@ async function sendCrateInvoice() {
     const data = await res.json();
     if (data.success) {
       msg.style.color = '#16a34a';
-      msg.textContent = `✅ Crate invoice sent to ${crateShipmentData.rEmail}`;
-      showToast('📧 Crate invoice sent!', 'success');
+      msg.textContent = `Crate invoice sent to ${crateShipmentData.rEmail}`;
+      showToast('Crate invoice sent!', 'success');
       setTimeout(() => msg.textContent = '', 5000);
     } else {
       msg.style.color = '#dc2626';
-      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+      msg.textContent = ' Failed: ' + (data.error || 'Unknown error');
     }
   } catch(e) {
     msg.style.color = '#dc2626';
-    msg.textContent = '❌ Error: ' + e.message;
+    msg.textContent = ' Error: ' + e.message;
   }
 }
 
@@ -534,16 +534,16 @@ async function sendVaccineInvoice() {
     const data = await res.json();
     if (data.success) {
       msg.style.color = '#16a34a';
-      msg.textContent = `✅ Vaccine invoice sent to ${vaccineShipmentData.rEmail}`;
-      showToast('📧 Vaccine invoice sent!', 'success');
+      msg.textContent = `Vaccine invoice sent to ${vaccineShipmentData.rEmail}`;
+      showToast('Vaccine invoice sent!', 'success');
       setTimeout(() => msg.textContent = '', 5000);
     } else {
       msg.style.color = '#dc2626';
-      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+      msg.textContent = ' Failed: ' + (data.error || 'Unknown error');
     }
   } catch(e) {
     msg.style.color = '#dc2626';
-    msg.textContent = '❌ Error: ' + e.message;
+    msg.textContent = ' Error: ' + e.message;
   }
 }
 
@@ -607,16 +607,16 @@ async function sendInsuranceInvoice() {
     const data = await res.json();
     if (data.success) {
       msg.style.color = '#16a34a';
-      msg.textContent = `✅ Insurance invoice sent to ${insuranceShipmentData.rEmail}`;
-      showToast('📧 Insurance invoice sent!', 'success');
+      msg.textContent = `Insurance invoice sent to ${insuranceShipmentData.rEmail}`;
+      showToast('Insurance invoice sent!', 'success');
       setTimeout(() => msg.textContent = '', 5000);
     } else {
       msg.style.color = '#dc2626';
-      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+      msg.textContent = ' Failed: ' + (data.error || 'Unknown error');
     }
   } catch(e) {
     msg.style.color = '#dc2626';
-    msg.textContent = '❌ Error: ' + e.message;
+    msg.textContent = ' Error: ' + e.message;
   }
 }
 
@@ -679,16 +679,16 @@ async function sendDeliveryAuthInvoice() {
     const data = await res.json();
     if (data.success) {
       msg.style.color = '#16a34a';
-      msg.textContent = `✅ Authorization notice sent to ${deliveryAuthShipmentData.rEmail}`;
-      showToast('📧 Authorization notice sent!', 'success');
+      msg.textContent = `Authorization notice sent to ${deliveryAuthShipmentData.rEmail}`;
+      showToast('Authorization notice sent!', 'success');
       setTimeout(() => msg.textContent = '', 5000);
     } else {
       msg.style.color = '#dc2626';
-      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+      msg.textContent = ' Failed: ' + (data.error || 'Unknown error');
     }
   } catch(e) {
     msg.style.color = '#dc2626';
-    msg.textContent = '❌ Error: ' + e.message;
+    msg.textContent = ' Error: ' + e.message;
   }
 }
 
@@ -751,16 +751,16 @@ async function sendTravelPermitInvoice() {
     const data = await res.json();
     if (data.success) {
       msg.style.color = '#16a34a';
-      msg.textContent = `✅ Permit notice sent to ${travelPermitShipmentData.rEmail}`;
-      showToast('📧 Travel permit notice sent!', 'success');
+      msg.textContent = `Permit notice sent to ${travelPermitShipmentData.rEmail}`;
+      showToast('Travel permit notice sent!', 'success');
       setTimeout(() => msg.textContent = '', 5000);
     } else {
       msg.style.color = '#dc2626';
-      msg.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+      msg.textContent = ' Failed: ' + (data.error || 'Unknown error');
     }
   } catch(e) {
     msg.style.color = '#dc2626';
-    msg.textContent = '❌ Error: ' + e.message;
+    msg.textContent = ' Error: ' + e.message;
   }
 }
 

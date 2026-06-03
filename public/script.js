@@ -704,26 +704,26 @@ async function buildMap(oC, dC, cC, oN, dN, cN, status) {
   });
 
   const statusConfig = {
-    'Delivered':        { icon: '✓',  pulse: false },
-    'In Transit':       { icon: '✈',  pulse: true  },
-    'Out for Delivery': { icon: '🚚', pulse: true  },
-    'Pending':          { icon: '📦', pulse: false },
-    'On Hold':          { icon: '⏸', pulse: false },
+    'Delivered':        { icon: 'fa-circle-check',  color: '#16a34a', pulse: false },
+    'In Transit':       { icon: 'fa-plane',          color: '#2563eb', pulse: true  },
+    'Out for Delivery': { icon: 'fa-truck-fast',     color: '#7c3aed', pulse: true  },
+    'Pending':          { icon: 'fa-clock',          color: '#f59e0b', pulse: false },
+    'On Hold':          { icon: 'fa-circle-pause',   color: '#ef4444', pulse: false },
   };
-  const sc = statusConfig[status] || { icon: '📦', pulse: false };
+  const sc = statusConfig[status] || { icon: 'fa-box', color: '#64748b', pulse: false };
   const pulseStyle = sc.pulse ? 'animation:mapPulse 1.6s ease-in-out infinite;' : '';
 
   const pkgIco = L.divIcon({
-    html: `<div style="background:#e8820c;width:40px;height:40px;border-radius:50%;border:3px solid white;box-shadow:0 3px 16px rgba(232,130,12,.8);display:flex;align-items:center;justify-content:center;font-size:17px;${pulseStyle}">${sc.icon}</div>`,
+    html: `<div style="background:#e8820c;width:40px;height:40px;border-radius:50%;border:3px solid white;box-shadow:0 3px 16px rgba(232,130,12,.8);display:flex;align-items:center;justify-content:center;font-size:17px;${pulseStyle}"><i class='fa-solid ${sc.icon}' style='color:${sc.color};margin-right:5px;'></i></div>`,
     className: '', iconSize: [40, 40], iconAnchor: [20, 20]
   });
 
   L.marker([oC.lat, oC.lng], { icon: mkrPin('#22c55e', 'ORIGIN') })
     .addTo(leafletMap)
-    .bindPopup(`<div style="font-family:'Outfit',sans-serif;font-weight:700;color:white;">📍 ${oN}</div>`);
+    .bindPopup(`<div style="font-family:'Outfit',sans-serif;font-weight:700;color:white;"> ${oN}</div>`);
   L.marker([dC.lat, dC.lng], { icon: mkrPin('#ef4444', 'DEST') })
     .addTo(leafletMap)
-    .bindPopup(`<div style="font-family:'Outfit',sans-serif;font-weight:700;color:white;">🎯 ${dN}</div>`);
+    .bindPopup(`<div style="font-family:'Outfit',sans-serif;font-weight:700;color:white;"> ${dN}</div>`);
 
   // ── Route ──
   document.getElementById('trackMapStatus').textContent = 'Calculating route…';
@@ -752,7 +752,7 @@ async function buildMap(oC, dC, cC, oN, dN, cN, status) {
 
   L.marker(pkgPt, { icon: pkgIco, zIndexOffset: 1000 })
     .addTo(leafletMap)
-    .bindPopup(`<div style="font-family:'Outfit',sans-serif;color:white;"><strong>📦 Package</strong><br/>Status: ${status}${!same ? '<br/>📍 ' + cN : ''}</div>`)
+    .bindPopup(`<div style="font-family:'Outfit',sans-serif;color:white;"><strong> Package</strong><br/>Status: ${status}${!same ? '<br/> ' + cN : ''}</div>`)
     .openPopup();
 
   // Fit map to all key points with good padding
