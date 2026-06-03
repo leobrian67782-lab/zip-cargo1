@@ -801,19 +801,19 @@
           <h3 style="margin-bottom:16px;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#e8820c;margin-right:8px;"></i>Quick Templates</h3>
           <p style="color:#64748b;font-size:.825rem;margin-bottom:16px;">Click a template to load it, then customize and save.</p>
           <div style="display:flex;flex-direction:column;gap:10px;">
-            <button onclick="loadAiTemplate('delay')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
+            <button onclick="loadTemplate('delay')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
               <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">⚠️ Shipment Delay</div>
               <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Tell customers a specific shipment is delayed with new ETA</div>
             </button>
-            <button onclick="loadAiTemplate('insurance')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
+            <button onclick="loadTemplate('insurance')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
               <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">🛡️ Insurance Reminder</div>
               <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Emphasise refundable insurance to all customers</div>
             </button>
-            <button onclick="loadAiTemplate('promo')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
+            <button onclick="loadTemplate('promo')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
               <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">🎉 Promotional Offer</div>
               <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Announce a discount or special offer to customers</div>
             </button>
-            <button onclick="loadAiTemplate('customs')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
+            <button onclick="loadTemplate('customs')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
               <div style="font-weight:700;color:#0d1f35;font-size:.85rem;">📋 Customs Hold</div>
               <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Notify customers of a shipment held at customs</div>
             </button>
@@ -868,7 +868,7 @@ if (typeof adminLogout !== 'undefined') {
     const token = TokenStore.get();
     if (token) {
       try {
-        await api.get('/api/auth/verify');
+        await api.get('/api/auth/me');
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'flex';
         if (typeof setCurrentDate === 'function') setCurrentDate();
