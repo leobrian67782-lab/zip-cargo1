@@ -7,10 +7,11 @@ const log        = require('../middleware/activityLogger');
 
 const router = express.Router();
 
+const isProd = process.env.NODE_ENV === 'production';
 const cookieOpts = {
   httpOnly: true,
-  sameSite: 'none',
-  secure:   true,
+  secure:   isProd,
+  sameSite: isProd ? 'none' : 'lax',
   maxAge:   24 * 60 * 60 * 1000,
 };
 
