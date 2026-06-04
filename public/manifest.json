@@ -1,0 +1,12 @@
+{
+  "name": "ZipCargo Logistics",
+  "short_name": "ZipCargo",
+  "description": "Global logistics and pet transport services across 150+ countries",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1f35",
+  "theme_color": "#0d1f35",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
