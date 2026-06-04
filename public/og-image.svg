@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0d1f35"/>
+
+  <!-- Subtle grid pattern -->
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Orange accent bar -->
+  <rect x="0" y="0" width="8" height="630" fill="#e8820c"/>
+
+  <!-- Large faded icon -->
+  <path d="M 820 180 L 1060 315 M 980 200 L 1080 315 L 980 430" stroke="rgba(232,130,12,0.12)" stroke-width="60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="820" cy="315" r="28" fill="rgba(232,130,12,0.08)"/>
+
+  <!-- Logo mark -->
+  <rect x="80" y="90" width="72" height="72" rx="16" fill="#e8820c"/>
+  <path d="M 98 126 L 128 126 M 118 108 L 136 126 L 118 144" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Wordmark -->
+  <text x="170" y="142" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="48" font-weight="800" fill="white">Zip</text>
+  <text x="241" y="142" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="48" font-weight="800" fill="#e8820c">Cargo</text>
+
+  <!-- Tagline -->
+  <text x="80" y="310" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="62" font-weight="800" fill="white">Global Logistics</text>
+  <text x="80" y="390" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="62" font-weight="800" fill="white">&amp; <tspan fill="#e8820c">Pet Transport</tspan></text>
+
+  <!-- Descriptor -->
+  <text x="80" y="460" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" fill="rgba(170,196,224,0.9)">150+ countries · Air · Sea · Road · Warehousing</text>
+
+  <!-- Trust badges -->
+  <rect x="80" y="510" width="180" height="46" rx="23" fill="rgba(232,130,12,0.18)" stroke="rgba(232,130,12,0.4)" stroke-width="1.5"/>
+  <text x="170" y="539" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#e8820c">ISO 9001 Certified</text>
+
+  <rect x="276" y="510" width="190" height="46" rx="23" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <text x="371" y="539" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="rgba(255,255,255,0.85)">99.8% On-Time Rate</text>
+
+  <rect x="482" y="510" width="160" height="46" rx="23" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <text x="562" y="539" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="rgba(255,255,255,0.85)">24/7 Support</text>
+</svg>

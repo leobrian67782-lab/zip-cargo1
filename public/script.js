@@ -1,15 +1,7 @@
-// ===== PAGE LOADER =====
+// ===== PAGE LOADER (slim progress bar only) =====
+// Full-screen loader removed — progress bar handles load feedback
 const loader = document.getElementById('loader');
-if (loader) {
-  document.body.classList.add('no-scroll');
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      loader.classList.add('hidden');
-      document.body.classList.remove('no-scroll');
-      setTimeout(() => loader.remove(), 700);
-    }, 1800);
-  });
-}
+if (loader) loader.remove(); // safety: remove if somehow still in DOM
 
 // ===== NAVBAR SCROLL =====
 window.addEventListener('scroll', () => {
@@ -777,39 +769,13 @@ async function submitForm(e) {
   if (btn) { btn.disabled=true; btn.innerHTML='Sending… <i class="fa-solid fa-spinner fa-spin"></i>'; }
 
   try {
-    // Save to database
+    // POST to server — saves to DB and sends emails via Brevo (server-side)
     const res = await fetch('/api/inquiries', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ name, email, company, service, message }),
     });
     if (!res.ok) throw new Error('Server error');
-
-    // Send emails via EmailJS
-    if (typeof emailjs !== 'undefined' && window.ZC_EMAILJS_SERVICE) {
-      try {
-        const templateParams = {
-          from_name:  name,
-          from_email: email,
-          company:    company || 'Not provided',
-          service:    service || 'Not specified',
-          message:    message,
-          name:       name,
-          email:      email,
-        };
-
-        // Send notification to you — auto-reply to customer is handled by template
-        await emailjs.send(
-          window.ZC_EMAILJS_SERVICE,
-          window.ZC_EMAILJS_NOTIFY_TEMPLATE,
-          templateParams
-        );
-
-        console.log('Email sent successfully');
-      } catch(emailErr) {
-        console.error('EmailJS error:', emailErr);
-      }
-    }
 
     const form    = document.querySelector('.contact-form');
     const success = document.getElementById('formSuccess');
@@ -949,3 +915,103 @@ window.addEventListener('pageshow', function(e) {
   document.body.style.opacity = '1';
   document.body.style.transform = 'none';
 });
+
+// ===== QUOTE WIZARD =====
+let qwSelectedService = '';
+
+function selectService(btn) {
+  document.querySelectorAll('.qw-service-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  qwSelectedService = btn.dataset.value;
+}
+
+function qwNext(step) {
+  if (step === 1) {
+    if (!qwSelectedService) {
+      document.getElementById('qwErr1').style.display = 'block';
+      return;
+    }
+    document.getElementById('qwErr1').style.display = 'none';
+    document.getElementById('fservice').value = qwSelectedService;
+    qwGoTo(2);
+  } else if (step === 2) {
+    qwGoTo(3);
+  }
+}
+
+function qwBack(step) {
+  qwGoTo(step - 1);
+}
+
+function qwGoTo(step) {
+  [1, 2, 3].forEach(n => {
+    document.getElementById('qwp' + n)?.classList.toggle('active', n === step);
+    const stepEl = document.getElementById('qws' + n);
+    if (stepEl) {
+      stepEl.classList.toggle('active', n === step);
+      stepEl.classList.toggle('done', n < step);
+    }
+  });
+}
+
+async function qwSubmit() {
+  const name    = document.getElementById('fname')?.value.trim();
+  const email   = document.getElementById('femail')?.value.trim();
+  const company = document.getElementById('fcompany')?.value.trim() || '';
+  const service = document.getElementById('fservice')?.value || qwSelectedService;
+  const phone   = document.getElementById('qwPhone')?.value.trim() || '';
+  const origin  = document.getElementById('qwOrigin')?.value.trim() || '';
+  const dest    = document.getElementById('qwDest')?.value.trim() || '';
+  const cargo   = document.getElementById('qwCargo')?.value || '';
+  const weight  = document.getElementById('qwWeight')?.value || '';
+  const notes   = document.getElementById('qwNotes')?.value.trim() || '';
+
+  if (!name || !email) {
+    document.getElementById('qwErr3').style.display = 'block';
+    return;
+  }
+  document.getElementById('qwErr3').style.display = 'none';
+
+  // Build a rich message string for the DB / email
+  const parts = [];
+  if (service) parts.push(`Service: ${service}`);
+  if (origin)  parts.push(`From: ${origin}`);
+  if (dest)    parts.push(`To: ${dest}`);
+  if (cargo)   parts.push(`Cargo type: ${cargo}`);
+  if (weight)  parts.push(`Weight: ${weight}`);
+  if (phone)   parts.push(`Phone: ${phone}`);
+  if (notes)   parts.push(`Notes: ${notes}`);
+  const message = parts.join('\n');
+
+  document.getElementById('fmessage').value = message;
+
+  const btn = document.getElementById('qwSubmitBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Sending… <i class="fa-solid fa-spinner fa-spin"></i>'; }
+
+  try {
+    const res = await fetch('/api/inquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, company, service, message }),
+    });
+    if (!res.ok) throw new Error('Server error');
+
+    document.getElementById('quoteWizard').style.display = 'none';
+    const success = document.getElementById('formSuccess');
+    if (success) success.style.display = 'block';
+  } catch {
+    alert('Could not send your request. Please try again.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Send Quote Request <i class="fa-solid fa-paper-plane"></i>'; }
+  }
+}
+
+// Pre-select service if coming from services page
+(function() {
+  const svc = sessionStorage.getItem('zc_selected_service');
+  if (svc) {
+    sessionStorage.removeItem('zc_selected_service');
+    const btn = document.querySelector(`.qw-service-btn[data-value="${svc}"]`);
+    if (btn) selectService(btn);
+  }
+})();

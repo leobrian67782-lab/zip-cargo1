@@ -12,6 +12,9 @@
   <meta property="og:title" content="Contact ZipCargo — Get a Free Shipping Quote"/>
   <meta property="og:description" content="Contact ZipCargo for a free shipping quote or inquiries about pet transport, freight, and logistics services. We respond within 24 hours."/>
   <meta property="og:type" content="website"/>
+  <meta property="og:image" content="https://zipcargo-app.onrender.com/og-image.svg"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
   <meta property="og:url" content="https://zipcargo-app.onrender.com/contact"/>
   <meta property="og:site_name" content="ZipCargo"/>
   <link rel="canonical" href="https://zipcargo-app.onrender.com/contact"/>
@@ -49,7 +52,7 @@
 
 <nav class="navbar scrolled" id="navbar">
   <div class="nav-container">
-    <a href="index.html" class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</a>
+    <a href="index.html" class="logo"><img src="logo.svg" alt="ZipCargo" height="36" style="display:block;"/></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="services.html"><i class="fa-solid fa-boxes-stacked" style="color:#e8820c;width:18px;"></i> Services</a></li>
@@ -91,22 +94,148 @@
         <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
       </div>
     </div>
-    <form class="contact-form animate-fade" onsubmit="submitForm(event)">
-      <input type="text"  id="fname"    placeholder="Your Full Name" required/>
-      <input type="email" id="femail"   placeholder="Your Email Address" required/>
-      <input type="text"  id="fcompany" placeholder="Company Name (optional)"/>
-      <select id="fservice"><option value="">Select a Service</option><option>Air Freight</option><option>Sea Freight</option><option>Road Transport</option><option>Warehousing</option><option>Customs Clearance</option><option>Supply Chain</option><option>Express Delivery</option></select>
-      <textarea id="fmessage" placeholder="Tell us about your shipment needs..." required></textarea>
-      <button type="submit">Send Message <i class="fa-solid fa-paper-plane"></i></button>
-    </form>
+    <!-- Multi-step quote form -->
+    <div class="quote-wizard animate-fade" id="quoteWizard">
+
+      <!-- Step indicators -->
+      <div class="qw-steps">
+        <div class="qw-step active" id="qws1"><span class="qw-num">1</span><span class="qw-label">Shipment</span></div>
+        <div class="qw-connector"></div>
+        <div class="qw-step" id="qws2"><span class="qw-num">2</span><span class="qw-label">Details</span></div>
+        <div class="qw-connector"></div>
+        <div class="qw-step" id="qws3"><span class="qw-num">3</span><span class="qw-label">Contact</span></div>
+      </div>
+
+      <!-- Step 1: Shipment type -->
+      <div class="qw-panel active" id="qwp1">
+        <h3 class="qw-title">What are you shipping?</h3>
+        <div class="qw-service-grid">
+          <button class="qw-service-btn" data-value="Air Freight" onclick="selectService(this)">
+            <i class="fa-solid fa-plane-departure"></i>
+            <span>Air Freight</span>
+          </button>
+          <button class="qw-service-btn" data-value="Sea Freight" onclick="selectService(this)">
+            <i class="fa-solid fa-ship"></i>
+            <span>Sea Freight</span>
+          </button>
+          <button class="qw-service-btn" data-value="Road Transport" onclick="selectService(this)">
+            <i class="fa-solid fa-truck-moving"></i>
+            <span>Road Transport</span>
+          </button>
+          <button class="qw-service-btn" data-value="Warehousing" onclick="selectService(this)">
+            <i class="fa-solid fa-warehouse"></i>
+            <span>Warehousing</span>
+          </button>
+          <button class="qw-service-btn" data-value="Customs Clearance" onclick="selectService(this)">
+            <i class="fa-solid fa-file-invoice"></i>
+            <span>Customs Clearance</span>
+          </button>
+          <button class="qw-service-btn" data-value="Pet Transport" onclick="selectService(this)">
+            <i class="fa-solid fa-paw"></i>
+            <span>Pet Transport</span>
+          </button>
+        </div>
+        <p class="qw-error" id="qwErr1" style="display:none;">Please select a service to continue.</p>
+        <div class="qw-nav">
+          <span></span>
+          <button class="qw-next-btn" onclick="qwNext(1)">Next <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Step 2: Shipment details -->
+      <div class="qw-panel" id="qwp2">
+        <h3 class="qw-title">Tell us about your shipment</h3>
+        <div class="qw-row">
+          <div class="qw-field">
+            <label>Origin Country / City</label>
+            <input type="text" id="qwOrigin" placeholder="e.g. London, UK"/>
+          </div>
+          <div class="qw-field">
+            <label>Destination Country / City</label>
+            <input type="text" id="qwDest" placeholder="e.g. Lagos, Nigeria"/>
+          </div>
+        </div>
+        <div class="qw-row">
+          <div class="qw-field">
+            <label>Cargo Type</label>
+            <select id="qwCargo">
+              <option value="">Select cargo type</option>
+              <option>General Goods</option>
+              <option>Electronics</option>
+              <option>Perishables / Food</option>
+              <option>Pharmaceuticals</option>
+              <option>Hazardous Materials</option>
+              <option>Vehicles</option>
+              <option>Live Animals / Pets</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="qw-field">
+            <label>Estimated Weight</label>
+            <select id="qwWeight">
+              <option value="">Select weight range</option>
+              <option>Under 10 kg</option>
+              <option>10 – 50 kg</option>
+              <option>50 – 200 kg</option>
+              <option>200 – 1,000 kg</option>
+              <option>1,000 kg+</option>
+            </select>
+          </div>
+        </div>
+        <div class="qw-field">
+          <label>Additional Notes <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+          <textarea id="qwNotes" placeholder="Any special requirements, fragile items, collection address, etc." rows="3"></textarea>
+        </div>
+        <div class="qw-nav">
+          <button class="qw-back-btn" onclick="qwBack(2)"><i class="fa-solid fa-arrow-left"></i> Back</button>
+          <button class="qw-next-btn" onclick="qwNext(2)">Next <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Step 3: Contact details -->
+      <div class="qw-panel" id="qwp3">
+        <h3 class="qw-title">How should we reach you?</h3>
+        <div class="qw-row">
+          <div class="qw-field">
+            <label>Full Name <span class="qw-req">*</span></label>
+            <input type="text" id="fname" placeholder="Your full name" required/>
+          </div>
+          <div class="qw-field">
+            <label>Email Address <span class="qw-req">*</span></label>
+            <input type="email" id="femail" placeholder="your@email.com" required/>
+          </div>
+        </div>
+        <div class="qw-row">
+          <div class="qw-field">
+            <label>Phone / WhatsApp <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+            <input type="tel" id="qwPhone" placeholder="+1 234 567 8900"/>
+          </div>
+          <div class="qw-field">
+            <label>Company <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+            <input type="text" id="fcompany" placeholder="Company name"/>
+          </div>
+        </div>
+        <!-- Hidden fields for compatibility with submitForm -->
+        <input type="hidden" id="fservice"/>
+        <textarea id="fmessage" style="display:none;"></textarea>
+        <p class="qw-error" id="qwErr3" style="display:none;">Please fill in your name and email.</p>
+        <div class="qw-nav">
+          <button class="qw-back-btn" onclick="qwBack(3)"><i class="fa-solid fa-arrow-left"></i> Back</button>
+          <button class="qw-next-btn qw-submit-btn" id="qwSubmitBtn" onclick="qwSubmit()">
+            Send Quote Request <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /quote-wizard -->
   </div>
-  <div id="formSuccess" class="form-success" style="display:none;"><i class="fa-solid fa-circle-check"></i> Thank you! Your message has been sent. We'll be in touch within 24 hours.</div>
+  <div id="formSuccess" class="form-success" style="display:none;"><i class="fa-solid fa-circle-check"></i> Quote request received! We'll get back to you within 24 hours.</div>
 </section>
 
 <footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
-      <div class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>
+      <div class="logo"><img src="logo.svg" alt="ZipCargo" height="32" style="display:block;"/></div>
       <span class="footer-tagline">Global Logistics Solutions</span>
       <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
       <div class="social-links"><a href="#"><i class="fa-brands fa-linkedin-in"></i></a><a href="#"><i class="fa-brands fa-x-twitter"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a><a href="#"><i class="fa-brands fa-whatsapp"></i></a></div>
@@ -139,17 +268,6 @@
   if(fEmail)fEmail.textContent=email;
   if(fHours)fHours.textContent=hours;
 })();
-</script>
-<!-- EmailJS -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>
-  window.ZC_EMAILJS_SERVICE          = 'service_yzgl79j';
-  window.ZC_EMAILJS_NOTIFY_TEMPLATE  = 'template_ll2lcef';
-  window.ZC_EMAILJS_REPLY_TEMPLATE   = 'template_1oar64b';
-  window.ZC_EMAILJS_PUBLIC_KEY       = 'VtwXlVzb4i3-T5WMV';
-
-  // Initialize EmailJS
-  emailjs.init({ publicKey: window.ZC_EMAILJS_PUBLIC_KEY });
 </script>
 <script src="script.js"></script>
 <script>
