@@ -2022,6 +2022,9 @@ app.use((err, req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 3000;
+// Central error handler — must be last
+app.use(errorHandler);
+
 app.listen(PORT, () => console.log(`ZipCargo running on port ${PORT}`));
 
 if (process.env.SITE_URL) {
