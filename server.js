@@ -97,6 +97,8 @@ app.use('/api/activity',  require('./routes/activity'));
 app.get('/health', (_, res) => res.send('OK'));
 
 // ── Sitemap & Robots ──────────────────────────────────────────────────────
+app.get('/favicon.svg', (req, res) => res.sendFile(require('path').join(__dirname, 'public', 'favicon.svg')));
+app.get('/manifest.json', (req, res) => res.sendFile(require('path').join(__dirname, 'public', 'manifest.json')));
 app.get('/sitemap.xml', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
 });
