@@ -17,8 +17,9 @@ const { xss }       = require('express-xss-sanitizer');
 const path          = require('path');
 const https         = require('https');
 
-const connectDB = require('./config/db');
-const Admin     = require('./models/Admin');
+const connectDB      = require('./config/db');
+const Admin          = require('./models/Admin');
+const errorHandler   = require('./middleware/errorHandler');
 
 connectDB();
 
