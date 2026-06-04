@@ -46,6 +46,7 @@
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css"/>
 </head>
 <body>
+<a href="#main-content" class="skip-link" style="position:absolute;top:-40px;left:0;background:#e8820c;color:white;padding:8px 16px;border-radius:0 0 8px 0;font-weight:700;z-index:9999;transition:top .2s;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
 
 <div id="progressBar"></div>
 <button id="backToTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
@@ -83,7 +84,7 @@
 <section class="tracking" id="tracking" style="padding-top:60px;">
   <div class="tracking-content animate-fade">
     <div class="tracking-form">
-      <input type="text" id="trackInput" placeholder="e.g. ZC-2026-00123"/>
+      <input type="text" id="trackInput" aria-label="Enter tracking number" placeholder="e.g. ZC-2026-00123"/>
       <button onclick="trackShipment()">Track Now</button>
     </div>
     <div id="trackResult" class="track-result"></div>
@@ -121,7 +122,7 @@
   </div>
 </section>
 
-<footer class="footer">
+<footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
       <div class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>

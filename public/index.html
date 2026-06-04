@@ -214,6 +214,7 @@
 </script>
 </head>
 <body>
+<a href="#main-content" class="skip-link" style="position:absolute;top:-40px;left:0;background:#e8820c;color:white;padding:8px 16px;border-radius:0 0 8px 0;font-weight:700;z-index:9999;transition:top .2s;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
 
 <div id="loader">
   <div class="loader-inner">
@@ -228,7 +229,7 @@
 <button id="backToTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
 
 <div class="nav-overlay" id="navOverlay"></div>
-  <nav class="navbar" id="navbar">
+  <nav class="navbar" aria-label="Main navigation" id="navbar">
   <div class="nav-container">
     <a href="index.html" class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</a>
     <ul class="nav-links" id="navLinks">
@@ -291,7 +292,7 @@
       <span>Track Your Shipment</span>
     </div>
     <div class="quick-track-form">
-      <input type="text" id="quickTrackInput" placeholder="Enter tracking number e.g. ZC-2026-00123" maxlength="20"/>
+      <input type="text" id="quickTrackInput" aria-label="Enter shipment tracking number" placeholder="Enter tracking number e.g. ZC-2026-00123" maxlength="20"/>
       <button onclick="quickTrack()"><i class="fa-solid fa-magnifying-glass"></i> Track Now</button>
     </div>
   </div>
@@ -483,7 +484,7 @@
   </div>
 </section>
 
-<footer class="footer">
+<footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
       <div class="logo"><i class="fa-solid fa-bolt"></i> ZipCargo</div>

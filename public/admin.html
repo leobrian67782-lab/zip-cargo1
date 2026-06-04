@@ -224,6 +224,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
+<a href="#main-content" class="skip-link" style="position:absolute;top:-40px;left:0;background:#e8820c;color:white;padding:8px 16px;border-radius:0 0 8px 0;font-weight:700;z-index:9999;transition:top .2s;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
 
 <script>
 // ── Auth guard: redirect to login if no token ──
@@ -293,7 +294,7 @@
     </div>
   </aside>
 
-  <main class="main-content">
+  <main class="main-content" id="main-content">
     <div class="topbar">
       <div class="topbar-left">
         <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
