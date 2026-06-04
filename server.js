@@ -13,7 +13,7 @@ const compression   = require('compression');
 const rateLimit     = require('express-rate-limit');
 const cookieParser  = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss           = require('xss-clean');
+const { xss }       = require('express-xss-sanitizer');
 const path          = require('path');
 const https         = require('https');
 
