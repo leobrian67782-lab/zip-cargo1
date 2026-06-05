@@ -165,7 +165,7 @@ async function loadDashboard() {
           if (_serviceChart) _serviceChart.destroy();
           const counts = {};
           stats.recent.forEach(s => { counts[s.service] = (counts[s.service]||0)+1; });
-          const svcs = ['Air Freight','Sea Freight','Road Transport','Express Delivery'];
+          const svcs = ['Air Freight','Sea Freight','Road Transport','Express Delivery','Pet Transport'];
           _serviceChart = new Chart(c2, {
             type: 'bar',
             data: {
