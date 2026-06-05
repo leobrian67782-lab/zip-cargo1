@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#0d1f35"/>
+  <meta name="description" content="Safe, stress-free international pet transport by ZipCargo. We handle everything — IATA-approved crates, vet documentation, customs clearance and door-to-door delivery for your pet."/>
+  <meta name="keywords" content="pet transport, international pet shipping, pet relocation, animal transport, dog shipping, cat transport, ZipCargo"/>
+  <meta name="author" content="ZipCargo Logistics"/>
+  <meta name="robots" content="index, follow"/>
+  <meta property="og:title" content="International Pet Transport | ZipCargo"/>
+  <meta property="og:description" content="Safe, stress-free international pet transport. IATA-approved crates, vet docs, customs clearance and door-to-door delivery."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:image" content="https://zipcargo-app.onrender.com/og-image.svg"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+  <meta property="og:url" content="https://zipcargo-app.onrender.com/pet-transport.html"/>
+  <meta property="og:site_name" content="ZipCargo"/>
+  <link rel="canonical" href="https://zipcargo-app.onrender.com/pet-transport.html"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>International Pet Transport | ZipCargo</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    body.no-scroll{overflow:hidden!important;position:fixed!important;width:100%!important;height:100%!important;}
+
+    /* Hero */
+    .page-hero{background:linear-gradient(135deg,#0d1f35 0%,#1a3a5c 100%);padding:140px 24px 80px;text-align:center;position:relative;overflow:hidden;}
+    .page-hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1600&q=60') center/cover no-repeat;opacity:.13;}
+    .page-hero-content{position:relative;z-index:1;}
+    .page-hero h1{font-size:3rem;font-weight:800;color:white;margin-bottom:16px;}
+    .page-hero p{font-size:1.1rem;color:#aac4e0;max-width:580px;margin:0 auto 28px;}
+    .breadcrumb{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:20px;font-size:.85rem;color:#4a6a88;}
+    .breadcrumb a{color:#aac4e0;text-decoration:none;} .breadcrumb a:hover{color:#e8820c;} .breadcrumb span{color:#e8820c;}
+
+    /* Trust strip */
+    .pt-trust-strip{background:#e8820c;padding:14px 24px;}
+    .pt-trust-inner{max-width:1000px;margin:0 auto;display:flex;justify-content:center;gap:36px;flex-wrap:wrap;}
+    .pt-trust-item{display:flex;align-items:center;gap:8px;color:white;font-size:.85rem;font-weight:600;}
+    .pt-trust-item i{font-size:1rem;opacity:.9;}
+
+    /* Sections */
+    .pt-section{padding:80px 24px;max-width:1100px;margin:0 auto;}
+    .pt-section-title{font-size:1.9rem;font-weight:800;color:#0d1f35;margin-bottom:12px;}
+    .pt-section-sub{font-size:1rem;color:#64748b;margin-bottom:48px;max-width:560px;}
+
+    /* How it works */
+    .pt-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;position:relative;}
+    .pt-steps::before{content:'';position:absolute;top:36px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,#e8820c,#f0a84e);z-index:0;}
+    .pt-step{text-align:center;padding:0 16px;position:relative;z-index:1;}
+    .pt-step-num{width:72px;height:72px;border-radius:50%;background:#0d1f35;color:white;font-size:1.3rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;border:4px solid #e8820c;box-shadow:0 4px 20px rgba(232,130,12,0.25);}
+    .pt-step h4{font-size:1rem;font-weight:700;color:#0d1f35;margin-bottom:8px;}
+    .pt-step p{font-size:.85rem;color:#64748b;line-height:1.7;}
+
+    /* What's included */
+    .pt-included-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;}
+    .pt-included-card{background:white;border-radius:16px;padding:28px 24px;box-shadow:0 4px 20px rgba(13,31,53,0.07);border-left:4px solid #e8820c;transition:transform .25s,box-shadow .25s;}
+    .pt-included-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(13,31,53,0.12);}
+    .pt-included-card i{font-size:1.6rem;color:#e8820c;margin-bottom:14px;display:block;}
+    .pt-included-card h4{font-size:1rem;font-weight:700;color:#0d1f35;margin-bottom:8px;}
+    .pt-included-card p{font-size:.85rem;color:#64748b;line-height:1.7;}
+
+    /* Animals */
+    .pt-animals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;}
+    .pt-animal{background:white;border-radius:14px;padding:24px 16px;text-align:center;box-shadow:0 2px 12px rgba(13,31,53,0.06);border:2px solid #f1f5f9;transition:border-color .2s,transform .2s;}
+    .pt-animal:hover{border-color:#e8820c;transform:translateY(-3px);}
+    .pt-animal i{font-size:2rem;color:#0d1f35;margin-bottom:10px;display:block;}
+    .pt-animal span{font-size:.85rem;font-weight:600;color:#0d1f35;}
+
+    /* FAQ */
+    .pt-faq{max-width:720px;margin:0 auto;}
+    .pt-faq-item{border-bottom:1px solid #e2e8f0;overflow:hidden;}
+    .pt-faq-q{width:100%;background:none;border:none;padding:20px 0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-family:inherit;font-size:1rem;font-weight:600;color:#0d1f35;text-align:left;gap:16px;}
+    .pt-faq-q i{color:#e8820c;transition:transform .3s;flex-shrink:0;}
+    .pt-faq-q.open i{transform:rotate(45deg);}
+    .pt-faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .35s ease;}
+    .pt-faq-a.open{max-height:300px;padding-bottom:20px;}
+    .pt-faq-a p{font-size:.9rem;color:#475569;line-height:1.8;margin:0;}
+
+    /* CTA banner */
+    .pt-cta{background:linear-gradient(135deg,#0d1f35 0%,#1a3a5c 100%);padding:80px 24px;text-align:center;position:relative;overflow:hidden;}
+    .pt-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,rgba(232,130,12,0.18) 0%,transparent 60%);}
+    .pt-cta-inner{position:relative;z-index:1;max-width:640px;margin:0 auto;}
+    .pt-cta h2{font-size:2.2rem;font-weight:800;color:white;margin-bottom:14px;}
+    .pt-cta p{color:#aac4e0;font-size:1rem;line-height:1.8;margin-bottom:32px;}
+    .pt-cta-btn{display:inline-flex;align-items:center;gap:10px;background:#e8820c;color:white;padding:16px 36px;border-radius:50px;font-weight:700;font-size:1rem;text-decoration:none;transition:background .2s,transform .15s;}
+    .pt-cta-btn:hover{background:#d4720a;transform:translateY(-2px);}
+
+    @media(max-width:768px){
+      .page-hero h1{font-size:2rem;}
+      .pt-steps::before{display:none;}
+      .pt-steps{grid-template-columns:1fr 1fr;}
+      .pt-trust-inner{gap:16px;}
+      .pt-section{padding:60px 16px;}
+      .pt-cta{padding:60px 16px;}
+      .pt-cta h2{font-size:1.6rem;}
+      .footer{padding:50px 16px 20px!important;}
+      .footer-content{flex-direction:column!important;}
+      .footer-bottom{flex-direction:column!important;text-align:center!important;}
+      .footer-bottom-links{justify-content:center!important;}
+    }
+    @media(max-width:480px){
+      .pt-steps{grid-template-columns:1fr;}
+      .pt-animals-grid{grid-template-columns:repeat(3,1fr);}
+    }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css"/>
+</head>
+<body>
+<a href="#main-content" class="skip-link" style="position:absolute;top:-40px;left:0;background:#e8820c;color:white;padding:8px 16px;border-radius:0 0 8px 0;font-weight:700;z-index:9999;transition:top .2s;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
+
+<div id="progressBar"></div>
+<button id="backToTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<nav class="navbar scrolled" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="logo"><img src="logo.svg" alt="ZipCargo" height="36" style="display:block;"/></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html"><i class="fa-solid fa-boxes-stacked" style="color:#e8820c;width:18px;"></i> Services</a></li>
+      <li><a href="tracking.html"><i class="fa-solid fa-satellite-dish" style="color:#e8820c;width:18px;"></i> Tracking</a></li>
+      <li><a href="about.html"><i class="fa-solid fa-building" style="color:#e8820c;width:18px;"></i> About</a></li>
+      <li><a href="testimonials.html"><i class="fa-solid fa-star" style="color:#e8820c;width:18px;"></i> Testimonials</a></li>
+      <li><a href="contact.html"><i class="fa-solid fa-headset" style="color:#e8820c;width:18px;"></i> Contact</a></li>
+      <li><a href="portal.html" class="nav-portal-btn"><i class="fa-solid fa-user"></i> My Shipments</a></li>
+    </ul>
+    <a href="contact.html" class="btn-quote">Get a Quote</a>
+    <div class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="page-hero-content">
+    <span class="hero-badge" style="background:rgba(232,130,12,0.2);color:#f0a84e;border:1px solid rgba(232,130,12,0.3);">
+      <i class="fa-solid fa-paw"></i> Pet Transport Specialists
+    </span>
+    <h1>Your Pet Deserves<br/>a Safe Journey</h1>
+    <p>International pet relocation handled with care — IATA-approved crates, full vet documentation, customs clearance, and door-to-door delivery in 150+ countries.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <a href="contact.html" class="btn btn-primary" onclick="sessionStorage.setItem('zc_selected_service','Pet Transport')" style="background:#e8820c;color:white;padding:15px 32px;border-radius:50px;font-weight:700;text-decoration:none;font-size:.95rem;display:inline-flex;align-items:center;gap:8px;"><i class="fa-solid fa-paw"></i> Get a Pet Transport Quote</a>
+      <a href="#how-it-works" style="background:rgba(255,255,255,0.12);color:white;padding:15px 28px;border-radius:50px;font-weight:600;text-decoration:none;font-size:.95rem;display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,0.2);">How it works <i class="fa-solid fa-arrow-down"></i></a>
+    </div>
+    <nav class="breadcrumb"><a href="index.html">Home</a> <i class="fa-solid fa-chevron-right" style="font-size:.6rem;"></i> <a href="services.html">Services</a> <i class="fa-solid fa-chevron-right" style="font-size:.6rem;"></i> <span>Pet Transport</span></nav>
+  </div>
+</div>
+
+<!-- TRUST STRIP -->
+<div class="pt-trust-strip">
+  <div class="pt-trust-inner">
+    <div class="pt-trust-item"><i class="fa-solid fa-certificate"></i> IATA Live Animal Regulations Compliant</div>
+    <div class="pt-trust-item"><i class="fa-solid fa-shield-halved"></i> Fully Insured Shipments</div>
+    <div class="pt-trust-item"><i class="fa-solid fa-earth-africa"></i> 150+ Countries</div>
+    <div class="pt-trust-item"><i class="fa-solid fa-clock"></i> 24/7 Pet Care Support</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works" style="padding:80px 24px;background:#f8fafc;" id="main-content">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div data-aos="fade-up" style="text-align:center;margin-bottom:64px;">
+      <span style="background:#fff7ed;color:#e8820c;font-size:.8rem;font-weight:700;padding:6px 16px;border-radius:50px;letter-spacing:.5px;text-transform:uppercase;">Simple Process</span>
+      <h2 class="pt-section-title" style="margin-top:14px;">How Pet Transport Works</h2>
+      <p class="pt-section-sub" style="margin:0 auto;">From your front door to your destination — we handle every step so you don't have to worry.</p>
+    </div>
+    <div class="pt-steps">
+      <div class="pt-step" data-aos="fade-up" data-aos-delay="0">
+        <div class="pt-step-num">1</div>
+        <h4>Request a Quote</h4>
+        <p>Tell us your pet's species, breed, size, origin and destination. We'll prepare a full cost breakdown within 24 hours.</p>
+      </div>
+      <div class="pt-step" data-aos="fade-up" data-aos-delay="100">
+        <div class="pt-step-num">2</div>
+        <h4>Vet & Documentation</h4>
+        <p>We guide you through all required health certificates, microchipping, vaccinations and import permits for your destination country.</p>
+      </div>
+      <div class="pt-step" data-aos="fade-up" data-aos-delay="200">
+        <div class="pt-step-num">3</div>
+        <h4>Crate & Collection</h4>
+        <p>We supply or approve an IATA-compliant crate and arrange door collection at your preferred date and time.</p>
+      </div>
+      <div class="pt-step" data-aos="fade-up" data-aos-delay="300">
+        <div class="pt-step-num">4</div>
+        <h4>In-Transit Care</h4>
+        <p>Your pet travels in climate-controlled, airline-approved cargo. We monitor every leg of the journey and send you live updates.</p>
+      </div>
+      <div class="pt-step" data-aos="fade-up" data-aos-delay="400">
+        <div class="pt-step-num">5</div>
+        <h4>Customs Clearance</h4>
+        <p>Our agents handle all import paperwork and quarantine requirements at the destination country on your behalf.</p>
+      </div>
+      <div class="pt-step" data-aos="fade-up" data-aos-delay="500">
+        <div class="pt-step-num">6</div>
+        <h4>Safe Delivery</h4>
+        <p>Your pet is delivered safely to the destination address. We do a final welfare check and confirm handover with you directly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT'S INCLUDED -->
+<section style="padding:80px 24px;background:white;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div data-aos="fade-up" style="text-align:center;margin-bottom:48px;">
+      <span style="background:#fff7ed;color:#e8820c;font-size:.8rem;font-weight:700;padding:6px 16px;border-radius:50px;letter-spacing:.5px;text-transform:uppercase;">Full Service</span>
+      <h2 class="pt-section-title" style="margin-top:14px;">Everything Included</h2>
+      <p class="pt-section-sub" style="margin:0 auto;">No hidden fees. One price covers everything from collection to delivery.</p>
+    </div>
+    <div class="pt-included-grid">
+      <div class="pt-included-card" data-aos="fade-up" data-aos-delay="0">
+        <i class="fa-solid fa-box-open"></i>
+        <h4>IATA-Approved Crate</h4>
+        <p>We supply or inspect your crate to ensure full compliance with airline and IATA Live Animal Regulations for safe travel.</p>
+      </div>
+      <div class="pt-included-card" data-aos="fade-up" data-aos-delay="100">
+        <i class="fa-solid fa-file-medical"></i>
+        <h4>Vet Documentation</h4>
+        <p>Health certificates, vaccination records, microchip verification and import permits — fully prepared and verified by our team.</p>
+      </div>
+      <div class="pt-included-card" data-aos="fade-up" data-aos-delay="200">
+        <i class="fa-solid fa-plane"></i>
+        <h4>Airline Booking</h4>
+        <p>We book your pet on the safest and most direct route available, with pet-friendly airlines that follow strict animal welfare standards.</p>
+      </div>
+      <div class="pt-included-card" data-aos="fade-up" data-aos-delay="300">
+        <i class="fa-solid fa-file-shield"></i>
+        <h4>Customs Clearance</h4>
+        <p>Our destination agents handle all import declarations, quarantine paperwork and clearance fees at the receiving country.</p>
+      </div>
+      <div class="pt-included-card" data-aos="fade-up" data-aos-delay="0">
+        <i class="fa-solid fa-location-dot"></i>
+        <h4>Live Tracking</h4>
+        <p>Track your pet's journey in real time via our customer portal. You'll receive status updates at every stage of the trip.</p>
+      </div>
+      <div class="pt-included-card" data-aos="fade-up" data-aos-delay="100">
+        <i class="fa-solid fa-shield-halved"></i>
+        <h4>Transit Insurance</h4>
+        <p>All pet shipments are fully insured during transit, giving you complete peace of mind from collection to delivery.</p>
+      </div>
+      <div class="pt-included-card" data-aos="fade-up" data-aos-delay="200">
+        <i class="fa-solid fa-truck"></i>
+        <h4>Door-to-Door Delivery</h4>
+        <p>We collect from your home and deliver to the destination address — no need to visit airports or cargo terminals yourself.</p>
+      </div>
+      <div class="pt-included-card" data-aos="fade-up" data-aos-delay="300">
+        <i class="fa-solid fa-headset"></i>
+        <h4>24/7 Support</h4>
+        <p>A dedicated pet transport coordinator is available around the clock to answer questions and provide updates throughout the journey.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ANIMALS WE TRANSPORT -->
+<section style="padding:80px 24px;background:#f8fafc;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div data-aos="fade-up" style="text-align:center;margin-bottom:48px;">
+      <span style="background:#fff7ed;color:#e8820c;font-size:.8rem;font-weight:700;padding:6px 16px;border-radius:50px;letter-spacing:.5px;text-transform:uppercase;">All Species Welcome</span>
+      <h2 class="pt-section-title" style="margin-top:14px;">Animals We Transport</h2>
+      <p class="pt-section-sub" style="margin:0 auto;">From family pets to exotic animals — our specialists handle them all with the care they deserve.</p>
+    </div>
+    <div class="pt-animals-grid" data-aos="fade-up" data-aos-delay="100">
+      <div class="pt-animal"><i class="fa-solid fa-dog"></i><span>Dogs</span></div>
+      <div class="pt-animal"><i class="fa-solid fa-cat"></i><span>Cats</span></div>
+      <div class="pt-animal"><i class="fa-solid fa-feather-pointed"></i><span>Birds</span></div>
+      <div class="pt-animal"><i class="fa-solid fa-fish"></i><span>Fish</span></div>
+      <div class="pt-animal"><i class="fa-solid fa-horse"></i><span>Horses</span></div>
+      <div class="pt-animal"><i class="fa-solid fa-paw"></i><span>Rabbits</span></div>
+      <div class="pt-animal"><i class="fa-solid fa-shield-cat"></i><span>Reptiles</span></div>
+      <div class="pt-animal"><i class="fa-solid fa-circle-question"></i><span>Other Animals</span></div>
+    </div>
+    <p data-aos="fade-up" style="text-align:center;margin-top:28px;font-size:.9rem;color:#64748b;">Not sure if we can transport your animal? <a href="contact.html" style="color:#e8820c;font-weight:600;">Contact us</a> — we handle most species with the right permits.</p>
+  </div>
+</section>
+
+<!-- WHY CHOOSE US -->
+<section style="padding:80px 24px;background:white;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div data-aos="fade-up" style="text-align:center;margin-bottom:48px;">
+      <span style="background:#fff7ed;color:#e8820c;font-size:.8rem;font-weight:700;padding:6px 16px;border-radius:50px;letter-spacing:.5px;text-transform:uppercase;">Why ZipCargo</span>
+      <h2 class="pt-section-title" style="margin-top:14px;">Why Families Trust Us</h2>
+      <p class="pt-section-sub" style="margin:0 auto;">Pet relocation is personal. We treat every animal like it's our own.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px;" data-aos="fade-up" data-aos-delay="100">
+      <div style="display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:48px;height:48px;border-radius:12px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-heart" style="color:#e8820c;font-size:1.1rem;"></i></div>
+        <div><h4 style="font-weight:700;color:#0d1f35;margin-bottom:6px;">Animal Welfare First</h4><p style="font-size:.88rem;color:#64748b;line-height:1.7;">Every decision we make prioritises your pet's comfort, safety and stress levels — not just speed or cost.</p></div>
+      </div>
+      <div style="display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:48px;height:48px;border-radius:12px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-user-tie" style="color:#e8820c;font-size:1.1rem;"></i></div>
+        <div><h4 style="font-weight:700;color:#0d1f35;margin-bottom:6px;">Dedicated Coordinator</h4><p style="font-size:.88rem;color:#64748b;line-height:1.7;">You get one point of contact from start to finish — someone who knows your pet's case and is reachable 24/7.</p></div>
+      </div>
+      <div style="display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:48px;height:48px;border-radius:12px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-globe" style="color:#e8820c;font-size:1.1rem;"></i></div>
+        <div><h4 style="font-weight:700;color:#0d1f35;margin-bottom:6px;">Global Destination Network</h4><p style="font-size:.88rem;color:#64748b;line-height:1.7;">We have established partner agents in 150+ countries who handle local customs and delivery at the destination end.</p></div>
+      </div>
+      <div style="display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:48px;height:48px;border-radius:12px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-file-circle-check" style="color:#e8820c;font-size:1.1rem;"></i></div>
+        <div><h4 style="font-weight:700;color:#0d1f35;margin-bottom:6px;">100% Documentation Accuracy</h4><p style="font-size:.88rem;color:#64748b;line-height:1.7;">Rejected paperwork is the #1 cause of pet shipping delays. Our team verifies every document before your pet departs.</p></div>
+      </div>
+      <div style="display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:48px;height:48px;border-radius:12px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-temperature-half" style="color:#e8820c;font-size:1.1rem;"></i></div>
+        <div><h4 style="font-weight:700;color:#0d1f35;margin-bottom:6px;">Climate-Controlled Transit</h4><p style="font-size:.88rem;color:#64748b;line-height:1.7;">We only use airlines and vehicles with temperature-regulated cargo holds suitable for live animals.</p></div>
+      </div>
+      <div style="display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:48px;height:48px;border-radius:12px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-tag" style="color:#e8820c;font-size:1.1rem;"></i></div>
+        <div><h4 style="font-weight:700;color:#0d1f35;margin-bottom:6px;">Transparent Pricing</h4><p style="font-size:.88rem;color:#64748b;line-height:1.7;">No surprise fees. Your quote covers crating, documentation, airline fees, customs and door-to-door delivery.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section style="padding:80px 24px;background:#f8fafc;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div data-aos="fade-up" style="text-align:center;margin-bottom:48px;">
+      <span style="background:#fff7ed;color:#e8820c;font-size:.8rem;font-weight:700;padding:6px 16px;border-radius:50px;letter-spacing:.5px;text-transform:uppercase;">Common Questions</span>
+      <h2 class="pt-section-title" style="margin-top:14px;">Frequently Asked Questions</h2>
+    </div>
+    <div class="pt-faq" data-aos="fade-up" data-aos-delay="100">
+      <div class="pt-faq-item">
+        <button class="pt-faq-q" onclick="toggleFaq(this)">How far in advance should I book pet transport? <i class="fa-solid fa-plus"></i></button>
+        <div class="pt-faq-a"><p>We recommend booking at least 4–6 weeks before your travel date. Some countries require veterinary certificates to be issued within specific timeframes (e.g. 10 days before departure), so early planning gives us time to prepare everything correctly.</p></div>
+      </div>
+      <div class="pt-faq-item">
+        <button class="pt-faq-q" onclick="toggleFaq(this)">What documents does my pet need to travel internationally? <i class="fa-solid fa-plus"></i></button>
+        <div class="pt-faq-a"><p>Requirements vary by country but typically include: a microchip (ISO 15-digit), up-to-date rabies vaccination, an official health certificate from an accredited vet, and an import permit for the destination country. We will guide you through everything specific to your route.</p></div>
+      </div>
+      <div class="pt-faq-item">
+        <button class="pt-faq-q" onclick="toggleFaq(this)">Is my pet safe travelling in the cargo hold? <i class="fa-solid fa-plus"></i></button>
+        <div class="pt-faq-a"><p>Yes — the cargo hold is pressurised and temperature-controlled, the same as the passenger cabin. We only book with airlines that have strong live animal handling records and follow IATA Live Animal Regulations strictly. Millions of pets travel safely by air every year.</p></div>
+      </div>
+      <div class="pt-faq-item">
+        <button class="pt-faq-q" onclick="toggleFaq(this)">Are there breeds or species that cannot be transported? <i class="fa-solid fa-plus"></i></button>
+        <div class="pt-faq-a"><p>Some airlines restrict snub-nosed (brachycephalic) dog and cat breeds such as Bulldogs, Pugs and Persian cats due to breathing risks. Certain exotic species may also require CITES permits. We will advise you on any restrictions specific to your pet during the quote process.</p></div>
+      </div>
+      <div class="pt-faq-item">
+        <button class="pt-faq-q" onclick="toggleFaq(this)">How long does international pet transport take? <i class="fa-solid fa-plus"></i></button>
+        <div class="pt-faq-a"><p>Transit times depend on the route. Direct flights take 4–16 hours for most international routes. Door-to-door including collection, documentation checks and delivery typically takes 3–7 days from departure date depending on destination customs processing time.</p></div>
+      </div>
+      <div class="pt-faq-item">
+        <button class="pt-faq-q" onclick="toggleFaq(this)">What is the cost of international pet transport? <i class="fa-solid fa-plus"></i></button>
+        <div class="pt-faq-a"><p>Cost depends on your pet's size, weight, breed, origin, destination and required documentation. Prices typically range from $500 to $3,000+ for international routes. Request a free quote and we'll give you a full breakdown with no hidden fees.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="pt-cta">
+  <div class="pt-cta-inner" data-aos="fade-up">
+    <span style="background:rgba(232,130,12,0.2);color:#f0a84e;border:1px solid rgba(232,130,12,0.3);border-radius:50px;padding:6px 18px;font-size:.8rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:inline-block;margin-bottom:20px;"><i class="fa-solid fa-paw"></i> Ready to Move?</span>
+    <h2>Get a Free Pet Transport Quote</h2>
+    <p>Tell us about your pet and your destination. We'll prepare a detailed, no-obligation quote within 24 hours — covering every cost from crate to delivery.</p>
+    <a href="contact.html" class="pt-cta-btn" onclick="sessionStorage.setItem('zc_selected_service','Pet Transport')">
+      <i class="fa-solid fa-paw"></i> Request a Free Quote
+    </a>
+  </div>
+</section>
+
+<footer class="footer" role="contentinfo">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <div class="logo"><img src="logo.svg" alt="ZipCargo" height="32" style="display:block;"/></div>
+      <span class="footer-tagline">Global Logistics Solutions</span>
+      <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
+    </div>
+    <div class="footer-links"><h4>Company</h4><a href="index.html">Home</a><a href="services.html">Our Services</a><a href="about.html">About Us</a><a href="testimonials.html">Testimonials</a></div>
+    <div class="footer-links"><h4>Services</h4><a href="services.html">Air Freight</a><a href="services.html">Sea Freight</a><a href="services.html">Road Transport</a><a href="pet-transport.html">Pet Transport</a><a href="services.html">Customs Clearance</a></div>
+    <div class="footer-contact"><h4>Contact Us</h4><p><i class="fa-solid fa-phone"></i> <span id="footerPhone"></span></p><p style="margin-top:10px;"><i class="fa-solid fa-envelope"></i> <span id="footerEmail">info@zipcargo.com</span></p><p style="margin-top:10px;"><i class="fa-regular fa-clock"></i> <span id="footerHours">Mon–Fri: 8am – 8pm GMT</span></p></div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 ZipCargo Logistics. All rights reserved.</p>
+    <div class="footer-bottom-links"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="cookies.html">Cookie Policy</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var fPhone=document.getElementById('footerPhone');
+  var fEmail=document.getElementById('footerEmail');
+  var fHours=document.getElementById('footerHours');
+  var phone=localStorage.getItem('zc_contact_phone')||'';
+  var email=localStorage.getItem('zc_contact_email')||'info@zipcargo.com';
+  var hours=localStorage.getItem('zc_contact_hours')||'Mon–Fri: 8am – 8pm (GMT)';
+  if(fPhone){fPhone.textContent=phone;if(!phone)fPhone.parentElement.style.display='none';}
+  if(fEmail)fEmail.textContent=email;
+  if(fHours)fHours.textContent=hours;
+})();
+
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const icon   = btn.querySelector('i');
+  const isOpen = btn.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.pt-faq-q').forEach(b => {
+    b.classList.remove('open');
+    b.nextElementSibling.classList.remove('open');
+  });
+  // Open clicked if it was closed
+  if (!isOpen) {
+    btn.classList.add('open');
+    answer.classList.add('open');
+  }
+}
+</script>
+<script src="script.js"></script>
+<script src="chat.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    var n = document.getElementById('navbar');
+    if(n) n.classList.add('scrolled');
+    if(n) document.body.style.paddingTop = n.offsetHeight + 'px';
+  });
+  if (typeof AOS !== 'undefined') {
+    AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });
+  }
+</script>
+</body>
+</html>

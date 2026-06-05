@@ -194,6 +194,46 @@
     </div>
 
   </div>
+
+  <!-- Share Your Experience CTA -->
+  <div data-aos="fade-up" style="max-width:680px;margin:56px auto 0;background:linear-gradient(135deg,#0d1f35 0%,#1a3a5c 100%);border-radius:20px;padding:48px 40px;text-align:center;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(232,130,12,0.15) 0%,transparent 60%);pointer-events:none;"></div>
+    <div style="position:relative;z-index:1;">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(232,130,12,0.15);color:#e8820c;border:1px solid rgba(232,130,12,0.3);border-radius:50px;padding:6px 18px;font-size:.8rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:20px;">
+        <i class="fa-solid fa-pen-to-square"></i> Share Your Story
+      </div>
+      <h3 style="color:white;font-size:1.6rem;font-weight:800;margin-bottom:12px;">Shipped with us recently?</h3>
+      <p style="color:#aac4e0;font-size:.95rem;line-height:1.8;margin-bottom:32px;">We'd love to hear about your experience. Your feedback helps us improve and helps others make confident shipping decisions.</p>
+      <div id="reviewFormWrap">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <input type="text" id="rvName" placeholder="Your name" style="padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:.9rem;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"/>
+          <input type="text" id="rvCompany" placeholder="Company (optional)" style="padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:.9rem;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"/>
+        </div>
+        <!-- Star rating picker -->
+        <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;justify-content:center;">
+          <span style="color:#aac4e0;font-size:.85rem;">Your rating:</span>
+          <div id="starPicker" style="display:flex;gap:4px;cursor:pointer;">
+            <i class="fa-regular fa-star" data-star="1" style="color:#f59e0b;font-size:1.4rem;" onmouseover="hoverStars(1)" onmouseout="resetStars()" onclick="setStars(1)"></i>
+            <i class="fa-regular fa-star" data-star="2" style="color:#f59e0b;font-size:1.4rem;" onmouseover="hoverStars(2)" onmouseout="resetStars()" onclick="setStars(2)"></i>
+            <i class="fa-regular fa-star" data-star="3" style="color:#f59e0b;font-size:1.4rem;" onmouseover="hoverStars(3)" onmouseout="resetStars()" onclick="setStars(3)"></i>
+            <i class="fa-regular fa-star" data-star="4" style="color:#f59e0b;font-size:1.4rem;" onmouseover="hoverStars(4)" onmouseout="resetStars()" onclick="setStars(4)"></i>
+            <i class="fa-regular fa-star" data-star="5" style="color:#f59e0b;font-size:1.4rem;" onmouseover="hoverStars(5)" onmouseout="resetStars()" onclick="setStars(5)"></i>
+          </div>
+        </div>
+        <textarea id="rvMessage" placeholder="Tell us about your shipment experience..." rows="3" style="width:100%;padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:.9rem;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box;margin-bottom:12px;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"></textarea>
+        <p id="rvError" style="color:#fca5a5;font-size:.82rem;margin-bottom:10px;display:none;">Please fill in your name and review.</p>
+        <button onclick="submitReview()" style="background:#e8820c;color:white;border:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:.95rem;cursor:pointer;font-family:inherit;transition:background .2s;">
+          Submit Review <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+      <div id="reviewSuccess" style="display:none;padding:24px;">
+        <i class="fa-solid fa-circle-check" style="color:#22c55e;font-size:2.5rem;margin-bottom:12px;display:block;"></i>
+        <p style="color:white;font-weight:700;font-size:1.1rem;">Thank you for your review!</p>
+        <p style="color:#aac4e0;font-size:.9rem;margin-top:8px;">We appreciate you taking the time to share your experience.</p>
+      </div>
+    </div>
+  </div>
+
 </section>
 
 <footer class="footer" role="contentinfo">
@@ -205,7 +245,7 @@
       
     </div>
     <div class="footer-links"><h4>Company</h4><a href="index.html">Home</a><a href="services.html">Our Services</a><a href="about.html">About Us</a><a href="testimonials.html">Testimonials</a></div>
-    <div class="footer-links"><h4>Services</h4><a href="services.html">Air Freight</a><a href="services.html">Sea Freight</a><a href="services.html">Road Transport</a><a href="services.html">Warehousing</a><a href="services.html">Customs Clearance</a></div>
+    <div class="footer-links"><h4>Services</h4><a href="services.html">Air Freight</a><a href="services.html">Sea Freight</a><a href="services.html">Road Transport</a><a href="pet-transport.html">Pet Transport</a><a href="services.html">Customs Clearance</a></div>
     <div class="footer-contact"><h4>Contact Us</h4><p><i class="fa-solid fa-phone"></i> <span id="footerPhone"></span></p><p style="margin-top:10px;"><i class="fa-solid fa-envelope"></i> <span id="footerEmail">info@zipcargo.com</span></p><p style="margin-top:10px;"><i class="fa-regular fa-clock"></i> <span id="footerHours">Mon–Fri: 8am – 8pm GMT</span></p></div>
   </div>
   <div class="footer-bottom">
@@ -236,6 +276,43 @@
   if (typeof AOS !== 'undefined') {
     AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });
   }
+</script>
+<script>
+let selectedStars = 0;
+function hoverStars(n) {
+  document.querySelectorAll('#starPicker i').forEach((s,i) => {
+    s.className = i < n ? 'fa-solid fa-star' : 'fa-regular fa-star';
+  });
+}
+function resetStars() {
+  document.querySelectorAll('#starPicker i').forEach((s,i) => {
+    s.className = i < selectedStars ? 'fa-solid fa-star' : 'fa-regular fa-star';
+  });
+}
+function setStars(n) {
+  selectedStars = n;
+  resetStars();
+}
+async function submitReview() {
+  const name    = document.getElementById('rvName')?.value.trim();
+  const company = document.getElementById('rvCompany')?.value.trim() || '';
+  const message = document.getElementById('rvMessage')?.value.trim();
+  const err     = document.getElementById('rvError');
+  if (!name || !message) { err.style.display='block'; return; }
+  err.style.display = 'none';
+  const stars = selectedStars || 5;
+  const fullMsg = `⭐ ${stars}/5 stars
+${message}`;
+  try {
+    await fetch('/api/inquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email: 'review@zipcargo.com', company, service: 'Customer Review', message: fullMsg }),
+    });
+  } catch(e) { /* silent — show success regardless */ }
+  document.getElementById('reviewFormWrap').style.display = 'none';
+  document.getElementById('reviewSuccess').style.display  = 'block';
+}
 </script>
 </body>
 </html>
