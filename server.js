@@ -91,7 +91,7 @@ app.use(mongoSanitize());
 app.use(xss());
 
 app.use('/api/auth',      require('./routes/auth'));
-app.use('/api/shipments', require('./routes/shipments'));
+app.use('/api/shipments', require('./public/shipments'));
 app.use('/api/inquiries', require('./routes/inquiries'));
 app.use('/api/activity',  require('./routes/activity'));
 
