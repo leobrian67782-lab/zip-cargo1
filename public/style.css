@@ -113,7 +113,7 @@ a { text-decoration: none; color: inherit; }
 .contact-social a { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: #7a9ab8; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; transition: all 0.3s; }
 .contact-social a:hover { background: #e8820c; border-color: #e8820c; color: white; transform: translateY(-3px); }
 .contact-form { flex: 2; min-width: 280px; display: flex; flex-direction: column; gap: 14px; }
-.contact-form input, .contact-form textarea, .contact-form select { padding: 14px 20px; border-radius: 8px; border: 2px solid transparent; font-size: 0.97rem; font-family: inherit; outline: none; transition: border-color 0.3s; background: white; }
+.contact-form input, .contact-form textarea, .contact-form select { padding: 14px 20px; border-radius: 8px; border: 2px solid transparent; font-size: 1rem; font-family: inherit; outline: none; transition: border-color 0.3s; background: white; }
 .contact-form input:focus, .contact-form textarea:focus, .contact-form select:focus { border-color: #e8820c; }
 .contact-form textarea { height: 150px; resize: vertical; }
 .contact-form button { background-color: #e8820c; color: white; border: none; padding: 16px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; font-family: inherit; transition: background 0.3s, transform 0.2s; }
@@ -655,4 +655,46 @@ body {
   .quote-wizard { padding: 24px 18px; }
   .qw-service-grid { grid-template-columns: repeat(2,1fr); }
   .qw-row { grid-template-columns: 1fr; }
+}
+
+/* ===== SERVICE FEATURE LIST ============================================= */
+.service-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.service-features li {
+  font-size: .82rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.service-features li i {
+  color: #e8820c;
+  font-size: .7rem;
+  flex-shrink: 0;
+}
+
+/* ===== MOBILE INPUT ZOOM PREVENTION ===================================== */
+/* iOS Safari zooms on any input with font-size < 16px — enforce 16px min  */
+@media (max-width: 768px) {
+  input, select, textarea,
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"] {
+    font-size: 16px !important;
+    /* Smooth scroll restoration after keyboard closes */
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Prevent body scroll jump when keyboard opens */
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
 }

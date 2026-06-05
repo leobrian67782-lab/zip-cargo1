@@ -43,7 +43,7 @@
 .login-form   { display:flex; flex-direction:column; gap:14px; }
 .login-form .input-wrap { position:relative; }
 .login-form .input-wrap i { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:.9rem; pointer-events:none; }
-.login-form input { width:100%; padding:14px 18px 14px 44px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:.97rem; font-family:inherit; outline:none; transition:all .25s; background:#f8fafc; color:#0d1f35; }
+.login-form input { width:100%; padding:14px 18px 14px 44px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:1rem; font-family:inherit; outline:none; transition:all .25s; background:#f8fafc; color:#0d1f35; }
 .login-form input:focus { border-color:#e8820c; background:white; box-shadow:0 0 0 4px rgba(232,130,12,.12); }
 .login-form button { background:linear-gradient(135deg,#e8820c,#f59e0b); color:white; border:none; padding:15px; border-radius:12px; font-size:1rem; font-weight:700; font-family:inherit; cursor:pointer; transition:all .25s; margin-top:4px; box-shadow:0 6px 20px rgba(232,130,12,.35); }
 .login-form button:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(232,130,12,.45); }
@@ -122,8 +122,8 @@
 .section-toolbar { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
 .search-wrap { position:relative; flex:1; min-width:240px; }
 .search-wrap i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:.9rem; pointer-events:none; }
-.section-toolbar input { padding:11px 16px 11px 40px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:.9rem; font-family:inherit; outline:none; transition:all .25s; background:white; color:#0d1f35; width:100%; }
-.section-toolbar select { padding:11px 16px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:.9rem; font-family:inherit; outline:none; transition:all .25s; background:white; color:#0d1f35; width:auto; min-width:160px; }
+.section-toolbar input { padding:11px 16px 11px 40px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:1rem; font-family:inherit; outline:none; transition:all .25s; background:white; color:#0d1f35; width:100%; }
+.section-toolbar select { padding:11px 16px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:1rem; font-family:inherit; outline:none; transition:all .25s; background:white; color:#0d1f35; width:auto; min-width:160px; }
 .section-toolbar input:focus,.section-toolbar select:focus { border-color:#e8820c; box-shadow:0 0 0 4px rgba(232,130,12,.1); }
 
 /* ===== TABLE ===== */
@@ -160,7 +160,7 @@
 .form-group { display:flex; flex-direction:column; gap:7px; }
 .form-group.full-width { grid-column:1/-1; }
 .form-group label { font-size:.72rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.6px; }
-.form-group input,.form-group select,.form-group textarea { padding:12px 16px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:.93rem; font-family:inherit; outline:none; transition:all .25s; background:#f8fafc; color:#0d1f35; }
+.form-group input,.form-group select,.form-group textarea { padding:12px 16px; border-radius:12px; border:1.5px solid #e2e8f0; font-size:1rem; font-family:inherit; outline:none; transition:all .25s; background:#f8fafc; color:#0d1f35; }
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus { border-color:#e8820c; background:white; box-shadow:0 0 0 4px rgba(232,130,12,.1); }
 .form-group textarea { height:100px; resize:vertical; line-height:1.6; }
 .input-with-btn { display:flex; gap:10px; }
@@ -245,4 +245,25 @@
   .sidebar { width:82vw; max-width:290px; }
   .receipt-actions { flex-direction:column; }
   .receipt-actions .btn-save,.receipt-actions .btn-clear { width:100%; justify-content:center; }
+}
+
+/* ===== MOBILE INPUT ZOOM PREVENTION ===================================== */
+@media (max-width: 768px) {
+  input, select, textarea,
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="number"] {
+    font-size: 16px !important;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Admin panel mobile improvements */
+  .form-grid { grid-template-columns: 1fr !important; }
+  .modal-content { width: 96vw !important; max-width: 96vw !important; padding: 20px 16px !important; }
+  .section-toolbar { flex-wrap: wrap !important; gap: 10px !important; }
+  .section-toolbar input { width: 100% !important; }
+  .topbar { padding: 12px 14px !important; }
+  .content-area { padding: 16px !important; }
 }
