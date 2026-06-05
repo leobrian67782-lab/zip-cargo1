@@ -9,7 +9,7 @@ const trackingUpdateSchema = new mongoose.Schema({
 
 const shipmentSchema = new mongoose.Schema({
   tracking: { type: String, required: true, unique: true, index: true, trim: true, uppercase: true },
-  service:  { type: String, required: true, enum: ['Air Freight','Sea Freight','Road Transport','Express Delivery'], default: 'Air Freight' },
+  service:  { type: String, required: true, enum: ['Air Freight','Sea Freight','Road Transport','Express Delivery','Pet Transport'], default: 'Air Freight' },
   sName:    { type: String, required: true, trim: true },
   sPhone:   { type: String, default: '', trim: true },
   sEmail:   { type: String, default: '', trim: true, lowercase: true },
