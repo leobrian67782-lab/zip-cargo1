@@ -1,6 +1,7 @@
 /* ===== RESET & BASE ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+html { overflow-x: hidden; }
 body { font-family: 'Outfit', 'Segoe UI', sans-serif; color: #333; line-height: 1.6; overflow-x: hidden; }
 a { text-decoration: none; color: inherit; }
 
@@ -159,7 +160,24 @@ a { text-decoration: none; color: inherit; }
 .hero-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.35); cursor: pointer; transition: background 0.3s, transform 0.3s; border: 2px solid rgba(255,255,255,0.5); }
 .hero-dot.active { background: #e8820c; border-color: #e8820c; transform: scale(1.3); }
 
-#progressBar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, #e8820c, #f0a84e); z-index: 9999; width: 0%; transition: width 0.1s linear; }
+#progressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #e8820c, #f59e0b, #e8820c);
+  background-size: 200% 100%;
+  animation: progressShimmer 1.2s linear infinite;
+  z-index: 10000;
+  width: 0%;
+  opacity: 1;
+  transition: width 0.1s linear, opacity 0.4s ease;
+  box-shadow: 0 0 8px rgba(232,130,12,0.6);
+}
+@keyframes progressShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 #backToTop { position: fixed; bottom: 32px; right: 32px; background: #e8820c; color: white; border: none; width: 48px; height: 48px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 20px rgba(232,130,12,0.5); display: none; align-items: center; justify-content: center; z-index: 999; transition: transform 0.3s, background 0.3s; }
 #backToTop:hover { transform: translateY(-4px) scale(1.1); background: #cf7009; }
 #backToTop.visible { display: flex; }
@@ -204,7 +222,7 @@ a { text-decoration: none; color: inherit; }
     flex-direction: column;
     position: fixed;
     top: 0;
-    right: -100%;
+    right: 0;
     width: 80%;
     max-width: 320px;
     height: 100vh;
@@ -213,11 +231,14 @@ a { text-decoration: none; color: inherit; }
     gap: 0;
     z-index: 999;
     overflow-y: auto;
-    transition: right .35s cubic-bezier(.4,0,.2,1);
+    transform: translateX(100%);
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
     box-shadow: -8px 0 32px rgba(0,0,0,0.4);
+    visibility: hidden;
   }
   .nav-links.open {
-    right: 0;
+    transform: translateX(0);
+    visibility: visible;
   }
 
   /* Menu header */
@@ -353,7 +374,7 @@ a { text-decoration: none; color: inherit; }
   .tracking { padding: 60px 16px; }
   .tracking h2 { font-size: 1.8rem; }
   .tracking-form { flex-direction: column; }
-  .tracking-form input, .tracking-form button { width: 100%; min-width: unset; }
+  .tracking-form input, .tracking-form button { width: 100%; min-width: 0 !important; }
   .hubs-grid { grid-template-columns: repeat(2,1fr); gap: 10px; }
   .about { padding: 60px 16px; }
   .about-content { gap: 30px; }
@@ -697,4 +718,13 @@ body {
   body {
     -webkit-overflow-scrolling: touch;
   }
+}
+
+/* ===== PREVENT HORIZONTAL OVERFLOW FROM AOS / ANIMATIONS =============== */
+section, .hero, .stats, .services, .how-it-works, footer {
+  overflow-x: clip;
+}
+/* Prevent any off-screen transforms from creating scrollable area */
+[data-aos] {
+  backface-visibility: hidden;
 }

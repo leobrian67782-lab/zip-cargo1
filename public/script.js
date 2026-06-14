@@ -1,7 +1,36 @@
-// ===== PAGE LOADER (slim progress bar only) =====
-// Full-screen loader removed — progress bar handles load feedback
-const loader = document.getElementById('loader');
-if (loader) loader.remove(); // safety: remove if somehow still in DOM
+// ===== PAGE LOADER =====
+(function () {
+  // Inject a slim branded top-bar loader that completes on window load
+  var bar = document.getElementById('progressBar');
+  var pct = 0;
+  var iv;
+
+  function setBar(p) {
+    pct = p;
+    if (bar) {
+      bar.style.width = p + '%';
+      bar.style.opacity = p >= 100 ? '0' : '1';
+      bar.style.transition = p >= 100 ? 'opacity .4s ease .2s, width .1s linear' : 'width .1s linear';
+    }
+  }
+
+  // Simulate progress: quickly to 80%, then wait for real load
+  setBar(0);
+  iv = setInterval(function () {
+    if (pct < 80) setBar(pct + (Math.random() * 8 + 4));
+    else clearInterval(iv);
+  }, 120);
+
+  window.addEventListener('load', function () {
+    clearInterval(iv);
+    setBar(100);
+    setTimeout(function () { if (bar) bar.style.width = '0%'; }, 700);
+  });
+
+  // Remove any leftover full-screen loader
+  var old = document.getElementById('loader');
+  if (old) old.remove();
+})();
 
 // ===== NAVBAR SCROLL =====
 window.addEventListener('scroll', () => {
