@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 44" fill="none">
+  <!-- Icon mark: dark square + orange arrow -->
+  <rect width="44" height="44" rx="10" fill="rgba(255,255,255,0.12)"/>
+  <path d="M10 22 L30 22 M23 13 L33 22 L23 31" stroke="#e8820c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="10" cy="22" r="3" fill="#e8820c"/>
+
+  <!-- Wordmark — white on dark backgrounds -->
+  <text x="56" y="29" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5" fill="white">Zip</text>
+  <text x="90" y="29" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5" fill="#e8820c">Cargo</text>
+</svg>

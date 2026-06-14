@@ -43,6 +43,11 @@
     }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css"/>
+<style>
+@media(max-width:540px){
+  .rv-input-row { grid-template-columns: 1fr !important; }
+}
+</style>
 </head>
 <body>
 <a href="#main-content" class="skip-link" style="position:absolute;top:-40px;left:0;background:#e8820c;color:white;padding:8px 16px;border-radius:0 0 8px 0;font-weight:700;z-index:9999;transition:top .2s;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
@@ -205,9 +210,9 @@
       <h3 style="color:white;font-size:1.6rem;font-weight:800;margin-bottom:12px;">Shipped with us recently?</h3>
       <p style="color:#aac4e0;font-size:.95rem;line-height:1.8;margin-bottom:32px;">We'd love to hear about your experience. Your feedback helps us improve and helps others make confident shipping decisions.</p>
       <div id="reviewFormWrap">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-          <input type="text" id="rvName" placeholder="Your name" style="padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:.9rem;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"/>
-          <input type="text" id="rvCompany" placeholder="Company (optional)" style="padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:.9rem;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"/>
+        <div class="rv-input-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <input type="text" id="rvName" placeholder="Your name" style="padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:1rem;font-family:inherit;outline:none;width:100%;box-sizing:border-box;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"/>
+          <input type="text" id="rvCompany" placeholder="Company (optional)" style="padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:1rem;font-family:inherit;outline:none;width:100%;box-sizing:border-box;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"/>
         </div>
         <!-- Star rating picker -->
         <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;justify-content:center;">
@@ -220,7 +225,7 @@
             <i class="fa-regular fa-star" data-star="5" style="color:#f59e0b;font-size:1.4rem;" onmouseover="hoverStars(5)" onmouseout="resetStars()" onclick="setStars(5)"></i>
           </div>
         </div>
-        <textarea id="rvMessage" placeholder="Tell us about your shipment experience..." rows="3" style="width:100%;padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:.9rem;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box;margin-bottom:12px;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"></textarea>
+        <textarea id="rvMessage" placeholder="Tell us about your shipment experience..." rows="3" style="width:100%;padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:1rem;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box;margin-bottom:12px;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"></textarea>
         <p id="rvError" style="color:#fca5a5;font-size:.82rem;margin-bottom:10px;display:none;">Please fill in your name and review.</p>
         <button onclick="submitReview()" style="background:#e8820c;color:white;border:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:.95rem;cursor:pointer;font-family:inherit;transition:background .2s;">
           Submit Review <i class="fa-solid fa-paper-plane"></i>
@@ -239,7 +244,7 @@
 <footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
-      <div class="logo"><img src="logo.svg" alt="ZipCargo" height="32" style="display:block;"/></div>
+      <div class="logo"><img src="logo-light.svg" alt="ZipCargo" height="32" style="display:block;"/></div>
       <span class="footer-tagline">Global Logistics Solutions</span>
       <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
       
