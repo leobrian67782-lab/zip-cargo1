@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Page Not Found – ZipCargo</title>
   <link rel="stylesheet" href="style.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
@@ -154,6 +154,26 @@
   </style>
 </head>
 <body>
+<div id="zc-loader" style="position:fixed;inset:0;background:#0d1f35;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s ease;">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:32px;">
+    <div style="width:56px;height:56px;border-radius:14px;background:#e8820c;display:flex;align-items:center;justify-content:center;animation:zcPulse 1.6s ease-in-out infinite;">
+      <svg viewBox="0 0 48 48" width="56" height="56"><text x="6" y="38" font-family="Helvetica Neue,Arial,sans-serif" font-size="34" font-weight="900" fill="white">Z</text></svg>
+    </div>
+    <div>
+      <div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:26px;font-weight:900;letter-spacing:-1px;color:white;line-height:1;">zip<span style="color:#e8820c;">cargo</span></div>
+      <div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;color:#4a6a88;text-transform:uppercase;margin-top:3px;">Global Logistics</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <div style="width:10px;height:10px;border-radius:50%;background:#e8820c;animation:zcDot 1.2s ease-in-out infinite;"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:#e8820c;animation:zcDot 1.2s ease-in-out .2s infinite;"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:#e8820c;animation:zcDot 1.2s ease-in-out .4s infinite;"></div>
+  </div>
+</div>
+<style>
+@keyframes zcPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(232,130,12,.4);}50%{transform:scale(1.06);box-shadow:0 0 0 14px rgba(232,130,12,0);}}
+@keyframes zcDot{0%,80%,100%{transform:scale(.6);opacity:.35;}40%{transform:scale(1.1);opacity:1;}}
+</style>
   <div class="not-found-page">
 
     <a href="index.html" class="nf-logo">

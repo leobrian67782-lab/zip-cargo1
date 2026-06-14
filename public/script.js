@@ -1,35 +1,35 @@
 // ===== PAGE LOADER =====
 (function () {
-  // Inject a slim branded top-bar loader that completes on window load
-  var bar = document.getElementById('progressBar');
-  var pct = 0;
-  var iv;
+  var loader = document.getElementById('zc-loader');
+  var bar    = document.getElementById('progressBar');
 
-  function setBar(p) {
-    pct = p;
-    if (bar) {
-      bar.style.width = p + '%';
-      bar.style.opacity = p >= 100 ? '0' : '1';
-      bar.style.transition = p >= 100 ? 'opacity .4s ease .2s, width .1s linear' : 'width .1s linear';
+  // Lock scroll while loading
+  document.body.style.overflow = 'hidden';
+
+  function dismissLoader() {
+    document.body.style.overflow = '';
+    if (loader) {
+      loader.style.opacity    = '0';
+      loader.style.visibility = 'hidden';
+      setTimeout(function () { if (loader) loader.remove(); }, 550);
     }
   }
 
-  // Simulate progress: quickly to 80%, then wait for real load
-  setBar(0);
-  iv = setInterval(function () {
-    if (pct < 80) setBar(pct + (Math.random() * 8 + 4));
-    else clearInterval(iv);
-  }, 120);
-
+  // Dismiss on load event, with a minimum show time of 800ms for polish
+  var startTime = Date.now();
   window.addEventListener('load', function () {
-    clearInterval(iv);
-    setBar(100);
-    setTimeout(function () { if (bar) bar.style.width = '0%'; }, 700);
+    var elapsed = Date.now() - startTime;
+    var delay   = Math.max(0, 800 - elapsed);
+    setTimeout(dismissLoader, delay);
   });
 
-  // Remove any leftover full-screen loader
-  var old = document.getElementById('loader');
-  if (old) old.remove();
+  // Safety fallback — dismiss after 4s no matter what
+  setTimeout(dismissLoader, 4000);
+
+  // Progress bar — scroll-based after load
+  window.addEventListener('scroll', function () {
+    if (bar) bar.style.width = (window.scrollY / (document.body.scrollHeight - innerHeight) * 100) + '%';
+  });
 })();
 
 // ===== NAVBAR SCROLL =====
