@@ -110,18 +110,7 @@
 </head>
 <body>
 <div id="zc-loader" style="position:fixed;inset:0;background:#0d1f35;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s ease;">
-  <!-- Option 6 logo in loader -->
-  <div style="display:flex;align-items:center;gap:14px;margin-bottom:36px;">
-    <div style="width:52px;height:52px;border-radius:12px;border:2.5px solid #e8820c;display:flex;align-items:center;justify-content:center;animation:zcPulse 1.6s ease-in-out infinite;">
-      <span style="font-family:Outfit,Helvetica Neue,Arial,sans-serif;font-size:18px;font-weight:900;color:#e8820c;line-height:1;">ZC</span>
-    </div>
-    <div style="width:2px;height:36px;background:rgba(255,255,255,0.15);border-radius:1px;"></div>
-    <div>
-      <div style="font-family:Outfit,Helvetica Neue,Arial,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;color:white;line-height:1;">ZipCargo</div>
-      <div style="font-family:Outfit,Helvetica Neue,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:2.5px;color:#4a6a88;text-transform:uppercase;margin-top:5px;">Global Logistics</div>
-    </div>
-  </div>
-  <!-- Animated dots -->
+  <img src="logo-light.png?v=2.4" alt="ZipCargo" height="52" style="margin-bottom:32px;animation:zcFloat 1.8s ease-in-out infinite;"/>
   <div style="display:flex;gap:10px;">
     <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;animation:zcDot 1.2s ease-in-out infinite;"></div>
     <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;animation:zcDot 1.2s ease-in-out .2s infinite;"></div>
@@ -129,7 +118,7 @@
   </div>
 </div>
 <style>
-@keyframes zcPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,130,12,.5);}50%{box-shadow:0 0 0 10px rgba(232,130,12,0);}}
+@keyframes zcFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
 @keyframes zcDot{0%,80%,100%{transform:scale(.6);opacity:.35;}40%{transform:scale(1.1);opacity:1;}}
 </style>
 <a href="#main-content" class="skip-link" style="position:absolute;top:-40px;left:0;background:#e8820c;color:white;padding:8px 16px;border-radius:0 0 8px 0;font-weight:700;z-index:9999;transition:top .2s;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
@@ -139,7 +128,7 @@
 
 <nav class="navbar scrolled" id="navbar">
   <div class="nav-container">
-    <a href="index.html" class="logo"><img src="logo.svg?v=2.4" alt="ZipCargo" height="36" style="display:block;"/></a>
+    <a href="index.html" class="logo"><img src="logo.png?v=2.4" alt="ZipCargo" height="40" style="display:block;"/></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="services.html"><i class="fa-solid fa-boxes-stacked" style="color:#e8820c;width:18px;"></i> Services</a></li>
@@ -390,7 +379,7 @@
 <footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
-      <div class="logo"><img src="logo-light.svg?v=2.4" alt="ZipCargo" height="32" style="display:block;"/></div>
+      <div class="logo"><img src="logo-light.png?v=2.4" alt="ZipCargo" height="32" style="display:block;"/></div>
       <span class="footer-tagline">Global Logistics Solutions</span>
       <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
     </div>
