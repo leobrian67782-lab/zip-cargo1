@@ -84,7 +84,12 @@ app.use('/api/shipments/track', rateLimit({
 }));
 
 app.use(compression());
-app.use(express.json({ limit: '100kb' }));
+app.use((req, res, next) => {
+  // Skip the global small-body parser for the reviews route — it has its
+  // own larger parser below to allow optional base64 photo uploads.
+  if (req.path === '/api/reviews' || req.path.startsWith('/api/reviews/')) return next();
+  express.json({ limit: '100kb' })(req, res, next);
+});
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.use(cookieParser());
 app.use(mongoSanitize());
@@ -95,7 +100,10 @@ app.use('/api/shipments', require('./public/shipments'));
 app.use('/api/inquiries', require('./routes/inquiries'));
 app.use('/api/activity',  require('./routes/activity'));
 app.use('/api/ai-settings', require('./routes/ai-settings'));
-app.use('/api/reviews', require('./routes/reviews'));
+// Reviews route gets its own larger body limit (for optional base64 photo
+// uploads) — applied only here, not globally, to keep the rest of the API
+// protected against oversized payloads.
+app.use('/api/reviews', express.json({ limit: '3mb' }), require('./routes/reviews'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
