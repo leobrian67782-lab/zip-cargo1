@@ -151,7 +151,7 @@ app.post('/api/email/status-update', async (req, res) => {
 
   <!-- Header -->
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:20px;font-weight:800;font-family:Helvetica,Arial,sans-serif;">&#9889; ZipCargo</div>
+    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;">Shipment Status Update</div>
   </div>
 
@@ -285,10 +285,17 @@ app.post('/api/email/crate-invoice', async (req, res) => {
 
       // Header
       doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
-      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
-      doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
-      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
-      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      // ZipCargo logo PNG
+      try {
+        const logoPath = require('path').join(__dirname, 'public', 'logo-light.png');
+        doc.image(logoPath, pad + 14, 38, { height: 44 });
+      } catch(e) {
+        // Fallback text logo if image fails
+        doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+        doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
+        doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+        doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      }
       doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
          .text('C R A T E  I N V O I C E', 0, 38, { align: 'right', width: W - pad - 16 });
       doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
@@ -433,7 +440,7 @@ app.post('/api/email/crate-invoice', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -543,10 +550,17 @@ app.post('/api/email/vaccine-invoice', async (req, res) => {
 
       // Header
       doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
-      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
-      doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
-      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
-      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      // ZipCargo logo PNG
+      try {
+        const logoPath = require('path').join(__dirname, 'public', 'logo-light.png');
+        doc.image(logoPath, pad + 14, 38, { height: 44 });
+      } catch(e) {
+        // Fallback text logo if image fails
+        doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+        doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
+        doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+        doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      }
       doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
          .text('V A C C I N A T I O N  I N V O I C E', 0, 38, { align: 'right', width: W - pad - 16 });
       doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
@@ -682,7 +696,7 @@ app.post('/api/email/vaccine-invoice', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -779,10 +793,17 @@ app.post('/api/email/insurance-invoice', async (req, res) => {
 
       // Header
       doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
-      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
-      doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
-      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
-      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      // ZipCargo logo PNG
+      try {
+        const logoPath = require('path').join(__dirname, 'public', 'logo-light.png');
+        doc.image(logoPath, pad + 14, 38, { height: 44 });
+      } catch(e) {
+        // Fallback text logo if image fails
+        doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+        doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
+        doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+        doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      }
       doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
          .text('I N S U R A N C E  I N V O I C E', 0, 38, { align: 'right', width: W - pad - 16 });
       doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
@@ -921,7 +942,7 @@ app.post('/api/email/insurance-invoice', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions — Official Insurance Notice</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -1041,10 +1062,17 @@ app.post('/api/email/delivery-auth', async (req, res) => {
 
       // Header
       doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
-      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
-      doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
-      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
-      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      // ZipCargo logo PNG
+      try {
+        const logoPath = require('path').join(__dirname, 'public', 'logo-light.png');
+        doc.image(logoPath, pad + 14, 38, { height: 44 });
+      } catch(e) {
+        // Fallback text logo if image fails
+        doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+        doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
+        doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+        doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      }
       doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
          .text('D E L I V E R Y  A U T H O R I Z A T I O N', 0, 38, { align: 'right', width: W - pad - 16 });
       doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
@@ -1182,7 +1210,7 @@ app.post('/api/email/delivery-auth', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Delivery Authorization Notice</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -1296,10 +1324,17 @@ app.post('/api/email/travel-permit', async (req, res) => {
 
       // Header
       doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
-      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
-      doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
-      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
-      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      // ZipCargo logo PNG
+      try {
+        const logoPath = require('path').join(__dirname, 'public', 'logo-light.png');
+        doc.image(logoPath, pad + 14, 38, { height: 44 });
+      } catch(e) {
+        // Fallback text logo if image fails
+        doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+        doc.fill('white').fontSize(13).font('Helvetica-Bold').text('ZC', pad + 18, 50);
+        doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+        doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      }
       doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
          .text('P E T  T R A V E L  P E R M I T', 0, 38, { align: 'right', width: W - pad - 16 });
       doc.fill('#7a9ab8').fontSize(8).font('Helvetica')
@@ -1436,7 +1471,7 @@ app.post('/api/email/travel-permit', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Pet Travel Permit Notice</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -1587,13 +1622,16 @@ app.post('/api/email/shipment', async (req, res) => {
       // Dark header card
       doc.roundedRect(pad, 27, cW, 88, 8).fill('#0d1f35');
 
-      // Logo box
-      doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
-      doc.fill('white').fontSize(14).font('Helvetica-Bold').text('ZC', pad + 18, 50, { lineBreak: false });
-
-      // Company name
-      doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
-      doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      // Logo image
+      try {
+        const logoPath = require('path').join(__dirname, 'public', 'logo-light.png');
+        doc.image(logoPath, pad + 14, 38, { height: 44 });
+      } catch(e) {
+        doc.roundedRect(pad + 14, 42, 32, 32, 6).fill('#e8820c');
+        doc.fill('white').fontSize(14).font('Helvetica-Bold').text('ZC', pad + 18, 50, { lineBreak: false });
+        doc.fill('white').fontSize(16).font('Helvetica-Bold').text('ZipCargo', pad + 54, 43);
+        doc.fill('#aac4e0').fontSize(9).font('Helvetica').text('Global Logistics Solutions', pad + 54, 63);
+      }
 
       // Receipt info (right side)
       doc.fill('#e8820c').fontSize(7).font('Helvetica-Bold')
@@ -1789,7 +1827,7 @@ app.post('/api/email/shipment', async (req, res) => {
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
     <table width="100%" cellpadding="0" cellspacing="0"><tr>
       <td>
-        <div style="color:#e8820c;font-size:20px;font-weight:800;font-family:Helvetica,Arial,sans-serif;">&#9889; ZipCargo</div>
+        <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
         <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;">Global Logistics Solutions</div>
       </td>
     </tr></table>
