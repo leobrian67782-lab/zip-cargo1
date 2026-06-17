@@ -1,6 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  // Create and inject the full loader immediately — before body exists
+  var css = [
+    '#zc-loader{position:fixed;inset:0;background:#0d1f35;z-index:99999;',
+    'display:flex;flex-direction:column;align-items:center;justify-content:center;',
+    'transition:opacity .5s ease;}',
+    '#zc-loader img{height:80px;animation:zcFloat 1.8s ease-in-out infinite;}',
+    '.zc-dots{display:flex;gap:12px;margin-top:28px;}',
+    '.zc-dot{width:11px;height:11px;border-radius:50%;background:#e8820c;}',
+    '.zc-dot:nth-child(1){animation:zcDot 1.2s ease-in-out infinite;}',
+    '.zc-dot:nth-child(2){animation:zcDot 1.2s ease-in-out .22s infinite;}',
+    '.zc-dot:nth-child(3){animation:zcDot 1.2s ease-in-out .44s infinite;}',
+    '@keyframes zcFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}',
+    '@keyframes zcDot{0%,80%,100%{transform:scale(.5);opacity:.25;}40%{transform:scale(1.15);opacity:1;}}'
+  ].join('');
+
+  var style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  // Build loader div
+  var loader = document.createElement('div');
+  loader.id = 'zc-loader';
+
+  var img = document.createElement('img');
+  img.src = 'logo-light.png?v=2.6';
+  img.alt = 'ZipCargo';
+
+  var dots = document.createElement('div');
+  dots.className = 'zc-dots';
+  for(var i=0;i<3;i++){
+    var d = document.createElement('div');
+    d.className = 'zc-dot';
+    dots.appendChild(d);
+  }
+
+  loader.appendChild(img);
+  loader.appendChild(dots);
+
+  // Inject as FIRST element — before anything else renders
+  document.documentElement.appendChild(loader);
+
+  // Lock scroll immediately
+  document.documentElement.style.overflow = 'hidden';
+
+  var startTime = Date.now();
+
+  function dismiss(){
+    document.documentElement.style.overflow = '';
+    loader.style.opacity = '0';
+    setTimeout(function(){ 
+      if(loader.parentNode) loader.parentNode.removeChild(loader); 
+    }, 520);
+  }
+
+  window.addEventListener('load', function(){
+    var elapsed = Date.now() - startTime;
+    setTimeout(dismiss, Math.max(0, 1200 - elapsed));
+  });
+
+  // Hard fallback at 6s
+  setTimeout(dismiss, 6000);
+})();
+</script>
   <meta charset="UTF-8"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <meta http-equiv="Pragma" content="no-cache"/>
@@ -12,7 +77,7 @@
   <meta name="description" content="ZipCargo Privacy Policy — how we collect, use, and protect your personal information."/>
   <meta name="robots" content="index, follow"/>
   <title>Privacy Policy | ZipCargo</title>
-  <link rel="stylesheet" href="style.css?v=2.5"/>
+  <link rel="stylesheet" href="style.css?v=2.6"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
@@ -27,57 +92,9 @@
     .legal-hero h1 { color: white; font-size: 2.2rem; margin: 0; }
     .legal-hero p { color: #aac4e0; margin-top: 8px; }
   </style>
-<script>
-// Loader runs immediately — before body paints
-(function(){
-  // Inject loader styles immediately
-  var s = document.createElement('style');
-  s.textContent = [
-    '#zc-loader{position:fixed;inset:0;background:#0d1f35;z-index:99999;',
-    'display:flex;flex-direction:column;align-items:center;justify-content:center;}',
-    '#zc-loader img{animation:zcFloat 1.8s ease-in-out infinite;}',
-    '#zc-loader .zc-dots{display:flex;gap:10px;margin-top:28px;}',
-    '#zc-loader .zc-dot{width:10px;height:10px;border-radius:50%;background:#e8820c;}',
-    '#zc-loader .zc-dot:nth-child(1){animation:zcDot 1.2s ease-in-out infinite;}',
-    '#zc-loader .zc-dot:nth-child(2){animation:zcDot 1.2s ease-in-out .2s infinite;}',
-    '#zc-loader .zc-dot:nth-child(3){animation:zcDot 1.2s ease-in-out .4s infinite;}',
-    '@keyframes zcFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}',
-    '@keyframes zcDot{0%,80%,100%{transform:scale(.55);opacity:.3;}40%{transform:scale(1.1);opacity:1;}}'
-  ].join('');
-  document.head.appendChild(s);
-
-  // Lock scroll
-  document.documentElement.style.overflow = 'hidden';
-
-  var startTime = Date.now();
-
-  function dismissLoader(){
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
-    var el = document.getElementById('zc-loader');
-    if(!el) return;
-    el.style.transition = 'opacity .5s ease';
-    el.style.opacity = '0';
-    setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 520);
-  }
-
-  window.addEventListener('load', function(){
-    var elapsed = Date.now() - startTime;
-    var delay = Math.max(0, 1000 - elapsed);
-    setTimeout(dismissLoader, delay);
-  });
-
-  // Fallback
-  setTimeout(dismissLoader, 5000);
-})();
-</script>
 </head>
 <body>
-<div id="zc-loader">
-  <img src="logo-light.png?v=2.5" alt="ZipCargo" height="48" style="display:block;"/>
-  <div class="zc-dots">
-    <div class="zc-dot"></div>
-    <div class="zc-dot"></div>
+<div class="zc-dot"></div>
     <div class="zc-dot"></div>
   </div>
 </div>
@@ -152,6 +169,6 @@
     <p>If you have questions about this Privacy Policy, please contact us at <a href="mailto:zipcargo99@gmail.com" style="color:#e8820c;">zipcargo99@gmail.com</a></p>
   </div>
 
-  <script src="script.js?v=2.5"></script>
+  <script src="script.js?v=2.6"></script>
 </body>
 </html>
