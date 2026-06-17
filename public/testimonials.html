@@ -3,10 +3,10 @@
 <head>
 
   <meta charset="UTF-8"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3.4"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=3.4"/>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3.4"/>
-  <link rel="manifest" href="manifest.json?v=3.4"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3.6"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=3.6"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3.6"/>
+  <link rel="manifest" href="manifest.json?v=3.6"/>
   <meta name="theme-color" content="#0d1f35"/>
   <meta name="description" content="Read what our customers say about ZipCargo. Trusted by thousands of clients worldwide for pet transport, package delivery, and freight services."/>
   <meta name="keywords" content="ZipCargo reviews, customer testimonials, logistics reviews, pet transport reviews"/>
@@ -23,7 +23,7 @@
   <link rel="canonical" href="https://zipcargo-app.onrender.com/testimonials"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Customer Reviews & Testimonials | ZipCargo</title>
-  <link rel="stylesheet" href="style.css?v=3.4"/>
+  <link rel="stylesheet" href="style.css?v=3.6"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
@@ -60,7 +60,7 @@
 
 <nav class="navbar scrolled" id="navbar">
   <div class="nav-container">
-    <a href="index.html" class="logo"><img src="logo.png?v=3.4" alt="ZipCargo" height="40" style="display:block;"/></a>
+    <a href="index.html" class="logo"><img src="logo.png?v=3.6" alt="ZipCargo" height="40" style="display:block;"/></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="services.html"><i class="fa-solid fa-boxes-stacked" style="color:#e8820c;width:18px;"></i> Services</a></li>
@@ -115,7 +115,10 @@
     </div>
   </div>
 
-  <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;">
+  <div id="testimonialsGrid" style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;">
+
+    <!-- Real approved customer reviews are injected here by JS, before the cards below -->
+
 
     <!-- Card 1 -->
     <div data-aos="fade-up" data-aos-delay="0" style="background:white;border-radius:16px;padding:32px;box-shadow:0 4px 20px rgba(13,31,53,0.07);border-top:4px solid #e8820c;transition:transform .3s,box-shadow .3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(13,31,53,0.13)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 20px rgba(13,31,53,0.07)'">
@@ -229,6 +232,20 @@
           </div>
         </div>
         <textarea id="rvMessage" placeholder="Tell us about your shipment experience..." rows="3" style="width:100%;padding:13px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:1rem;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box;margin-bottom:12px;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'"></textarea>
+
+        <!-- Optional photo upload -->
+        <div style="margin-bottom:12px;">
+          <input type="file" id="rvPhotoInput" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="handleRvPhotoSelect(event)"/>
+          <div id="rvPhotoPreviewWrap" style="display:none;align-items:center;gap:12px;margin-bottom:10px;">
+            <img id="rvPhotoPreview" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid rgba(255,255,255,0.15);"/>
+            <button type="button" onclick="clearRvPhoto()" style="background:none;border:1.5px solid rgba(255,255,255,0.2);color:#aac4e0;padding:6px 14px;border-radius:50px;font-size:.78rem;cursor:pointer;font-family:inherit;">Remove photo</button>
+          </div>
+          <button type="button" id="rvPhotoBtn" onclick="document.getElementById('rvPhotoInput').click()" style="background:rgba(255,255,255,0.07);border:1.5px dashed rgba(255,255,255,0.2);color:#aac4e0;padding:11px 18px;border-radius:10px;font-size:.85rem;cursor:pointer;font-family:inherit;width:100%;text-align:center;">
+            <i class="fa-solid fa-camera" style="margin-right:6px;"></i>Add a photo (optional)
+          </button>
+          <p id="rvPhotoMsg" style="color:#fca5a5;font-size:.78rem;margin-top:6px;display:none;"></p>
+        </div>
+
         <p id="rvError" style="color:#fca5a5;font-size:.82rem;margin-bottom:10px;display:none;">Please fill in your name and review.</p>
         <button onclick="submitReview()" style="background:#e8820c;color:white;border:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:.95rem;cursor:pointer;font-family:inherit;transition:background .2s;">
           Submit Review <i class="fa-solid fa-paper-plane"></i>
@@ -247,7 +264,7 @@
 <footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
-      <div class="logo"><img src="logo-light.png?v=3.4" alt="ZipCargo" height="32" style="display:block;"/></div>
+      <div class="logo"><img src="logo-light.png?v=3.6" alt="ZipCargo" height="32" style="display:block;"/></div>
       <span class="footer-tagline">Global Logistics Solutions</span>
       <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
       
@@ -275,9 +292,9 @@
   if(fHours)fHours.textContent=hours;
 })();
 </script>
-<script src="script.js?v=3.4"></script>
+<script src="script.js?v=3.6"></script>
 
-<script src="chat.js?v=3.4"></script>
+<script src="chat.js?v=3.6"></script>
 
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 <script>
@@ -301,6 +318,111 @@ function setStars(n) {
   selectedStars = n;
   resetStars();
 }
+// ===== LOAD APPROVED CUSTOMER REVIEWS =====
+const reviewAccentColors = ['#e8820c', '#2563eb', '#16a34a', '#7c3aed', '#0891b2'];
+
+function escapeHtmlTestimonial(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function initials(name) {
+  return (name || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0]?.toUpperCase() || '').join('') || '?';
+}
+
+async function loadApprovedReviews() {
+  try {
+    const res  = await fetch('/api/reviews/approved');
+    const data = await res.json();
+    const reviews = data.reviews || [];
+    if (!reviews.length) return;
+
+    const grid = document.getElementById('testimonialsGrid');
+    if (!grid) return;
+
+    const cardsHtml = reviews.map((r, i) => {
+      const color = reviewAccentColors[i % reviewAccentColors.length];
+      const stars = Array.from({length:5}, (_, s) =>
+        `<i class="fa-solid fa-star" style="color:${s < r.rating ? '#f59e0b' : '#e2e8f0'};"></i>`
+      ).join('');
+      return `
+      <div data-aos="fade-up" style="background:white;border-radius:16px;padding:32px;box-shadow:0 4px 20px rgba(13,31,53,0.07);border-top:4px solid ${color};transition:transform .3s,box-shadow .3s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(13,31,53,0.13)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 20px rgba(13,31,53,0.07)'">
+        <div style="font-size:.9rem;margin-bottom:16px;">${stars}</div>
+        <p style="color:#1e293b;font-size:.95rem;line-height:1.8;margin-bottom:24px;font-style:italic;">"${escapeHtmlTestimonial(r.message)}"</p>
+        <div style="display:flex;align-items:center;gap:14px;padding-top:20px;border-top:1px solid #f1f5f9;">
+          ${r.photo
+            ? `<img src="${r.photo}" alt="${escapeHtmlTestimonial(r.name)}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:3px solid ${color}33;flex-shrink:0;"/>`
+            : `<div style="width:52px;height:52px;border-radius:50%;background:${color}1a;color:${color};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;">${escapeHtmlTestimonial(initials(r.name))}</div>`
+          }
+          <div>
+            <div style="font-weight:700;color:#0d1f35;font-size:.95rem;">${escapeHtmlTestimonial(r.name)}</div>
+            ${r.company ? `<div style="color:#64748b;font-size:.8rem;margin-top:2px;">${escapeHtmlTestimonial(r.company)}</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    grid.insertAdjacentHTML('afterbegin', cardsHtml);
+    if (typeof AOS !== 'undefined') AOS.refreshHard();
+  } catch (e) { /* silent — static cards still show */ }
+}
+loadApprovedReviews();
+
+// ===== REVIEW PHOTO UPLOAD =====
+let rvPhotoDataUrl = '';
+
+function handleRvPhotoSelect(event) {
+  const file = event.target.files && event.target.files[0];
+  const msgEl = document.getElementById('rvPhotoMsg');
+  msgEl.style.display = 'none';
+  if (!file) return;
+
+  if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) {
+    msgEl.textContent = 'Please choose a PNG, JPEG, or WEBP image.';
+    msgEl.style.display = 'block';
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    msgEl.textContent = 'Image is too large. Please choose a photo under 8MB.';
+    msgEl.style.display = 'block';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const img = new Image();
+    img.onload = function () {
+      // Resize down to a max dimension so the stored photo stays small —
+      // a review avatar never needs to be larger than this on screen.
+      const maxDim = 480;
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+        else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      rvPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+      document.getElementById('rvPhotoPreview').src = rvPhotoDataUrl;
+      document.getElementById('rvPhotoPreviewWrap').style.display = 'flex';
+      document.getElementById('rvPhotoBtn').style.display = 'none';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearRvPhoto() {
+  rvPhotoDataUrl = '';
+  document.getElementById('rvPhotoInput').value = '';
+  document.getElementById('rvPhotoPreviewWrap').style.display = 'none';
+  document.getElementById('rvPhotoBtn').style.display = 'block';
+}
+
 async function submitReview() {
   const name    = document.getElementById('rvName')?.value.trim();
   const company = document.getElementById('rvCompany')?.value.trim() || '';
@@ -313,9 +435,10 @@ async function submitReview() {
     await fetch('/api/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, company, rating: stars, message }),
+      body: JSON.stringify({ name, company, rating: stars, message, photo: rvPhotoDataUrl || undefined }),
     });
   } catch(e) { /* silent — show success regardless */ }
+  clearRvPhoto();
   document.getElementById('reviewFormWrap').style.display = 'none';
   document.getElementById('reviewSuccess').style.display  = 'block';
 }
