@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3.1"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=3.1"/>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3.1"/>
-  <link rel="manifest" href="manifest.json?v=3.1"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3.2"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=3.2"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3.2"/>
+  <link rel="manifest" href="manifest.json?v=3.2"/>
   <meta name="theme-color" content="#0d1f35"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="robots" content="noindex, nofollow"/>
   <title>Admin – ZipCargo</title>
-  <link rel="stylesheet" href="admin.css?v=3.1"/>
+  <link rel="stylesheet" href="admin.css?v=3.2"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
@@ -250,7 +250,7 @@
 <!-- LOGIN SCREEN -->
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo"><div style="background:#0d1f35;border-radius:14px;padding:12px 20px;display:inline-block;"><img src="logo-light.png?v=3.1" alt="ZipCargo" style="height:48px;display:block;"/></div></div>
+    <div class="login-logo"><div style="background:#0d1f35;border-radius:14px;padding:12px 20px;display:inline-block;"><img src="logo-light.png?v=3.2" alt="ZipCargo" style="height:48px;display:block;"/></div></div>
     <h2>Admin Portal</h2>
     <p>Sign in to access the dashboard</p>
     <div class="login-form">
@@ -271,7 +271,7 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <img src="logo-light.png?v=3.1" alt="ZipCargo" style="height:40px;display:block;"/>
+      <img src="logo-light.png?v=3.2" alt="ZipCargo" style="height:40px;display:block;"/>
     </div>
 
     <nav class="sidebar-nav">
@@ -771,74 +771,98 @@
 
       <!-- AI ASSISTANT SECTION -->
       <section class="section" id="sec-ai">
-        <div class="form-card">
-          <h3><i class="fa-solid fa-robot" style="color:#e8820c;margin-right:8px;"></i>AI Assistant — Zara</h3>
-          <p style="color:#64748b;font-size:.875rem;margin-bottom:20px;line-height:1.6;">
-            Give Zara special instructions she will follow in every customer conversation. Use this to announce delays, promotions, customs holds, or any important updates.
+
+        <!-- Status header -->
+        <div class="form-card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#e8820c,#f59e0b);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="fa-solid fa-robot" style="color:white;font-size:1.4rem;"></i>
+            </div>
+            <div>
+              <h3 style="margin:0;">Zara — AI Assistant</h3>
+              <p style="margin:2px 0 0;color:#64748b;font-size:.82rem;">Live on every page of your website</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:50px;padding:8px 16px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#16a34a;display:block;animation:pulse 2s infinite;"></span>
+            <span style="font-size:.8rem;color:#15803d;font-weight:700;">Active</span>
+          </div>
+        </div>
+
+        <!-- Restrictions manager -->
+        <div class="form-card" style="margin-bottom:20px;">
+          <h3 style="margin-bottom:6px;"><i class="fa-solid fa-shield-halved" style="color:#dc2626;margin-right:8px;"></i>Restrictions</h3>
+          <p style="color:#64748b;font-size:.82rem;margin-bottom:18px;line-height:1.6;">
+            Things Zara must never say or discuss, no matter how she's asked. Each restriction is enforced as its own rule — Zara will politely decline and redirect to human support rather than answer.
           </p>
 
-          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
-            <i class="fa-solid fa-circle-check" style="color:#16a34a;"></i>
-            <span style="font-size:.85rem;color:#15803d;font-weight:600;">Zara is active on all pages of your website</span>
+          <div id="restrictionsList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+          <div id="restrictionsEmpty" style="display:none;text-align:center;padding:24px;color:#94a3b8;font-size:.85rem;background:#f8fafc;border-radius:10px;border:1.5px dashed #e2e8f0;">
+            No restrictions added yet. Zara will rely on her default behavior rules only.
           </div>
 
-          <div class="form-group" style="margin-bottom:20px;">
-            <label style="font-weight:700;color:#0d1f35;margin-bottom:8px;display:block;">
-              <i class="fa-solid fa-pen-to-square" style="color:#e8820c;margin-right:6px;"></i>Custom Instructions for Zara
-            </label>
-            <p style="font-size:.78rem;color:#94a3b8;margin-bottom:10px;">
-              Example: "Shipment ZC-2026-00123 is delayed — tell the customer it arrives Friday" or "Remind all customers insurance is fully refundable"
-            </p>
-            <textarea id="aiContextInput"
-              placeholder="Type your instructions here…"
-              style="width:100%;min-height:140px;padding:14px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:1rem;line-height:1.7;color:#1e293b;resize:vertical;outline:none;box-sizing:border-box;"
-              onfocus="this.style.borderColor='#e8820c'"
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <input type="text" id="restrictionInput" placeholder="e.g. Never disclose internal fee amounts or supplier names" style="flex:1;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;" onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#e2e8f0'" onkeydown="if(event.key==='Enter'){event.preventDefault();addRestriction();}"/>
+            <button onclick="addRestriction()" class="btn-save" style="background:#dc2626;padding:12px 20px;white-space:nowrap;"><i class="fa-solid fa-plus"></i> Add</button>
+          </div>
+          <div id="restrictionMsg" class="create-msg" style="margin-top:8px;"></div>
+        </div>
+
+        <!-- Announcements -->
+        <div class="form-card" style="margin-bottom:20px;">
+          <h3 style="margin-bottom:6px;"><i class="fa-solid fa-bullhorn" style="color:#e8820c;margin-right:8px;"></i>Announcements</h3>
+          <p style="color:#64748b;font-size:.82rem;margin-bottom:14px;line-height:1.6;">
+            Things Zara should actively mention when relevant — delays, promotions, customs holds, or any update customers should know about.
+          </p>
+          <textarea id="announcementsInput"
+            placeholder="e.g. Shipment ZC-2026-00123 is delayed — new ETA is Friday. Mention this if the customer asks about that tracking number."
+            style="width:100%;min-height:120px;padding:14px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:1rem;line-height:1.7;color:#1e293b;resize:vertical;outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#e8820c'"
+            onblur="this.style.borderColor='#e2e8f0'"></textarea>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+            <button onclick="loadTemplate('delay')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;margin-right:4px;"></i>Shipment delay</button>
+            <button onclick="loadTemplate('promo')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-tag" style="color:#e8820c;margin-right:4px;"></i>Promotion</button>
+            <button onclick="loadTemplate('customs')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-file-circle-exclamation" style="color:#2563eb;margin-right:4px;"></i>Customs hold</button>
+          </div>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;">
+            <button class="btn-save" onclick="saveAiTextSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Announcements</button>
+          </div>
+          <div id="announcementsMsg" class="create-msg" style="margin-top:8px;"></div>
+        </div>
+
+        <!-- Knowledge notes (collapsible, less prominent) -->
+        <div class="form-card" style="margin-bottom:20px;">
+          <h3 style="margin-bottom:6px;cursor:pointer;" onclick="toggleKnowledgeNotes()">
+            <i class="fa-solid fa-book" style="color:#64748b;margin-right:8px;"></i>Knowledge Notes
+            <i class="fa-solid fa-chevron-down" id="knowledgeChevron" style="float:right;color:#94a3b8;transition:transform .2s;"></i>
+          </h3>
+          <p style="color:#64748b;font-size:.82rem;margin-bottom:0;line-height:1.6;">Background context for Zara's understanding — used only if relevant, not actively announced.</p>
+          <div id="knowledgeNotesBody" style="display:none;margin-top:14px;">
+            <textarea id="knowledgeInput"
+              placeholder="e.g. Our busiest routes are US-to-Europe and US-to-Asia. Most delays happen during customs in peak season (Nov-Jan)."
+              style="width:100%;min-height:100px;padding:14px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:1rem;line-height:1.7;color:#1e293b;resize:vertical;outline:none;box-sizing:border-box;"
+              onfocus="this.style.borderColor='#64748b'"
               onblur="this.style.borderColor='#e2e8f0'"></textarea>
-          </div>
-
-          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
-            <button class="btn-save" onclick="saveAiContext()"><i class="fa-solid fa-floppy-disk"></i> Save Instructions</button>
-            <button class="btn-clear" onclick="clearAiContext()"><i class="fa-solid fa-trash"></i> Clear</button>
-          </div>
-          <div id="aiContextMsg" class="create-msg" style="margin-top:8px;"></div>
-        </div>
-
-        <div class="form-card" style="margin-top:20px;">
-          <h3 style="margin-bottom:16px;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#e8820c;margin-right:8px;"></i>Quick Templates</h3>
-          <p style="color:#64748b;font-size:.825rem;margin-bottom:16px;">Click a template to load it, then customize and save.</p>
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <button onclick="loadTemplate('delay')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
-              <div style="font-weight:700;color:#0d1f35;font-size:.85rem;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;margin-right:6px;"></i>Shipment Delay</div>
-              <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Tell customers a specific shipment is delayed with new ETA</div>
-            </button>
-            <button onclick="loadTemplate('insurance')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
-              <div style="font-weight:700;color:#0d1f35;font-size:.85rem;"><i class="fa-solid fa-shield-halved" style="color:#16a34a;margin-right:6px;"></i>Insurance Reminder</div>
-              <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Emphasise refundable insurance to all customers</div>
-            </button>
-            <button onclick="loadTemplate('promo')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
-              <div style="font-weight:700;color:#0d1f35;font-size:.85rem;"><i class="fa-solid fa-tag" style="color:#e8820c;margin-right:6px;"></i>Promotional Offer</div>
-              <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Announce a discount or special offer to customers</div>
-            </button>
-            <button onclick="loadTemplate('customs')" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color .2s;" onmouseover="this.style.borderColor='#e8820c'" onmouseout="this.style.borderColor='#e2e8f0'">
-              <div style="font-weight:700;color:#0d1f35;font-size:.85rem;"><i class="fa-solid fa-file-circle-exclamation" style="color:#2563eb;margin-right:6px;"></i>Customs Hold</div>
-              <div style="color:#64748b;font-size:.78rem;margin-top:3px;">Notify customers of a shipment held at customs</div>
-            </button>
+            <div style="margin-top:12px;">
+              <button class="btn-save" onclick="saveAiTextSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Knowledge Notes</button>
+            </div>
           </div>
         </div>
 
-        <!-- Admin Direct Chat -->
-        <div class="form-card" style="margin-top:20px;">
-          <h3 style="margin-bottom:6px;"><i class="fa-solid fa-comment-dots" style="color:#e8820c;margin-right:8px;"></i>Chat with Zara — Admin Mode</h3>
-          <p style="color:#64748b;font-size:.825rem;margin-bottom:16px;">Ask Zara anything as the admin — she knows your full system and all shipment details.</p>
+        <!-- Live test console -->
+        <div class="form-card">
+          <h3 style="margin-bottom:6px;"><i class="fa-solid fa-comment-dots" style="color:#e8820c;margin-right:8px;"></i>Test Zara — Admin Mode</h3>
+          <p style="color:#64748b;font-size:.82rem;margin-bottom:16px;">Try questions here to confirm restrictions and announcements behave as expected before customers see them.</p>
           <div id="adminChatMsgs" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
           <div style="display:flex;gap:10px;">
-            <input type="text" id="adminChatInput" placeholder="Ask Zara anything… e.g. How many shipments are pending?" style="flex:1;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='#e2e8f0'"/>
+            <input type="text" id="adminChatInput" placeholder="Ask Zara anything… e.g. What are your fees?" style="flex:1;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;" onfocus="this.style.borderColor='#e8820c'" onblur="this.style.borderColor='#e2e8f0'"/>
             <button onclick="if(typeof sendAdminChat==='function')sendAdminChat()" class="btn-save" style="padding:12px 20px;"><i class="fa-solid fa-paper-plane"></i></button>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
             <button onclick="if(typeof adminQuickAsk==='function')adminQuickAsk('How many shipments do I have in total?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-boxes-stacked" style="color:#e8820c;margin-right:4px;"></i>Shipment summary</button>
             <button onclick="if(typeof adminQuickAsk==='function')adminQuickAsk('What should I know about pet transport regulations?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-paw" style="color:#e8820c;margin-right:4px;"></i>Pet regulations</button>
-            <button onclick="if(typeof adminQuickAsk==='function')adminQuickAsk('What are all the refundable fees and amounts?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-dollar-sign" style="color:#e8820c;margin-right:4px;"></i>Fee amounts</button>
             <button onclick="if(typeof adminQuickAsk==='function')adminQuickAsk('How do I handle a customs clearance issue for a client?')" style="background:#f8fafc;border:1px solid #e2e8f0;color:#0d1f35;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-file-lines" style="color:#e8820c;margin-right:4px;"></i>Customs help</button>
           </div>
         </div>
@@ -853,7 +877,7 @@ function closeAdminPanel() {
   window.location.href = 'index.html';
 }
 </script>
-<script src="admin.js?v=3.1"></script>
+<script src="admin.js?v=3.2"></script>
 <script>
 // Patch logout to stay on this page
 if (typeof adminLogout !== 'undefined') {
@@ -887,53 +911,123 @@ if (typeof adminLogout !== 'undefined') {
 })();
 </script>
 <script>
-// ── AI Assistant admin functions ──
-function saveAiContext() {
-  const val = document.getElementById('aiContextInput').value.trim();
+// ── AI Assistant admin functions (database-backed) ──
+let aiSettingsCache = { announcements: '', restrictions: [], knowledgeNotes: '' };
+
+async function loadAiSettings() {
   try {
-    localStorage.setItem('zc_ai_context', val);
-    const msg = document.getElementById('aiContextMsg');
-    msg.style.color = '#16a34a';
-    msg.textContent = 'Instructions saved! The AI will follow these in all customer conversations immediately.';
-    setTimeout(() => msg.textContent = '', 4000);
-  } catch(e) {
-    document.getElementById('aiContextMsg').textContent = 'Error saving. Please try again.';
+    const data = await api.get('/api/ai-settings');
+    aiSettingsCache = data.settings || aiSettingsCache;
+    document.getElementById('announcementsInput').value = aiSettingsCache.announcements || '';
+    document.getElementById('knowledgeInput').value = aiSettingsCache.knowledgeNotes || '';
+    renderRestrictions();
+  } catch (e) {
+    console.error('Could not load AI settings', e);
   }
 }
 
-function clearAiContext() {
-  if (!confirm('Clear all AI instructions?')) return;
-  document.getElementById('aiContextInput').value = '';
-  try { localStorage.removeItem('zc_ai_context'); } catch(e) {}
-  const msg = document.getElementById('aiContextMsg');
-  msg.style.color = '#64748b';
-  msg.textContent = 'Instructions cleared. AI will use default responses.';
-  setTimeout(() => msg.textContent = '', 3000);
+function renderRestrictions() {
+  const list = document.getElementById('restrictionsList');
+  const empty = document.getElementById('restrictionsEmpty');
+  const items = aiSettingsCache.restrictions || [];
+  if (!items.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = items.map(r => `
+    <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;">
+      <i class="fa-solid fa-ban" style="color:#dc2626;margin-top:2px;flex-shrink:0;"></i>
+      <span style="flex:1;font-size:.88rem;color:#0d1f35;line-height:1.5;">${escapeHtml(r.text)}</span>
+      <button onclick="removeRestriction('${r._id}')" style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:2px 6px;flex-shrink:0;" title="Remove"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function addRestriction() {
+  const input = document.getElementById('restrictionInput');
+  const text = input.value.trim();
+  const msg = document.getElementById('restrictionMsg');
+  if (!text) {
+    msg.style.color = '#dc2626';
+    msg.textContent = 'Please enter a restriction first.';
+    return;
+  }
+  try {
+    const data = await api.post('/api/ai-settings/restrictions', { text });
+    aiSettingsCache = data.settings;
+    renderRestrictions();
+    input.value = '';
+    msg.style.color = '#16a34a';
+    msg.textContent = 'Restriction added — Zara will follow it immediately.';
+    setTimeout(() => msg.textContent = '', 3000);
+  } catch (e) {
+    msg.style.color = '#dc2626';
+    msg.textContent = e.message || 'Could not add restriction.';
+  }
+}
+
+async function removeRestriction(id) {
+  if (!confirm('Remove this restriction?')) return;
+  try {
+    const data = await api.delete('/api/ai-settings/restrictions/' + id);
+    aiSettingsCache = data.settings;
+    renderRestrictions();
+  } catch (e) {
+    alert(e.message || 'Could not remove restriction.');
+  }
+}
+
+async function saveAiTextSettings() {
+  const announcements = document.getElementById('announcementsInput').value.trim();
+  const knowledgeNotes = document.getElementById('knowledgeInput').value.trim();
+  const msgEl = document.getElementById('announcementsMsg');
+  try {
+    const data = await api.put('/api/ai-settings', { announcements, knowledgeNotes });
+    aiSettingsCache = data.settings;
+    msgEl.style.color = '#16a34a';
+    msgEl.textContent = 'Saved — changes are live for every customer conversation now.';
+    setTimeout(() => msgEl.textContent = '', 4000);
+  } catch (e) {
+    msgEl.style.color = '#dc2626';
+    msgEl.textContent = e.message || 'Could not save. Please try again.';
+  }
+}
+
+function toggleKnowledgeNotes() {
+  const body = document.getElementById('knowledgeNotesBody');
+  const chevron = document.getElementById('knowledgeChevron');
+  const isOpen = body.style.display === 'block';
+  body.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 
 function loadTemplate(type) {
   const templates = {
-    delay: 'Shipment [TRACKING NUMBER]: This shipment is currently delayed due to [REASON]. The new estimated delivery date is [NEW DATE]. Please apologize for the inconvenience and assure the customer their package is safe.',
-    promo: 'We currently have a special promotion: [DESCRIBE OFFER]. Mention this to all customers who ask about pricing or services.',
-    insurance: 'Strongly emphasize to ALL customers that our cargo insurance is FULLY REFUNDABLE if no claim is made. There is zero risk to taking out insurance — they get their money back if nothing goes wrong. Encourage all customers to protect their shipments.',
-    customs: 'Shipment [TRACKING NUMBER] is currently held at [LOCATION] customs for [REASON]. The customer may need to provide [DOCUMENTS NEEDED]. Estimated release: [DATE]. Please be empathetic and guide them through next steps.'
+    delay: 'Shipment [TRACKING NUMBER]: This shipment is currently delayed due to [REASON]. The new estimated delivery date is [NEW DATE]. Apologize for the inconvenience and assure the customer their package is safe.',
+    promo: 'We currently have a special promotion: [DESCRIBE OFFER]. Mention this to customers who ask about pricing or services.',
+    customs: 'Shipment [TRACKING NUMBER] is currently held at [LOCATION] customs for [REASON]. The customer may need to provide [DOCUMENTS NEEDED]. Estimated release: [DATE]. Be empathetic and guide them through next steps.'
   };
-  const ta = document.getElementById('aiContextInput');
+  const ta = document.getElementById('announcementsInput');
   ta.value = templates[type] || '';
   ta.focus();
   ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// Load saved context when AI section is opened
+// Load settings from the database whenever the AI section is opened
 if (typeof showSection !== 'undefined') {
   const origShowSection = showSection;
   window.showSection = async function(name, el) {
     await origShowSection(name, el);
     if (name === 'ai') {
-      try {
-        const saved = localStorage.getItem('zc_ai_context') || '';
-        document.getElementById('aiContextInput').value = saved;
-      } catch(e) {}
+      loadAiSettings();
     }
   };
 }
