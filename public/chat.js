@@ -191,15 +191,13 @@
 
   // AI call — goes through your server (key stays safe)
   async function callAI(userText) {
-    const adminCtx = (()=>{ try{return localStorage.getItem('zc_ai_context')||'';}catch{return'';} })();
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userText,
-          history: hist.slice(-10),
-          adminContext: adminCtx
+          history: hist.slice(-10)
         })
       });
       const data = await res.json();
