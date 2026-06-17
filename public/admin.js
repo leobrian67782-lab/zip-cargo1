@@ -1000,15 +1000,13 @@ async function sendAdminChat() {
   msgs.scrollTop = msgs.scrollHeight;
 
   try {
-    const adminCtx = (localStorage.getItem('zc_ai_context')||'') + '\n\nADMIN MODE: You are speaking directly with the ZipCargo admin/owner. Be detailed, professional, and provide complete information. You can discuss internal operations, fee structures, client handling strategies, and business advice.';
-    
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: text,
         history: adminChatHist.slice(-10),
-        adminContext: adminCtx
+        isAdmin: true
       })
     });
     const data = await res.json();
