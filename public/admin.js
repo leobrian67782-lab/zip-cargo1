@@ -1132,13 +1132,25 @@ async function loadReviews() {
       return `
       <div style="background:white;border-radius:14px;border:1.5px solid #e2e8f0;padding:18px 20px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
-          <div>
-            <div style="font-weight:700;color:#0d1f35;font-size:.95rem;">${escapeHtml(r.name)}${r.company ? ` <span style="color:#94a3b8;font-weight:500;">— ${escapeHtml(r.company)}</span>` : ''}</div>
-            <div style="color:#f59e0b;font-size:.9rem;margin-top:2px;letter-spacing:1px;">${stars}</div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            ${r.photo ? `<img src="${r.photo}" alt="${escapeHtml(r.name)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid #e2e8f0;"/>` : ''}
+            <div>
+              <div style="font-weight:700;color:#0d1f35;font-size:.95rem;">${escapeHtml(r.name)}${r.company ? ` <span style="color:#94a3b8;font-weight:500;">— ${escapeHtml(r.company)}</span>` : ''}</div>
+              <div style="color:#f59e0b;font-size:.9rem;margin-top:2px;letter-spacing:1px;">${stars}</div>
+            </div>
           </div>
           <span style="background:${s.bg};color:${s.color};border:1px solid ${s.border};font-size:.7rem;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap;">${s.label}</span>
         </div>
         <p style="color:#374151;font-size:.88rem;line-height:1.6;margin-bottom:14px;">${escapeHtml(r.message)}</p>
+
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <i class="fa-solid fa-image" style="color:#94a3b8;"></i>
+          <span style="font-size:.78rem;color:#64748b;flex:1;">${r.photo ? 'Customer photo attached' : 'No photo — you can add one before approving'}</span>
+          <input type="file" id="rvAdminPhoto-${r._id}" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="handleAdminPhotoSelect(event,'${r._id}')"/>
+          <button class="tbl-btn" style="background:white;border:1px solid #e2e8f0;color:#0d1f35;" onclick="document.getElementById('rvAdminPhoto-${r._id}').click()"><i class="fa-solid fa-upload"></i> ${r.photo ? 'Replace photo' : 'Upload photo'}</button>
+          ${r.photo ? `<button class="tbl-btn" style="background:white;border:1px solid #fecaca;color:#dc2626;" onclick="removeReviewPhoto('${r._id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+        </div>
+
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
           <span style="font-size:.74rem;color:#94a3b8;">${new Date(r.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
           <div style="display:flex;gap:8px;">
@@ -1156,6 +1168,56 @@ async function setReviewStatus(id, status) {
   try {
     await api.patch(`/api/reviews/${id}`, { status });
     showToast(status === 'approved' ? 'Review approved — now live on your site.' : 'Review rejected.', 'success');
+    await loadReviews();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+function handleAdminPhotoSelect(event, reviewId) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) {
+    showToast('Please choose a PNG, JPEG, or WEBP image.', 'error');
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    showToast('Image is too large. Please choose a photo under 8MB.', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = async () => {
+      // Resize down before storing — keeps the document small in MongoDB.
+      const maxDim = 480;
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+        else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+      try {
+        await api.patch(`/api/reviews/${reviewId}`, { photo: dataUrl });
+        showToast('Photo uploaded.', 'success');
+        await loadReviews();
+      } catch (err) { showToast(err.message, 'error'); }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function removeReviewPhoto(id) {
+  if (!confirm('Remove this photo?')) return;
+  try {
+    await api.patch(`/api/reviews/${id}`, { photo: '' });
+    showToast('Photo removed.', 'info');
     await loadReviews();
   } catch(e) { showToast(e.message,'error'); }
 }
