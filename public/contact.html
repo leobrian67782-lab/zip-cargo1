@@ -20,7 +20,7 @@
   <link rel="canonical" href="https://zipcargo-app.onrender.com/contact"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Contact ZipCargo — Get a Free Shipping Quote</title>
-  <link rel="stylesheet" href="style.css?v=2.4"/>
+  <link rel="stylesheet" href="style.css?v=2.5"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
@@ -43,20 +43,60 @@
     }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css"/>
+<script>
+// Loader runs immediately — before body paints
+(function(){
+  // Inject loader styles immediately
+  var s = document.createElement('style');
+  s.textContent = [
+    '#zc-loader{position:fixed;inset:0;background:#0d1f35;z-index:99999;',
+    'display:flex;flex-direction:column;align-items:center;justify-content:center;}',
+    '#zc-loader img{animation:zcFloat 1.8s ease-in-out infinite;}',
+    '#zc-loader .zc-dots{display:flex;gap:10px;margin-top:28px;}',
+    '#zc-loader .zc-dot{width:10px;height:10px;border-radius:50%;background:#e8820c;}',
+    '#zc-loader .zc-dot:nth-child(1){animation:zcDot 1.2s ease-in-out infinite;}',
+    '#zc-loader .zc-dot:nth-child(2){animation:zcDot 1.2s ease-in-out .2s infinite;}',
+    '#zc-loader .zc-dot:nth-child(3){animation:zcDot 1.2s ease-in-out .4s infinite;}',
+    '@keyframes zcFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}',
+    '@keyframes zcDot{0%,80%,100%{transform:scale(.55);opacity:.3;}40%{transform:scale(1.1);opacity:1;}}'
+  ].join('');
+  document.head.appendChild(s);
+
+  // Lock scroll
+  document.documentElement.style.overflow = 'hidden';
+
+  var startTime = Date.now();
+
+  function dismissLoader(){
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    var el = document.getElementById('zc-loader');
+    if(!el) return;
+    el.style.transition = 'opacity .5s ease';
+    el.style.opacity = '0';
+    setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 520);
+  }
+
+  window.addEventListener('load', function(){
+    var elapsed = Date.now() - startTime;
+    var delay = Math.max(0, 1000 - elapsed);
+    setTimeout(dismissLoader, delay);
+  });
+
+  // Fallback
+  setTimeout(dismissLoader, 5000);
+})();
+</script>
 </head>
 <body>
-<div id="zc-loader" style="position:fixed;inset:0;background:#0d1f35;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s ease;">
-  <img src="logo-light.png?v=2.4" alt="ZipCargo" height="52" style="margin-bottom:32px;animation:zcFloat 1.8s ease-in-out infinite;"/>
-  <div style="display:flex;gap:10px;">
-    <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;animation:zcDot 1.2s ease-in-out infinite;"></div>
-    <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;animation:zcDot 1.2s ease-in-out .2s infinite;"></div>
-    <div style="width:8px;height:8px;border-radius:50%;background:#e8820c;animation:zcDot 1.2s ease-in-out .4s infinite;"></div>
+<div id="zc-loader">
+  <img src="logo-light.png?v=2.5" alt="ZipCargo" height="72"/>
+  <div class="zc-dots">
+    <div class="zc-dot"></div>
+    <div class="zc-dot"></div>
+    <div class="zc-dot"></div>
   </div>
 </div>
-<style>
-@keyframes zcFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
-@keyframes zcDot{0%,80%,100%{transform:scale(.6);opacity:.35;}40%{transform:scale(1.1);opacity:1;}}
-</style>
 <a href="#main-content" class="skip-link" style="position:absolute;top:-40px;left:0;background:#e8820c;color:white;padding:8px 16px;border-radius:0 0 8px 0;font-weight:700;z-index:9999;transition:top .2s;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
 
 <div id="progressBar"></div>
@@ -64,7 +104,7 @@
 
 <nav class="navbar scrolled" id="navbar">
   <div class="nav-container">
-    <a href="index.html" class="logo"><img src="logo.png?v=2.4" alt="ZipCargo" height="40" style="display:block;"/></a>
+    <a href="index.html" class="logo"><img src="logo.png?v=2.5" alt="ZipCargo" height="48" style="display:block;"/></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="services.html"><i class="fa-solid fa-boxes-stacked" style="color:#e8820c;width:18px;"></i> Services</a></li>
@@ -242,7 +282,7 @@
 <footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
-      <div class="logo"><img src="logo-light.png?v=2.4" alt="ZipCargo" height="32" style="display:block;"/></div>
+      <div class="logo"><img src="logo-light.png?v=2.5" alt="ZipCargo" height="44" style="display:block;"/></div>
       <span class="footer-tagline">Global Logistics Solutions</span>
       <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
       
@@ -276,7 +316,7 @@
   if(fHours)fHours.textContent=hours;
 })();
 </script>
-<script src="script.js?v=2.4"></script>
+<script src="script.js?v=2.5"></script>
 <script>
 // Auto-select service if coming from services page
 (function() {
@@ -302,7 +342,7 @@
 })();
 </script>
 
-<script src="chat.js?v=2.4"></script>
+<script src="chat.js?v=2.5"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded',function(){

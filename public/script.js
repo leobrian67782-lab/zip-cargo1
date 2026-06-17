@@ -1,34 +1,10 @@
 // ===== PAGE LOADER =====
-(function () {
-  var loader = document.getElementById('zc-loader');
-  var bar    = document.getElementById('progressBar');
-
-  // Lock scroll while loading
-  document.body.style.overflow = 'hidden';
-
-  function dismissLoader() {
-    document.body.style.overflow = '';
-    if (loader) {
-      loader.style.opacity    = '0';
-      loader.style.visibility = 'hidden';
-      setTimeout(function () { if (loader) loader.remove(); }, 550);
-    }
-  }
-
-  // Dismiss on load event, with a minimum show time of 800ms for polish
-  var startTime = Date.now();
-  window.addEventListener('load', function () {
-    var elapsed = Date.now() - startTime;
-    var delay   = Math.max(0, 800 - elapsed);
-    setTimeout(dismissLoader, delay);
-  });
-
-  // Safety fallback — dismiss after 4s no matter what
-  setTimeout(dismissLoader, 4000);
-
-  // Progress bar — scroll-based after load
-  window.addEventListener('scroll', function () {
-    if (bar) bar.style.width = (window.scrollY / (document.body.scrollHeight - innerHeight) * 100) + '%';
+// Loader is now handled inline in <head> for immediate display before paint
+// Progress bar — scroll-based
+(function(){
+  window.addEventListener('scroll', function(){
+    var bar = document.getElementById('progressBar');
+    if(bar) bar.style.width = (window.scrollY / (document.body.scrollHeight - innerHeight) * 100) + '%';
   });
 })();
 
