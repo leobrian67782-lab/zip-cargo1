@@ -1319,15 +1319,15 @@ function buildReceiptHTML(s) {
     + '<div style="font-size:.85rem;color:#374151;line-height:1.6;">'+s.notes+'</div></div></div>' : '')
 
     // footer with QR code
-    + '<div style="padding:18px 32px;background:white;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;border-top:1px solid #f1f5f9;">'
+    + '<div style="padding:18px 32px;background:#0d1f35;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;border-radius:0 0 16px 16px;">'
     + '<div style="display:flex;align-items:center;gap:10px;">'
-    + '<img src="logo.png" alt="ZipCargo" style="height:40px;display:block;"/>'
+    + '<img src="logo-light.png" alt="ZipCargo" style="height:40px;display:block;"/>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:14px;">'
     + '<div style="text-align:right;">'
-    + '<div style="font-size:.62rem;color:#94a3b8;margin-bottom:2px;">Scan to track shipment</div>'
-    + '<div style="font-size:.68rem;color:#94a3b8;">Please retain for your records</div>'
-    + '<div style="font-size:.7rem;color:#cbd5e1;margin-top:2px;">'+s.tracking+' &bull; '+receiptNumber+'</div>'
+    + '<div style="font-size:.62rem;color:#aac4e0;margin-bottom:2px;">Scan to track shipment</div>'
+    + '<div style="font-size:.68rem;color:#aac4e0;">Please retain for your records</div>'
+    + '<div style="font-size:.7rem;color:#7a9ab8;margin-top:2px;">'+s.tracking+' &bull; '+receiptNumber+'</div>'
     + '</div>'
     + '<div style="flex-shrink:0;">'
     + '<img id="qr-'+s.tracking+'" style="width:70px;height:70px;border-radius:8px;border:1px solid #e2e8f0;" src="" alt="QR Code"/>'
