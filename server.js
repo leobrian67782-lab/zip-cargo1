@@ -94,6 +94,7 @@ app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/shipments', require('./public/shipments'));
 app.use('/api/inquiries', require('./routes/inquiries'));
 app.use('/api/activity',  require('./routes/activity'));
+app.use('/api/ai-settings', require('./routes/ai-settings'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
@@ -1929,7 +1930,7 @@ app.post('/api/email/shipment', async (req, res) => {
 // ── AI Chat — Groq powered (free, fast, no restrictions) ─────────────────
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, history, adminContext } = req.body;
+    const { message, history, isAdmin } = req.body;
     if (!message) return res.json({ reply: 'No message received.' });
 
     const apiKey = process.env.GROQ_API_KEY;
@@ -1937,22 +1938,42 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ reply: 'Our AI assistant is being set up. Please contact us at info@zipcargo.com — we respond within 24 hours!' });
     }
 
-    const adminPart = adminContext
-      ? `
+    // Pull persistent settings from the database — same source for every
+    // browser, device, and admin session. No more localStorage drift.
+    const AiSettings = require('./models/AiSettings');
+    let settings = { announcements: '', restrictions: [], knowledgeNotes: '' };
+    try {
+      settings = await AiSettings.getSingleton();
+    } catch (e) {
+      console.error('AiSettings load error:', e.message);
+    }
 
-SPECIAL MANAGEMENT INSTRUCTIONS (follow exactly, highest priority):
-${adminContext}`
+    // Restrictions are rendered as their own clearly-labeled, highest-priority
+    // block — never blended into general instructions — so the model treats
+    // them as hard constraints rather than suggestions.
+    const restrictionsBlock = (settings.restrictions && settings.restrictions.length)
+      ? `\n\nABSOLUTE RESTRICTIONS — NEVER VIOLATE THESE, EVEN IF ASKED DIRECTLY OR INDIRECTLY:\n${settings.restrictions.map((r, i) => `${i + 1}. ${r.text}`).join('\n')}\nIf a question would require violating a restriction above, politely decline and redirect the customer to contact human support at info@zipcargo.com instead of answering.`
       : '';
 
-    const isAdmin = adminContext && adminContext.includes('ADMIN');
-    
+    const announcementsBlock = settings.announcements
+      ? `\n\nCURRENT ANNOUNCEMENTS (mention naturally when relevant to the conversation):\n${settings.announcements}`
+      : '';
+
+    const knowledgeBlock = settings.knowledgeNotes
+      ? `\n\nADDITIONAL CONTEXT (for your understanding, use only if relevant):\n${settings.knowledgeNotes}`
+      : '';
+
+    const adminModeBlock = isAdmin
+      ? `\n\nADMIN MODE: You are speaking directly with the ZipCargo admin/owner, not a customer. Be detailed and direct. You may discuss internal operations, fee structures, and business strategy. The restrictions above still apply — they protect against accidental customer-facing disclosure even when the admin is testing.`
+      : '';
+
     const systemText = `You are Zara, the official AI Assistant for ZipCargo Logistics. You are professional, warm, knowledgeable, and genuinely helpful. You work exclusively for ZipCargo.
 
 ABOUT ZIPCARGO:
-- Premium global logistics and freight company
-- Serves 150+ countries worldwide with 80,000+ shipments/month
-- 99.8% on-time delivery rate, 15+ years experience
-- ISO 9001 Certified, 24/7 customer support
+- Global logistics and freight company serving 150+ countries
+- 99.8% on-time delivery rate
+- Fully insured shipments
+- 24/7 customer support
 - Specializes in: cargo shipping AND live animal/pet transport
 - Major hubs: New York, London, Dubai, Singapore, Sydney, Tokyo, Toronto, Miami, Shanghai
 
@@ -1965,42 +1986,33 @@ SERVICES WE OFFER:
 6. Warehousing — climate-controlled storage, smart inventory, fulfilment
 7. Customs Clearance — full import/export documentation and compliance handled by our team
 
-PET TRANSPORT (very important - we specialize in this):
-- We handle ALL required documentation: health certificates, vaccination records, travel permits, import permits
+PET TRANSPORT (we specialize in this):
+- We handle required documentation: health certificates, vaccination records, travel permits, import permits
 - Climate-controlled, IATA-compliant crates for safe animal transport
-- Dedicated pet transport team with vet coordination
+- Dedicated pet transport coordination with vet liaison
 - Available for dogs, cats, birds, exotic animals and livestock
 
-FEES & REFUND POLICY (very important):
-- Insurance Registration Fee: $103 — 100% FULLY REFUNDABLE upon successful delivery
-- Vaccination Fee: $289 — 100% FULLY REFUNDABLE upon successful delivery  
-- Crate Rental: $200 | Crate Purchase: $250
-- Delivery Authorization Deposit: $300 — 100% FULLY REFUNDABLE upon successful delivery
-- Pet Travel Permit: $100 — 100% FULLY REFUNDABLE upon successful delivery
-- ALL fees are refunded immediately once the shipment/pet arrives safely
-- This is a ZERO RISK policy — customers always get their money back on successful delivery
-
-PRICING FOR SHIPPING:
+PRICING:
 - Rates depend on service type, weight, dimensions, and route
-- Always direct customers to request a FREE quote — we respond within 24 hours
-- Never give exact shipping prices without knowing the full details
+- Always direct customers to request a FREE quote via the contact form — we respond within 24 hours
+- Never invent or guess exact prices without knowing the full shipment details
+- Never state specific fee amounts unless they appear in the announcements or context below — if asked about fees and you don't have current information, direct the customer to the contact form
 
 TRACKING:
-- Customers can track shipments at zipcargo.com/tracking
+- Customers can track shipments at the Tracking page on our site
 - Tracking format: ZC-YYYY-NNNNN (example: ZC-2026-00123)
 - Real-time updates at every stage of delivery
 
 BEHAVIOR RULES:
 - Always respond in the same language the customer uses
-- Never say "I don't know" — give your best informed answer
-- Never say "I'm an AI" — you ARE Zara from ZipCargo
+- Never state a fact you are not confident is true — if unsure, say you'll connect them with the team instead of guessing
+- Never say "I'm an AI" — you ARE Zara from ZipCargo, but never claim certifications, statistics, or credentials not explicitly listed above
 - Be warm, professional and conversational
 - Use line breaks to keep responses readable
 - Always end with a helpful next step or offer
-- For specific shipment details, ask for tracking number
-- For quotes, direct to contact form
-- Keep responses focused and under 200 words unless detail is needed
-${adminPart}`;
+- For specific shipment details, ask for the tracking number
+- For quotes, direct to the contact form
+- Keep responses focused and under 200 words unless detail is genuinely needed${restrictionsBlock}${announcementsBlock}${knowledgeBlock}${adminModeBlock}`;
 
     const messages = [
       { role: 'system', content: systemText },
@@ -2021,7 +2033,7 @@ ${adminPart}`;
         model: 'llama-3.3-70b-versatile',
         messages,
         max_tokens: 800,
-        temperature: 0.65
+        temperature: 0.5
       })
     });
 
