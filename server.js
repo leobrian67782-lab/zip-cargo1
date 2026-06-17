@@ -95,6 +95,7 @@ app.use('/api/shipments', require('./public/shipments'));
 app.use('/api/inquiries', require('./routes/inquiries'));
 app.use('/api/activity',  require('./routes/activity'));
 app.use('/api/ai-settings', require('./routes/ai-settings'));
+app.use('/api/reviews', require('./routes/reviews'));
 
 app.get('/health', (_, res) => res.send('OK'));
 
