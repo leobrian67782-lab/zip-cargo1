@@ -3,10 +3,10 @@
 <head>
 
   <meta charset="UTF-8"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2.9"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=2.9"/>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2.9"/>
-  <link rel="manifest" href="manifest.json?v=2.9"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3.1"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=3.1"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3.1"/>
+  <link rel="manifest" href="manifest.json?v=3.1"/>
   <meta name="theme-color" content="#0d1f35"/>
   <meta name="description" content="ZipCargo is a trusted global logistics company serving 150+ countries with a 99.8% on-time delivery rate and fully insured shipments."/>
   <meta name="keywords" content="about ZipCargo, logistics company, global shipping, trusted freight company"/>
@@ -23,7 +23,7 @@
   <link rel="canonical" href="https://zipcargo-app.onrender.com/about"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>About ZipCargo — Trusted Global Logistics Since 2009</title>
-  <link rel="stylesheet" href="style.css?v=2.9"/>
+  <link rel="stylesheet" href="style.css?v=3.1"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
@@ -56,7 +56,7 @@
 
 <nav class="navbar scrolled" id="navbar">
   <div class="nav-container">
-    <a href="index.html" class="logo"><img src="logo.png?v=2.9" alt="ZipCargo" height="40" style="display:block;"/></a>
+    <a href="index.html" class="logo"><img src="logo.png?v=3.1" alt="ZipCargo" height="40" style="display:block;"/></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="services.html"><i class="fa-solid fa-boxes-stacked" style="color:#e8820c;width:18px;"></i> Services</a></li>
@@ -230,7 +230,7 @@
 <footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
-      <div class="logo"><img src="logo-light.png?v=2.9" alt="ZipCargo" height="32" style="display:block;"/></div>
+      <div class="logo"><img src="logo-light.png?v=3.1" alt="ZipCargo" height="32" style="display:block;"/></div>
       <span class="footer-tagline">Global Logistics Solutions</span>
       <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
       
@@ -258,9 +258,9 @@
   if(fHours)fHours.textContent=hours;
 })();
 </script>
-<script src="script.js?v=2.9"></script>
+<script src="script.js?v=3.1"></script>
 
-<script src="chat.js?v=2.9"></script>
+<script src="chat.js?v=3.1"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded',function(){
@@ -274,6 +274,33 @@ document.addEventListener('DOMContentLoaded',function(){
   if (typeof AOS !== 'undefined') {
     AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });
   }
+</script>
+<div id="cookieBanner" role="dialog" aria-label="Cookie consent">
+  <p>We use cookies to improve your experience and analyze site traffic. By clicking "Accept", you consent to our use of cookies. Read our <a href="cookies.html">Cookie Policy</a> to learn more.</p>
+  <div class="cb-actions">
+    <button class="cb-decline" onclick="zcCookieConsent(false)">Decline</button>
+    <button class="cb-accept" onclick="zcCookieConsent(true)">Accept</button>
+  </div>
+</div>
+<script>
+(function(){
+  function zcShowBanner(){
+    var existing = localStorage.getItem('zc_cookie_consent');
+    if (existing) return;
+    var el = document.getElementById('cookieBanner');
+    if (el) setTimeout(function(){ el.classList.add('visible'); }, 600);
+  }
+  window.zcCookieConsent = function(accepted){
+    localStorage.setItem('zc_cookie_consent', accepted ? 'accepted' : 'declined');
+    var el = document.getElementById('cookieBanner');
+    if (el) el.classList.remove('visible');
+  };
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    zcShowBanner();
+  } else {
+    document.addEventListener('DOMContentLoaded', zcShowBanner);
+  }
+})();
 </script>
 </body>
 </html>

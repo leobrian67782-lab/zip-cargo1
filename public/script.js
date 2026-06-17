@@ -883,11 +883,8 @@ async function submitSubscription() {
 
     document.getElementById('subscribeForm').style.display = 'none';
     document.getElementById('subscribeSuccessMsg').textContent =
-      `Subscription for ${data.tracking} created. Complete payment of ${planPrices[plan]} to activate your alerts.`;
+      `Request received for ${data.tracking}. Our team will contact you at ${email} within 24 hours with payment instructions to activate your ${planPrices[plan]} alert plan.`;
     document.getElementById('subscribeSuccess').style.display = 'flex';
-
-    // TODO: redirect to payment page when provider is ready:
-    // if (data.paymentUrl) window.location.href = data.paymentUrl;
 
   } catch {
     errEl.textContent = 'Network error. Please try again.';
