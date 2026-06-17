@@ -1,3 +1,10 @@
+// ===== UTILITIES =====
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
 // ===== TOKEN STORAGE (fallback for mobile browsers) =====
 const TokenStore = {
   set: (t) => { try { localStorage.setItem('zc_token', t); } catch(e) {} },
@@ -87,13 +94,14 @@ async function showSection(name, clickedEl) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('sec-'+name)?.classList.add('active');
-  const titles = {dashboard:'Dashboard',shipments:'Shipments',create:'New Shipment',receipts:'Receipts',inquiries:'Inquiries',settings:'Settings',activity:'Activity Log'};
+  const titles = {dashboard:'Dashboard',shipments:'Shipments',create:'New Shipment',receipts:'Receipts',inquiries:'Inquiries',reviews:'Reviews',settings:'Settings',activity:'Activity Log'};
   document.getElementById('pageTitle').textContent = titles[name]||name;
   if (clickedEl) clickedEl.classList.add('active');
   if (window.innerWidth<=900) closeSidebar();
   if (name==='dashboard')  await loadDashboard();
   if (name==='shipments')  await loadShipments();
   if (name==='inquiries')  await loadInquiries();
+  if (name==='reviews')    await loadReviews();
   if (name==='activity')   await loadActivity();
   if (name==='settings')   loadContactSettings();
 }
@@ -1089,6 +1097,75 @@ async function deleteInquiry(id) {
     showToast('Inquiry deleted.','info');
     await loadInquiries();
     await loadDashboard();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ===== REVIEWS =====
+async function loadReviews() {
+  try {
+    const data = await api.get('/api/reviews');
+    const reviews = data.reviews || [];
+    const list  = document.getElementById('reviewsList');
+    const empty = document.getElementById('reviewsEmpty');
+
+    const pending  = reviews.filter(r => r.status === 'pending').length;
+    const approved = reviews.filter(r => r.status === 'approved').length;
+    document.getElementById('reviewsPendingCount').textContent  = pending;
+    document.getElementById('reviewsApprovedCount').textContent = approved;
+
+    if (!reviews.length) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    const statusStyles = {
+      pending:  { bg:'#fff7ed', border:'#fed7aa', color:'#c2410c', label:'Pending review' },
+      approved: { bg:'#f0fdf4', border:'#bbf7d0', color:'#15803d', label:'Approved — live on site' },
+      rejected: { bg:'#fef2f2', border:'#fecaca', color:'#b91c1c', label:'Rejected' },
+    };
+
+    list.innerHTML = reviews.map(r => {
+      const s = statusStyles[r.status] || statusStyles.pending;
+      const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      return `
+      <div style="background:white;border-radius:14px;border:1.5px solid #e2e8f0;padding:18px 20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+          <div>
+            <div style="font-weight:700;color:#0d1f35;font-size:.95rem;">${escapeHtml(r.name)}${r.company ? ` <span style="color:#94a3b8;font-weight:500;">— ${escapeHtml(r.company)}</span>` : ''}</div>
+            <div style="color:#f59e0b;font-size:.9rem;margin-top:2px;letter-spacing:1px;">${stars}</div>
+          </div>
+          <span style="background:${s.bg};color:${s.color};border:1px solid ${s.border};font-size:.7rem;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap;">${s.label}</span>
+        </div>
+        <p style="color:#374151;font-size:.88rem;line-height:1.6;margin-bottom:14px;">${escapeHtml(r.message)}</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+          <span style="font-size:.74rem;color:#94a3b8;">${new Date(r.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+          <div style="display:flex;gap:8px;">
+            ${r.status !== 'approved' ? `<button class="tbl-btn" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;" onclick="setReviewStatus('${r._id}','approved')"><i class="fa-solid fa-check"></i> Approve</button>` : ''}
+            ${r.status !== 'rejected' ? `<button class="tbl-btn" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;" onclick="setReviewStatus('${r._id}','rejected')"><i class="fa-solid fa-xmark"></i> Reject</button>` : ''}
+            <button class="tbl-btn tbl-btn-delete" onclick="deleteReview('${r._id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { showToast('Load reviews failed: '+e.message,'error'); }
+}
+
+async function setReviewStatus(id, status) {
+  try {
+    await api.patch(`/api/reviews/${id}`, { status });
+    showToast(status === 'approved' ? 'Review approved — now live on your site.' : 'Review rejected.', 'success');
+    await loadReviews();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteReview(id) {
+  if (!confirm('Permanently delete this review?')) return;
+  try {
+    await api.delete(`/api/reviews/${id}`);
+    showToast('Review deleted.','info');
+    await loadReviews();
   } catch(e) { showToast(e.message,'error'); }
 }
 
