@@ -268,3 +268,20 @@ html { overflow-x: hidden; }
   .topbar { padding: 12px 14px !important; }
   .content-area { padding: 16px !important; }
 }
+
+/* ===== EXTRA SMALL SCREEN FIXES (admin dashboard) ====================== */
+@media (max-width: 420px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card { padding: 14px 12px; gap: 10px; }
+  .stat-icon-wrap { width: 40px; height: 40px; font-size: 1.1rem; border-radius: 11px; }
+  .stat-info h3 { font-size: 1.4rem; }
+  .stat-info p { font-size: .72rem; }
+  .dash-card { padding: 16px 14px; }
+  .dash-card h3 { font-size: .85rem; }
+}
+
+/* Chart containers — fixed height prevents Chart.js auto-stretching forever on mobile */
+.dash-card canvas { max-height: 260px !important; }
+@media (max-width: 600px) {
+  .dash-card canvas { max-height: 200px !important; }
+}
