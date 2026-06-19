@@ -464,13 +464,23 @@ a.logo {
 .breadcrumb a:hover { color: #e8820c; }
 .breadcrumb span { color: #e8820c; font-weight: 600; }
 
-/* ── PAGE TRANSITION FADE-IN ── */
+/* ── PAGE TRANSITION FADE-IN ──
+   IMPORTANT: this animation must never leave a lingering `transform` on
+   <body> after it finishes — a transformed ancestor creates a new
+   containing block for `position:fixed` children (like #cookieBanner),
+   which traps them inside the page instead of pinning them to the
+   viewport. We use forwards only on opacity via a separate rule below,
+   and explicitly clear transform once the animation ends. */
 body {
   animation: pageFadeIn 0.4s ease both;
 }
 @keyframes pageFadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+body.fade-in-done {
+  animation: none;
+  transform: none;
 }
 
 /* Smooth fade-out when clicking links */
