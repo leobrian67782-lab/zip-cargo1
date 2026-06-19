@@ -1,3 +1,20 @@
+// ===== CLEAR BODY TRANSFORM AFTER PAGE FADE-IN =====
+// A transformed <body> creates a new containing block for any
+// position:fixed children (cookie banner, chat widget, etc.), trapping
+// them inside the page instead of pinning them to the real viewport.
+// The fade-in animation only needs to run once on load, so we remove it
+// (and its transform) as soon as it completes.
+document.body.addEventListener('animationend', function handler(e) {
+  if (e.animationName === 'pageFadeIn') {
+    document.body.classList.add('fade-in-done');
+    document.body.removeEventListener('animationend', handler);
+  }
+});
+// Fallback in case the animationend event is missed (some mobile browsers)
+setTimeout(function () {
+  document.body.classList.add('fade-in-done');
+}, 500);
+
 // ===== PAGE LOADER =====
 (function () {
   var loader = document.getElementById('zc-loader');
