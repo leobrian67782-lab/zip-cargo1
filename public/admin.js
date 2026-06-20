@@ -108,6 +108,17 @@ async function showSection(name, clickedEl) {
 
 let sidebarScrollLockY = 0;
 
+// Touch devices can still let a scroll gesture "fall through" to the page
+// behind a fixed-position panel — position:fixed + overflow:hidden on body
+// blocks mouse-wheel scrolling reliably, but not always touchmove. This
+// guard explicitly blocks any touch-scroll that doesn't originate inside
+// the sidebar's own scrollable nav list while the menu is open.
+function _sidebarTouchGuard(e) {
+  const nav = document.querySelector('.sidebar-nav');
+  if (nav && nav.contains(e.target)) return; // allow scrolling the menu itself
+  e.preventDefault();
+}
+
 function toggleSidebar() {
   const s=document.getElementById('sidebar'), b=document.getElementById('sidebarBackdrop');
   if(s.classList.contains('open')){ closeSidebar(); }
@@ -123,6 +134,7 @@ function toggleSidebar() {
     document.body.style.right = '0';
     document.body.style.width = '100%';
     document.body.style.overflow = 'hidden';
+    document.addEventListener('touchmove', _sidebarTouchGuard, { passive: false });
   }
 }
 function closeSidebar() {
@@ -135,6 +147,7 @@ function closeSidebar() {
   document.body.style.width = '';
   document.body.style.overflow = '';
   window.scrollTo(0, sidebarScrollLockY);
+  document.removeEventListener('touchmove', _sidebarTouchGuard, { passive: false });
 }
 
 // ===== DASHBOARD =====
