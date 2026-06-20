@@ -141,6 +141,15 @@ router.post('/',
         console.error('Contact email error:', err.message)
       );
 
+      // Push a notification immediately — accurate and instant, no polling needed
+      const Notification = require('../models/Notification');
+      Notification.push(
+        'inquiry',
+        `New inquiry from ${name}`,
+        service ? `Regarding: ${service}` : message.slice(0, 80),
+        'section:inquiries'
+      ).catch(() => {});
+
       res.status(201).json({ ok: true, id: inq._id });
     } catch (err) {
       res.status(500).json({ error: 'Server error.' });
