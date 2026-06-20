@@ -1,8 +1,13 @@
 /* ===== RESET & BASE ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-html { overflow-x: hidden; }
-body { font-family: 'Outfit', 'Segoe UI', sans-serif; color: #333; line-height: 1.6; overflow-x: hidden; }
+html { overflow-x: hidden; background: #0d1f35; }
+/* Brand-navy base background — visible only in the brief blank frame
+   some mobile browsers (notably iOS Safari) show between page navigations,
+   before any page content has painted. Without this, that moment is
+   stark white instead of matching the site's theme. Real page content
+   sits on top via its own background, so this is invisible in normal use. */
+body { font-family: 'Outfit', 'Segoe UI', sans-serif; color: #333; line-height: 1.6; overflow-x: hidden; background: #f8fafc; }
 a { text-decoration: none; color: inherit; }
 
 .navbar { background-color: transparent; padding: 16px 0; position: fixed; top: 0; left:0; right:0; z-index: 1000; transition: background .35s ease, box-shadow .35s ease, padding .35s ease; }
