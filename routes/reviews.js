@@ -39,6 +39,13 @@ router.post('/',
         photo,
         status:  'pending',
       });
+      const Notification = require('../models/Notification');
+      Notification.push(
+        'review',
+        `New ${req.body.rating}-star review from ${req.body.name}`,
+        req.body.message.slice(0, 80),
+        'section:reviews'
+      ).catch(() => {});
       res.json({ ok: true, review });
     } catch (err) {
       res.status(500).json({ error: 'Could not submit review. Please try again.' });
