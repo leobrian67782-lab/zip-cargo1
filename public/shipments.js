@@ -3,8 +3,6 @@ const { body, validationResult } = require('express-validator');
 const Shipment   = require('../models/Shipment');
 const { protect }= require('../middleware/auth');
 const log        = require('../middleware/activityLogger');
-const sendBrevoEmail = require('../utils/sendBrevoEmail');
-const { shipmentCreatedEmail, shipmentStatusUpdateEmail } = require('../utils/shipmentEmails');
 
 const router = express.Router();
 
@@ -100,15 +98,11 @@ router.post('/',
 
       await log(req, 'CREATE_SHIPMENT', s.tracking);
 
-      // Notify client by email (non-blocking — doesn't fail the request if email fails)
-      if (s.rEmail) {
-        sendBrevoEmail({
-          toEmail: s.rEmail,
-          toName: s.rName,
-          subject: `Your ZipCargo Shipment ${s.tracking} Has Been Created`,
-          htmlContent: shipmentCreatedEmail(s),
-        }).catch(e => console.error('Shipment creation email failed:', e.message));
-      }
+      // NOTE: customer notification email is sent separately by the admin
+      // panel via POST /api/email/shipment (server.js) — that's the
+      // properly-branded version with the real logo and tracking-number
+      // box, with retry logic for reliability. Sending it again here would
+      // duplicate the email, so this route intentionally does not email.
 
       res.status(201).json(s);
     } catch (err) {
@@ -150,15 +144,10 @@ router.put('/:id', async (req, res) => {
     await s.save();
     await log(req, 'UPDATE_SHIPMENT', s.tracking);
 
-    // Notify client when status changes (non-blocking)
-    if (req.body.status && req.body.status !== oldStatus && s.rEmail) {
-      sendBrevoEmail({
-        toEmail: s.rEmail,
-        toName: s.rName,
-        subject: `Update on Your ZipCargo Shipment ${s.tracking}: ${s.status}`,
-        htmlContent: shipmentStatusUpdateEmail(s),
-      }).catch(e => console.error('Shipment status email failed:', e.message));
-    }
+    // NOTE: customer notification email is sent separately by the admin
+    // panel via POST /api/email/status-update (server.js) — that's the
+    // properly-branded version with the real logo. Sending it again here
+    // would duplicate the email, so this route intentionally does not email.
 
     res.json(s);
   } catch (err) {
