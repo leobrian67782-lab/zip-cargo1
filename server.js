@@ -157,13 +157,25 @@ app.post('/api/email/status-update', async (req, res) => {
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="color-scheme" content="light only"/>
-<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+<meta name="supported-color-schemes" content="light only"/>
+<meta name="x-apple-disable-message-reformatting"/>
+<style>
+body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
+/* Force our brand colors to survive email-client dark mode (notably Gmail
+   mobile), which otherwise inverts light-text-on-dark-background blocks
+   and can wash out the navy header to pale blue, hiding the white logo. */
+@media (prefers-color-scheme: dark) {
+  .zc-header, .zc-footer { background:#0d1f35 !important; }
+  .zc-header *, .zc-footer * { color:#ffffff !important; }
+}
+[data-ogsc] .zc-header, [data-ogsc] .zc-footer { background:#0d1f35 !important; }
+</style>
 </head>
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
 
   <!-- Header -->
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+  <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
     <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;">Shipment Status Update</div>
   </div>
@@ -225,7 +237,7 @@ app.post('/api/email/status-update', async (req, res) => {
   </div>
 
   <!-- Footer -->
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+  <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
     <div style="color:#aac4e0;font-size:11px;font-family:Helvetica,Arial,sans-serif;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
   </div>
 </div>
@@ -448,11 +460,23 @@ app.post('/api/email/crate-invoice', async (req, res) => {
     // ── Email ──
     const emailHtml = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"/><meta name="color-scheme" content="light only"/>
-<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+<meta name="supported-color-schemes" content="light only"/>
+<meta name="x-apple-disable-message-reformatting"/>
+<style>
+body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
+/* Force our brand colors to survive email-client dark mode (notably Gmail
+   mobile), which otherwise inverts light-text-on-dark-background blocks
+   and can wash out the navy header to pale blue, hiding the white logo. */
+@media (prefers-color-scheme: dark) {
+  .zc-header, .zc-footer { background:#0d1f35 !important; }
+  .zc-header *, .zc-footer * { color:#ffffff !important; }
+}
+[data-ogsc] .zc-header, [data-ogsc] .zc-footer { background:#0d1f35 !important; }
+</style>
 </head>
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+  <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
     <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions</div>
   </div>
@@ -500,7 +524,7 @@ app.post('/api/email/crate-invoice', async (req, res) => {
       Your official crate invoice is attached to this email for your records.
     </p>
   </div>
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+  <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
     <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
   </div>
 </div>
@@ -704,11 +728,23 @@ app.post('/api/email/vaccine-invoice', async (req, res) => {
 
     const emailHtml = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"/><meta name="color-scheme" content="light only"/>
-<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+<meta name="supported-color-schemes" content="light only"/>
+<meta name="x-apple-disable-message-reformatting"/>
+<style>
+body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
+/* Force our brand colors to survive email-client dark mode (notably Gmail
+   mobile), which otherwise inverts light-text-on-dark-background blocks
+   and can wash out the navy header to pale blue, hiding the white logo. */
+@media (prefers-color-scheme: dark) {
+  .zc-header, .zc-footer { background:#0d1f35 !important; }
+  .zc-header *, .zc-footer * { color:#ffffff !important; }
+}
+[data-ogsc] .zc-header, [data-ogsc] .zc-footer { background:#0d1f35 !important; }
+</style>
 </head>
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+  <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
     <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions</div>
   </div>
@@ -742,7 +778,7 @@ app.post('/api/email/vaccine-invoice', async (req, res) => {
       <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
     </p>
   </div>
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+  <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
     <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
     <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official vaccination invoice is attached to this email.</div>
   </div>
@@ -950,11 +986,23 @@ app.post('/api/email/insurance-invoice', async (req, res) => {
 
     const emailHtml = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"/><meta name="color-scheme" content="light only"/>
-<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+<meta name="supported-color-schemes" content="light only"/>
+<meta name="x-apple-disable-message-reformatting"/>
+<style>
+body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
+/* Force our brand colors to survive email-client dark mode (notably Gmail
+   mobile), which otherwise inverts light-text-on-dark-background blocks
+   and can wash out the navy header to pale blue, hiding the white logo. */
+@media (prefers-color-scheme: dark) {
+  .zc-header, .zc-footer { background:#0d1f35 !important; }
+  .zc-header *, .zc-footer * { color:#ffffff !important; }
+}
+[data-ogsc] .zc-header, [data-ogsc] .zc-footer { background:#0d1f35 !important; }
+</style>
 </head>
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+  <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
     <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions — Official Insurance Notice</div>
   </div>
@@ -1011,7 +1059,7 @@ app.post('/api/email/insurance-invoice', async (req, res) => {
       <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
     </p>
   </div>
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+  <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
     <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
     <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official insurance invoice is attached to this email.</div>
   </div>
@@ -1218,11 +1266,23 @@ app.post('/api/email/delivery-auth', async (req, res) => {
 
     const emailHtml = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"/><meta name="color-scheme" content="light only"/>
-<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+<meta name="supported-color-schemes" content="light only"/>
+<meta name="x-apple-disable-message-reformatting"/>
+<style>
+body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
+/* Force our brand colors to survive email-client dark mode (notably Gmail
+   mobile), which otherwise inverts light-text-on-dark-background blocks
+   and can wash out the navy header to pale blue, hiding the white logo. */
+@media (prefers-color-scheme: dark) {
+  .zc-header, .zc-footer { background:#0d1f35 !important; }
+  .zc-header *, .zc-footer * { color:#ffffff !important; }
+}
+[data-ogsc] .zc-header, [data-ogsc] .zc-footer { background:#0d1f35 !important; }
+</style>
 </head>
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+  <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
     <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Delivery Authorization Notice</div>
   </div>
@@ -1274,7 +1334,7 @@ app.post('/api/email/delivery-auth', async (req, res) => {
       <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
     </p>
   </div>
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+  <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
     <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
     <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official authorization invoice is attached to this email.</div>
   </div>
@@ -1479,11 +1539,23 @@ app.post('/api/email/travel-permit', async (req, res) => {
 
     const emailHtml = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"/><meta name="color-scheme" content="light only"/>
-<style>body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}</style>
+<meta name="supported-color-schemes" content="light only"/>
+<meta name="x-apple-disable-message-reformatting"/>
+<style>
+body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
+/* Force our brand colors to survive email-client dark mode (notably Gmail
+   mobile), which otherwise inverts light-text-on-dark-background blocks
+   and can wash out the navy header to pale blue, hiding the white logo. */
+@media (prefers-color-scheme: dark) {
+  .zc-header, .zc-footer { background:#0d1f35 !important; }
+  .zc-header *, .zc-footer * { color:#ffffff !important; }
+}
+[data-ogsc] .zc-header, [data-ogsc] .zc-footer { background:#0d1f35 !important; }
+</style>
 </head>
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+  <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
     <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Pet Travel Permit Notice</div>
   </div>
@@ -1532,7 +1604,7 @@ app.post('/api/email/travel-permit', async (req, res) => {
       <a href="mailto:${siteEmail}" style="color:#e8820c;">${siteEmail}</a>
     </p>
   </div>
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+  <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
     <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
     <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official pet travel permit invoice is attached to this email.</div>
   </div>
@@ -1828,16 +1900,26 @@ app.post('/api/email/shipment', async (req, res) => {
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="color-scheme" content="light only"/>
+<meta name="supported-color-schemes" content="light only"/>
+<meta name="x-apple-disable-message-reformatting"/>
 <style>
   body { margin:0; padding:0; background:#f3f4f6; font-family:Helvetica,Arial,sans-serif; }
   a { color:#e8820c; }
+  /* Force our brand colors to survive email-client dark mode (notably
+     Gmail mobile), which otherwise inverts light-text-on-dark-background
+     blocks and can wash out the navy header to pale blue. */
+  @media (prefers-color-scheme: dark) {
+    .zc-header, .zc-footer { background:#0d1f35 !important; }
+    .zc-header *, .zc-footer * { color:#ffffff !important; }
+  }
+  [data-ogsc] .zc-header, [data-ogsc] .zc-footer { background:#0d1f35 !important; }
 </style>
 </head>
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
 
   <!-- Header -->
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
+  <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
     <table width="100%" cellpadding="0" cellspacing="0"><tr>
       <td>
         <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
@@ -1914,7 +1996,7 @@ app.post('/api/email/shipment', async (req, res) => {
   </div>
 
   <!-- Footer -->
-  <div bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
+  <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
     <div style="color:#aac4e0;font-size:11px;font-family:Helvetica,Arial,sans-serif;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
     <div style="color:#4a6a88;font-size:10px;margin-top:4px;font-family:Helvetica,Arial,sans-serif;">This is an official ZipCargo document. Please keep for your records.</div>
   </div>
