@@ -42,7 +42,7 @@ router.post('/',
       const Notification = require('../models/Notification');
       Notification.push(
         'review',
-        `New ${req.body.rating}-star review from ${req.body.name}`,
+        `New ${req.body.rating}-star review from ${req.body.name}`.slice(0, 200),
         req.body.message.slice(0, 80),
         'section:reviews'
       ).catch(() => {});
