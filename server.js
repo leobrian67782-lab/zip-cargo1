@@ -161,16 +161,6 @@ app.post('/api/email/status-update', async (req, res) => {
 <meta name="x-apple-disable-message-reformatting"/>
 <style>
 body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
-/* Gmail mobile apps (iOS/Android) ignore the prefers-color-scheme media
-   query entirely and instead forcibly invert any coded color it finds —
-   our navy header with white text gets flipped to a pale background with
-   dark text, hiding the white logo. This blend-mode technique exploits
-   how Gmail's inversion math interacts with mix-blend-mode so the colors
-   cancel back out to their original values. Targets Gmail specifically
-   via the "u + .body" selector (Gmail replaces the doctype with <u>),
-   so other clients that already render correctly are unaffected. */
-u + .body .gmail-blend-screen { background:#0d1f35; mix-blend-mode:screen; }
-u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:difference; }
 </style>
 </head>
 <body class="body" bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
@@ -178,12 +168,8 @@ u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:differenc
 
   <!-- Header -->
   <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
-        <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;">Shipment Status Update</div>
-      </div>
-    </div>
+    <img src="https://zipcargologistics.com/logo-light-email.png" alt="ZipCargo" style="height:64px;display:block;"/>
+    <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;margin-top:8px;">Shipment Status Update</div>
   </div>
 
   <!-- Body -->
@@ -244,11 +230,7 @@ u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:differenc
 
   <!-- Footer -->
   <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <div style="color:#aac4e0;font-size:11px;font-family:Helvetica,Arial,sans-serif;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
-      </div>
-    </div>
+    <div style="color:#aac4e0;font-size:11px;font-family:Helvetica,Arial,sans-serif;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
   </div>
 </div>
 </body>
@@ -474,27 +456,13 @@ app.post('/api/email/crate-invoice', async (req, res) => {
 <meta name="x-apple-disable-message-reformatting"/>
 <style>
 body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
-/* Gmail mobile apps (iOS/Android) ignore the prefers-color-scheme media
-   query entirely and instead forcibly invert any coded color it finds —
-   our navy header with white text gets flipped to a pale background with
-   dark text, hiding the white logo. This blend-mode technique exploits
-   how Gmail's inversion math interacts with mix-blend-mode so the colors
-   cancel back out to their original values. Targets Gmail specifically
-   via the "u + .body" selector (Gmail replaces the doctype with <u>),
-   so other clients that already render correctly are unaffected. */
-u + .body .gmail-blend-screen { background:#0d1f35; mix-blend-mode:screen; }
-u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:difference; }
 </style>
 </head>
 <body class="body" bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
-        <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions</div>
-      </div>
-    </div>
+    <img src="https://zipcargologistics.com/logo-light-email.png" alt="ZipCargo" style="height:64px;display:block;"/>
+    <div style="color:#aac4e0;font-size:12px;margin-top:8px;">Global Logistics Solutions</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
     <p style="color:#0d1f35;font-size:15px;">Dear <strong>${shipment.rName}</strong>,</p>
@@ -541,11 +509,7 @@ u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:differenc
     </p>
   </div>
   <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
-      </div>
-    </div>
+    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
   </div>
 </div>
 </body></html>`;
@@ -752,27 +716,13 @@ app.post('/api/email/vaccine-invoice', async (req, res) => {
 <meta name="x-apple-disable-message-reformatting"/>
 <style>
 body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
-/* Gmail mobile apps (iOS/Android) ignore the prefers-color-scheme media
-   query entirely and instead forcibly invert any coded color it finds —
-   our navy header with white text gets flipped to a pale background with
-   dark text, hiding the white logo. This blend-mode technique exploits
-   how Gmail's inversion math interacts with mix-blend-mode so the colors
-   cancel back out to their original values. Targets Gmail specifically
-   via the "u + .body" selector (Gmail replaces the doctype with <u>),
-   so other clients that already render correctly are unaffected. */
-u + .body .gmail-blend-screen { background:#0d1f35; mix-blend-mode:screen; }
-u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:difference; }
 </style>
 </head>
 <body class="body" bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
-        <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions</div>
-      </div>
-    </div>
+    <img src="https://zipcargologistics.com/logo-light-email.png" alt="ZipCargo" style="height:64px;display:block;"/>
+    <div style="color:#aac4e0;font-size:12px;margin-top:8px;">Global Logistics Solutions</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
     <p style="color:#0d1f35;font-size:15px;font-weight:700;">GREETINGS,</p>
@@ -805,12 +755,8 @@ u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:differenc
     </p>
   </div>
   <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
+    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
         <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official vaccination invoice is attached to this email.</div>
-      </div>
-    </div>
   </div>
 </div>
 </body></html>`;
@@ -1020,27 +966,13 @@ app.post('/api/email/insurance-invoice', async (req, res) => {
 <meta name="x-apple-disable-message-reformatting"/>
 <style>
 body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
-/* Gmail mobile apps (iOS/Android) ignore the prefers-color-scheme media
-   query entirely and instead forcibly invert any coded color it finds —
-   our navy header with white text gets flipped to a pale background with
-   dark text, hiding the white logo. This blend-mode technique exploits
-   how Gmail's inversion math interacts with mix-blend-mode so the colors
-   cancel back out to their original values. Targets Gmail specifically
-   via the "u + .body" selector (Gmail replaces the doctype with <u>),
-   so other clients that already render correctly are unaffected. */
-u + .body .gmail-blend-screen { background:#0d1f35; mix-blend-mode:screen; }
-u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:difference; }
 </style>
 </head>
 <body class="body" bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
-        <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions — Official Insurance Notice</div>
-      </div>
-    </div>
+    <img src="https://zipcargologistics.com/logo-light-email.png" alt="ZipCargo" style="height:64px;display:block;"/>
+    <div style="color:#aac4e0;font-size:12px;margin-top:8px;">Global Logistics Solutions — Official Insurance Notice</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
     <p style="color:#0d1f35;font-size:15px;">Dear <strong>${shipment.rName}</strong>,</p>
@@ -1096,12 +1028,8 @@ u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:differenc
     </p>
   </div>
   <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
+    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
         <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official insurance invoice is attached to this email.</div>
-      </div>
-    </div>
   </div>
 </div>
 </body></html>`;
@@ -1310,27 +1238,13 @@ app.post('/api/email/delivery-auth', async (req, res) => {
 <meta name="x-apple-disable-message-reformatting"/>
 <style>
 body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
-/* Gmail mobile apps (iOS/Android) ignore the prefers-color-scheme media
-   query entirely and instead forcibly invert any coded color it finds —
-   our navy header with white text gets flipped to a pale background with
-   dark text, hiding the white logo. This blend-mode technique exploits
-   how Gmail's inversion math interacts with mix-blend-mode so the colors
-   cancel back out to their original values. Targets Gmail specifically
-   via the "u + .body" selector (Gmail replaces the doctype with <u>),
-   so other clients that already render correctly are unaffected. */
-u + .body .gmail-blend-screen { background:#0d1f35; mix-blend-mode:screen; }
-u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:difference; }
 </style>
 </head>
 <body class="body" bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
-        <div style="color:#aac4e0;font-size:12px;">Delivery Authorization Notice</div>
-      </div>
-    </div>
+    <img src="https://zipcargologistics.com/logo-light-email.png" alt="ZipCargo" style="height:64px;display:block;"/>
+    <div style="color:#aac4e0;font-size:12px;margin-top:8px;">Delivery Authorization Notice</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
     <p style="color:#0d1f35;font-size:15px;">Dear <strong>${shipment.rName}</strong>,</p>
@@ -1381,12 +1295,8 @@ u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:differenc
     </p>
   </div>
   <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
+    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
         <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official authorization invoice is attached to this email.</div>
-      </div>
-    </div>
   </div>
 </div>
 </body></html>`;
@@ -1593,27 +1503,13 @@ app.post('/api/email/travel-permit', async (req, res) => {
 <meta name="x-apple-disable-message-reformatting"/>
 <style>
 body{margin:0;padding:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;}
-/* Gmail mobile apps (iOS/Android) ignore the prefers-color-scheme media
-   query entirely and instead forcibly invert any coded color it finds —
-   our navy header with white text gets flipped to a pale background with
-   dark text, hiding the white logo. This blend-mode technique exploits
-   how Gmail's inversion math interacts with mix-blend-mode so the colors
-   cancel back out to their original values. Targets Gmail specifically
-   via the "u + .body" selector (Gmail replaces the doctype with <u>),
-   so other clients that already render correctly are unaffected. */
-u + .body .gmail-blend-screen { background:#0d1f35; mix-blend-mode:screen; }
-u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:difference; }
 </style>
 </head>
 <body class="body" bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
-        <div style="color:#aac4e0;font-size:12px;">Pet Travel Permit Notice</div>
-      </div>
-    </div>
+    <img src="https://zipcargologistics.com/logo-light-email.png" alt="ZipCargo" style="height:64px;display:block;"/>
+    <div style="color:#aac4e0;font-size:12px;margin-top:8px;">Pet Travel Permit Notice</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
     <p style="color:#0d1f35;font-size:15px;">Dear <strong>${shipment.rName}</strong>,</p>
@@ -1661,12 +1557,8 @@ u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:differenc
     </p>
   </div>
   <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
+    <div style="color:#aac4e0;font-size:11px;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
         <div style="color:#4a6a88;font-size:10px;margin-top:4px;">Your official pet travel permit invoice is attached to this email.</div>
-      </div>
-    </div>
   </div>
 </div>
 </body></html>`;
@@ -1965,12 +1857,6 @@ app.post('/api/email/shipment', async (req, res) => {
 <style>
   body { margin:0; padding:0; background:#f3f4f6; font-family:Helvetica,Arial,sans-serif; }
   a { color:#e8820c; }
-  /* Gmail mobile apps ignore prefers-color-scheme entirely and instead
-     forcibly invert any coded color — this blend-mode technique exploits
-     Gmail's own inversion math so colors cancel back out correctly.
-     Targets Gmail only via the "u + .body" selector. */
-  u + .body .gmail-blend-screen { background:#0d1f35; mix-blend-mode:screen; }
-  u + .body .gmail-blend-difference { background:#0d1f35; mix-blend-mode:difference; }
 </style>
 </head>
 <body class="body" bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
@@ -1978,16 +1864,12 @@ app.post('/api/email/shipment', async (req, res) => {
 
   <!-- Header -->
   <div class="zc-header" bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <table width="100%" cellpadding="0" cellspacing="0"><tr>
-          <td>
-            <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
-            <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;">Global Logistics Solutions</div>
-          </td>
-        </tr></table>
-      </div>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td>
+        <img src="https://zipcargologistics.com/logo-light-email.png" alt="ZipCargo" style="height:64px;display:block;"/>
+        <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;margin-top:8px;">Global Logistics Solutions</div>
+      </td>
+    </tr></table>
   </div>
 
   <!-- Body -->
@@ -2059,12 +1941,8 @@ app.post('/api/email/shipment', async (req, res) => {
 
   <!-- Footer -->
   <div class="zc-footer" bgcolor="#0d1f35" style="background:#0d1f35;padding:16px 28px;text-align:center;">
-    <div class="gmail-blend-screen">
-      <div class="gmail-blend-difference">
-        <div style="color:#aac4e0;font-size:11px;font-family:Helvetica,Arial,sans-serif;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
+    <div style="color:#aac4e0;font-size:11px;font-family:Helvetica,Arial,sans-serif;">ZipCargo Logistics &#8212; Delivering trust, one shipment at a time</div>
         <div style="color:#4a6a88;font-size:10px;margin-top:4px;font-family:Helvetica,Arial,sans-serif;">This is an official ZipCargo document. Please keep for your records.</div>
-      </div>
-    </div>
   </div>
 
 </div>
