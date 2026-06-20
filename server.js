@@ -54,7 +54,9 @@ app.use((req, res, next) => {
 const allowedOrigins = [
   process.env.SITE_ORIGIN,
   process.env.SITE_URL,
-  'https://zipcargo-app.onrender.com',
+  'https://zipcargologistics.com',
+  'https://www.zipcargologistics.com',
+  'https://zipcargo-app.onrender.com', // kept as a safety-net fallback during domain transition
 ].filter(Boolean);
 
 app.use(cors({
@@ -162,7 +164,7 @@ app.post('/api/email/status-update', async (req, res) => {
 
   <!-- Header -->
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
+    <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;">Shipment Status Update</div>
   </div>
 
@@ -203,7 +205,7 @@ app.post('/api/email/status-update', async (req, res) => {
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
       <tr>
         <td align="center">
-          <a href="https://zipcargo-app.onrender.com/tracking.html?id=${shipment.tracking}"
+          <a href="https://zipcargologistics.com/tracking.html?id=${shipment.tracking}"
              style="background:#e8820c;color:#ffffff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;display:inline-block;font-family:Helvetica,Arial,sans-serif;">
             Track Your Shipment &#8594;
           </a>
@@ -451,7 +453,7 @@ app.post('/api/email/crate-invoice', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
+    <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -707,7 +709,7 @@ app.post('/api/email/vaccine-invoice', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
+    <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -953,7 +955,7 @@ app.post('/api/email/insurance-invoice', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
+    <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Global Logistics Solutions — Official Insurance Notice</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -1221,7 +1223,7 @@ app.post('/api/email/delivery-auth', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
+    <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Delivery Authorization Notice</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -1482,7 +1484,7 @@ app.post('/api/email/travel-permit', async (req, res) => {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
+    <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">Pet Travel Permit Notice</div>
   </div>
   <div style="padding:28px;background:#ffffff;">
@@ -1596,7 +1598,7 @@ app.post('/api/email/shipment', async (req, res) => {
     if (!apiKey) return res.json({ error: 'Email service not configured.' });
 
     // Clean siteUrl — always use the correct URL
-    const rawUrl = (req.body.settings && req.body.settings.website) || process.env.SITE_URL || 'https://zipcargo-app.onrender.com';
+    const rawUrl = (req.body.settings && req.body.settings.website) || process.env.SITE_URL || 'https://zipcargologistics.com';
     // Strip ALL protocol prefixes then add https:// once
     const cleanedUrl = rawUrl.replace(/^(https?:\/\/)+/, '').replace(/\/$/, '');
     const siteUrl = 'https://' + cleanedUrl;
@@ -1838,7 +1840,7 @@ app.post('/api/email/shipment', async (req, res) => {
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
     <table width="100%" cellpadding="0" cellspacing="0"><tr>
       <td>
-        <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
+        <img src="https://zipcargologistics.com/logo-light.png" alt="ZipCargo" style="height:44px;display:block;"/>
         <div style="color:#aac4e0;font-size:12px;font-family:Helvetica,Arial,sans-serif;">Global Logistics Solutions</div>
       </td>
     </tr></table>
@@ -1870,7 +1872,7 @@ app.post('/api/email/shipment', async (req, res) => {
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
       <tr>
         <td align="center">
-          <a href="https://zipcargo-app.onrender.com/tracking.html?id=${shipment.tracking}"
+          <a href="https://zipcargologistics.com/tracking.html?id=${shipment.tracking}"
              style="background:#e8820c;color:#ffffff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;display:inline-block;font-family:Helvetica,Arial,sans-serif;">
             Track Your Shipment &#8594;
           </a>
@@ -1879,7 +1881,7 @@ app.post('/api/email/shipment', async (req, res) => {
     </table>
 
     <p style="color:#64748b;font-size:12px;text-align:center;font-family:Helvetica,Arial,sans-serif;">
-      Or visit: https://zipcargo-app.onrender.com/tracking.html<br/>
+      Or visit: https://zipcargologistics.com/tracking.html<br/>
       and enter your tracking number: <strong>${shipment.tracking}</strong>
     </p>
 
