@@ -23,7 +23,7 @@ async function sendContactEmail({ name, email, company, service, message }) {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:36px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">New Contact Form Inquiry</div>
   </div>
   <div style="padding:28px;">
@@ -66,7 +66,7 @@ async function sendContactEmail({ name, email, company, service, message }) {
 <body bgcolor="#f3f4f6" style="margin:0;padding:20px;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;">
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
   <div bgcolor="#0d1f35" style="background:#0d1f35;padding:24px 28px;">
-    <div style="color:#e8820c;font-size:20px;font-weight:800;">&#9889; ZipCargo</div>
+    <img src="https://zipcargo-app.onrender.com/logo-light.png" alt="ZipCargo" style="height:36px;display:block;"/>
     <div style="color:#aac4e0;font-size:12px;">We received your message</div>
   </div>
   <div style="padding:28px;">
@@ -126,6 +126,8 @@ router.post('/',
   body('name').notEmpty().trim().escape().withMessage('Name required.'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email required.'),
   body('message').notEmpty().trim().escape().withMessage('Message required.'),
+  body('company').optional().trim().escape().isLength({ max: 200 }),
+  body('service').optional().trim().escape().isLength({ max: 100 }),
   async (req, res) => {
     const errs = validationResult(req);
     if (!errs.isEmpty()) return res.status(400).json({ error: errs.array()[0].msg });
@@ -145,7 +147,7 @@ router.post('/',
       const Notification = require('../models/Notification');
       Notification.push(
         'inquiry',
-        `New inquiry from ${name}`,
+        `New inquiry from ${name}`.slice(0, 200),
         service ? `Regarding: ${service}` : message.slice(0, 80),
         'section:inquiries'
       ).catch(() => {});
