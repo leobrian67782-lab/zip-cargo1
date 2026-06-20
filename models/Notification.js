@@ -18,7 +18,15 @@ const notificationSchema = new mongoose.Schema({
 // notification-worthy happens — new inquiry, new review, new shipment, etc.)
 notificationSchema.statics.push = async function (type, title, desc, link) {
   try {
-    await this.create({ type, title, desc: desc || '', link: link || '' });
+    // Defensively truncate here too — even if a caller forgets to slice
+    // their string before passing it in, a too-long title/desc should
+    // never cause the whole notification to silently fail validation.
+    await this.create({
+      type,
+      title: String(title || '').slice(0, 200),
+      desc: String(desc || '').slice(0, 300),
+      link: link || '',
+    });
     // Keep the collection from growing forever — retain the most recent 200.
     const count = await this.countDocuments();
     if (count > 200) {
