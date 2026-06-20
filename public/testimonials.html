@@ -3,10 +3,10 @@
 <head>
 
   <meta charset="UTF-8"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=4.0"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=4.0"/>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4.0"/>
-  <link rel="manifest" href="manifest.json?v=4.0"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=4.6"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=4.6"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4.6"/>
+  <link rel="manifest" href="manifest.json?v=4.6"/>
   <meta name="theme-color" content="#0d1f35"/>
   <meta name="description" content="Read what our customers say about ZipCargo. Trusted by thousands of clients worldwide for pet transport, package delivery, and freight services."/>
   <meta name="keywords" content="ZipCargo reviews, customer testimonials, logistics reviews, pet transport reviews"/>
@@ -23,7 +23,7 @@
   <link rel="canonical" href="https://zipcargo-app.onrender.com/testimonials"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Customer Reviews & Testimonials | ZipCargo</title>
-  <link rel="stylesheet" href="style.css?v=4.0"/>
+  <link rel="stylesheet" href="style.css?v=4.6"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
@@ -61,7 +61,7 @@
 <div class="nav-overlay" id="navOverlay"></div>
 <nav class="navbar scrolled" id="navbar">
   <div class="nav-container">
-    <a href="index.html" class="logo"><img src="logo.png?v=4.0" alt="ZipCargo" height="40" style="display:block;"/></a>
+    <a href="index.html" class="logo"><img src="logo.png?v=4.6" alt="ZipCargo" height="40" style="display:block;"/></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="services.html"><i class="fa-solid fa-boxes-stacked" style="color:#e8820c;width:18px;"></i> Services</a></li>
@@ -238,7 +238,7 @@
         <div style="margin-bottom:12px;">
           <input type="file" id="rvPhotoInput" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="handleRvPhotoSelect(event)"/>
           <div id="rvPhotoPreviewWrap" style="display:none;align-items:center;gap:12px;margin-bottom:10px;">
-            <img id="rvPhotoPreview" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid rgba(255,255,255,0.15);"/>
+            <img id="rvPhotoPreview" alt="Your selected photo preview" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid rgba(255,255,255,0.15);"/>
             <button type="button" onclick="clearRvPhoto()" style="background:none;border:1.5px solid rgba(255,255,255,0.2);color:#aac4e0;padding:6px 14px;border-radius:50px;font-size:.78rem;cursor:pointer;font-family:inherit;">Remove photo</button>
           </div>
           <button type="button" id="rvPhotoBtn" onclick="document.getElementById('rvPhotoInput').click()" style="background:rgba(255,255,255,0.07);border:1.5px dashed rgba(255,255,255,0.2);color:#aac4e0;padding:11px 18px;border-radius:10px;font-size:.85rem;cursor:pointer;font-family:inherit;width:100%;text-align:center;">
@@ -265,7 +265,7 @@
 <footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
-      <div class="logo"><img src="logo-light.png?v=4.0" alt="ZipCargo" height="32" style="display:block;"/></div>
+      <div class="logo"><img src="logo-light.png?v=4.6" alt="ZipCargo" height="32" style="display:block;"/></div>
       <span class="footer-tagline">Global Logistics Solutions</span>
       <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
       
@@ -293,9 +293,9 @@
   if(fHours)fHours.textContent=hours;
 })();
 </script>
-<script src="script.js?v=4.0"></script>
+<script src="script.js?v=4.6"></script>
 
-<script src="chat.js?v=4.0"></script>
+<script src="chat.js?v=4.6"></script>
 
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 <script>
@@ -430,16 +430,26 @@ async function submitReview() {
   const company = document.getElementById('rvCompany')?.value.trim() || '';
   const message = document.getElementById('rvMessage')?.value.trim();
   const err     = document.getElementById('rvError');
-  if (!name || !message) { err.style.display='block'; return; }
+  if (!name || !message) { err.style.display='block'; err.textContent='Please fill in your name and review.'; return; }
   err.style.display = 'none';
   const stars = selectedStars || 5;
   try {
-    await fetch('/api/reviews', {
+    const res = await fetch('/api/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, company, rating: stars, message, photo: rvPhotoDataUrl || undefined }),
     });
-  } catch(e) { /* silent — show success regardless */ }
+    const data = await res.json();
+    if (!res.ok) {
+      err.textContent = data.error || 'Could not submit your review. Please try again.';
+      err.style.display = 'block';
+      return;
+    }
+  } catch(e) {
+    err.textContent = 'Could not connect. Please check your connection and try again.';
+    err.style.display = 'block';
+    return;
+  }
   clearRvPhoto();
   document.getElementById('reviewFormWrap').style.display = 'none';
   document.getElementById('reviewSuccess').style.display  = 'block';
