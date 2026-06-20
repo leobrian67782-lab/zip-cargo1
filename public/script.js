@@ -82,10 +82,21 @@ const hamburger = document.getElementById('hamburger');
 const navLinks  = document.getElementById('navLinks');
 const navOverlay = document.getElementById('navOverlay');
 
+let scrollLockY = 0;
+
 function openMenu() {
   navLinks.classList.add('open');
   hamburger.classList.add('open');
   navOverlay.classList.add('show');
+  // overflow:hidden alone doesn't reliably block touch-driven scrolling on
+  // iOS Safari / some Android browsers — pinning body with position:fixed
+  // is the robust cross-browser way to fully lock background scroll.
+  scrollLockY = window.scrollY || window.pageYOffset || 0;
+  document.body.style.position = 'fixed';
+  document.body.style.top = '-' + scrollLockY + 'px';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
   document.body.style.overflow = 'hidden';
 }
 
@@ -93,7 +104,13 @@ function closeMenu() {
   navLinks.classList.remove('open');
   hamburger.classList.remove('open');
   if (navOverlay) navOverlay.classList.remove('show');
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
   document.body.style.overflow = '';
+  window.scrollTo(0, scrollLockY);
 }
 
 if (hamburger && navLinks) {
