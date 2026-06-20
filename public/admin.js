@@ -1049,10 +1049,10 @@ async function loadInquiries() {
     tbody.innerHTML = inquiries.map((inq,i) => `
       <tr style="${!inq.read?'font-weight:700;background:#fffef8;':''}">
         <td>${i+1}</td>
-        <td>${inq.name}</td>
-        <td>${inq.email}</td>
-        <td>${inq.service||'—'}</td>
-        <td>${inq.message.substring(0,60)}${inq.message.length>60?'...':''}</td>
+        <td>${escapeHtml(inq.name)}</td>
+        <td>${escapeHtml(inq.email)}</td>
+        <td>${escapeHtml(inq.service)||'—'}</td>
+        <td>${escapeHtml(inq.message.substring(0,60))}${inq.message.length>60?'...':''}</td>
         <td>${new Date(inq.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
         <td>
           ${!inq.read?`<button class="tbl-btn tbl-btn-edit" onclick="markRead('${inq._id}')">Mark Read</button>`:''}
