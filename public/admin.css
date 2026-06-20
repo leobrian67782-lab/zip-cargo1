@@ -60,7 +60,7 @@ html { overflow-x: hidden; }
 .sidebar-logo-icon i { color:white; font-size:1rem; }
 .sidebar-logo-text { font-size:1.5rem; font-weight:900; color:white; letter-spacing:-.5px; }
 .sidebar-section-label { font-size:.58rem; font-weight:700; color:#3a5478; text-transform:uppercase; letter-spacing:1.5px; padding:16px 22px 6px; user-select:none; }
-.sidebar-nav { display:flex; flex-direction:column; padding:8px 12px; gap:2px; flex:1; overflow-y:auto; }
+.sidebar-nav { display:flex; flex-direction:column; padding:8px 12px; gap:2px; flex:1; overflow-y:auto; overscroll-behavior:contain; }
 .sidebar-nav::-webkit-scrollbar { width:3px; }
 .sidebar-nav::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:2px; }
 .nav-item { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:12px; color:#7a9ab8; font-weight:600; font-size:.88rem; text-decoration:none; transition:all .2s; cursor:pointer; position:relative; overflow:hidden; user-select:none; }
@@ -211,7 +211,7 @@ html { overflow-x: hidden; }
 .page-btn.active { background:linear-gradient(135deg,#e8820c,#f59e0b); color:white; border-color:transparent; }
 
 /* ===== SIDEBAR BACKDROP ===== */
-.sidebar-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:99; opacity:0; transition:opacity .3s; backdrop-filter:blur(3px); }
+.sidebar-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:99; opacity:0; transition:opacity .3s; backdrop-filter:blur(3px); touch-action:none; }
 .sidebar-backdrop.active { display:block; opacity:1; }
 
 /* ===== RESPONSIVE ===== */
