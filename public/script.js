@@ -1,19 +1,5 @@
-// ===== CLEAR BODY TRANSFORM AFTER PAGE FADE-IN =====
-// A transformed <body> creates a new containing block for any
-// position:fixed children (cookie banner, chat widget, etc.), trapping
-// them inside the page instead of pinning them to the real viewport.
-// The fade-in animation only needs to run once on load, so we remove it
-// (and its transform) as soon as it completes.
-document.body.addEventListener('animationend', function handler(e) {
-  if (e.animationName === 'pageFadeIn') {
-    document.body.classList.add('fade-in-done');
-    document.body.removeEventListener('animationend', handler);
-  }
-});
-// Fallback in case the animationend event is missed (some mobile browsers)
-setTimeout(function () {
-  document.body.classList.add('fade-in-done');
-}, 500);
+// Page fade-in/fade-out animations removed per request — pages render
+// immediately with no opacity transition, so there's nothing to clear here.
 
 // ===== PAGE LOADER =====
 (function () {
@@ -960,25 +946,9 @@ function toggleFaq(btn) {
   }
 })();
 
-// ===== PAGE TRANSITION — fade out before navigating =====
-document.addEventListener('click', function(e) {
-  const link = e.target.closest('a');
-  if (!link) return;
-  const href = link.getAttribute('href');
-  // Only handle local .html links, not anchors or external
-  if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('mailto')) return;
-  if (link.target === '_blank') return;
-  e.preventDefault();
-  document.body.classList.add('page-leaving');
-  setTimeout(() => { window.location.href = href; }, 250);
-});
-
-// Fix blank page on browser back button — remove fade-out class immediately
-window.addEventListener('pageshow', function(e) {
-  document.body.classList.remove('page-leaving');
-  document.body.style.opacity = '1';
-  document.body.style.transform = 'none';
-});
+// Page links now navigate immediately (no artificial delay) — removed the
+// previous fade-out-then-navigate behavior per request, since the pause
+// itself was what made transitions feel slow/visible rather than instant.
 
 // ===== QUOTE WIZARD =====
 let qwSelectedService = '';
