@@ -106,15 +106,35 @@ async function showSection(name, clickedEl) {
   if (name==='settings')   loadContactSettings();
 }
 
+let sidebarScrollLockY = 0;
+
 function toggleSidebar() {
   const s=document.getElementById('sidebar'), b=document.getElementById('sidebarBackdrop');
   if(s.classList.contains('open')){ closeSidebar(); }
-  else { s.classList.add('open'); b.classList.add('active'); document.body.style.overflow='hidden'; }
+  else {
+    s.classList.add('open');
+    b.classList.add('active');
+    // overflow:hidden alone doesn't reliably block touch-driven scrolling
+    // on mobile — pin body with position:fixed for a real lock.
+    sidebarScrollLockY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = '-' + sidebarScrollLockY + 'px';
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+  }
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarBackdrop').classList.remove('active');
-  document.body.style.overflow='';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  document.body.style.overflow = '';
+  window.scrollTo(0, sidebarScrollLockY);
 }
 
 // ===== DASHBOARD =====
@@ -773,50 +793,39 @@ async function sendTravelPermitInvoice() {
 }
 
 
-// ===== NOTIFICATION SYSTEM =====
-const NOTIF_KEY = 'zc_admin_notifications';
-const NOTIF_SEEN_KEY = 'zc_notif_last_seen';
+// ===== NOTIFICATION SYSTEM (database-backed) =====
+let notifCache = [];
+let _lastUnreadCount = 0;
 
-function getNotifications() {
-  try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); }
-  catch { return []; }
-}
-
-function saveNotifications(notifs) {
-  localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs.slice(0, 50)));
-}
-
-function addNotification(type, title, desc, link) {
-  const notifs = getNotifications();
-  const notif = {
-    id: Date.now(),
-    type,
-    title,
-    desc,
-    link: link || null,
-    time: new Date().toISOString(),
-    read: false,
-  };
-  notifs.unshift(notif);
-  saveNotifications(notifs);
-  renderNotifications();
-  // Ring bell
-  const bell = document.getElementById('notifBell');
-  if (bell) {
-    bell.classList.remove('has-unread');
-    void bell.offsetWidth;
-    bell.classList.add('has-unread');
+async function loadNotifications() {
+  try {
+    const data = await api.get('/api/notifications');
+    notifCache = data.notifications || [];
+    const unread = data.unread || 0;
+    if (unread > _lastUnreadCount) {
+      const bell = document.getElementById('notifBell');
+      if (bell) {
+        bell.classList.remove('has-unread');
+        void bell.offsetWidth;
+        bell.classList.add('has-unread');
+      }
+    }
+    _lastUnreadCount = unread;
+    renderNotifications(unread);
+  } catch (e) {
+    console.error('Could not load notifications', e);
   }
 }
 
-function renderNotifications() {
-  const notifs = getNotifications();
-  const unread = notifs.filter(n => !n.read).length;
+function renderNotifications(unreadCount) {
   const badge = document.getElementById('notifBadge');
   const list  = document.getElementById('notifList');
   if (!badge || !list) return;
 
-  // Badge
+  const unread = typeof unreadCount === 'number'
+    ? unreadCount
+    : notifCache.filter(n => !n.read).length;
+
   if (unread > 0) {
     badge.textContent = unread > 9 ? '9+' : unread;
     badge.style.display = 'flex';
@@ -824,66 +833,66 @@ function renderNotifications() {
     badge.style.display = 'none';
   }
 
-  // List
-  if (!notifs.length) {
+  if (!notifCache.length) {
     list.innerHTML = '<div class="notif-empty"><i class="fa-solid fa-bell-slash"></i><p>No notifications yet</p></div>';
     return;
   }
 
   const iconMap = {
     inquiry:   { cls: 'inquiry',  icon: 'fa-comments' },
+    review:    { cls: 'inquiry',  icon: 'fa-star' },
     shipment:  { cls: 'shipment', icon: 'fa-box' },
     status:    { cls: 'status',   icon: 'fa-rotate' },
     delivered: { cls: 'delivered',icon: 'fa-circle-check' },
     hold:      { cls: 'hold',     icon: 'fa-circle-pause' },
   };
 
-  list.innerHTML = notifs.map(n => {
+  list.innerHTML = notifCache.map(n => {
     const im = iconMap[n.type] || iconMap.status;
-    const timeAgo = getTimeAgo(n.time);
-    return `<div class="notif-item ${n.read ? '' : 'unread'}" onclick="openNotif(${n.id})">
+    const timeAgo = getTimeAgo(n.date);
+    return `<div class="notif-item ${n.read ? '' : 'unread'}" onclick="openNotif('${n._id}')">
       <div class="notif-icon ${im.cls}"><i class="fa-solid ${im.icon}"></i></div>
       <div class="notif-body">
-        <div class="notif-title">${n.title}</div>
-        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-title">${escapeHtml(n.title)}</div>
+        <div class="notif-desc">${escapeHtml(n.desc)}</div>
         <div class="notif-time">${timeAgo}</div>
       </div>
     </div>`;
   }).join('');
 }
 
-function openNotif(id) {
-  const notifs = getNotifications();
-  const n = notifs.find(x => x.id === id);
+async function openNotif(id) {
+  const n = notifCache.find(x => x._id === id);
   if (!n) return;
+  try { await api.patch(`/api/notifications/${id}/read`, {}); } catch(e) {}
   n.read = true;
-  saveNotifications(notifs);
   renderNotifications();
   closeNotifDropdown();
-  if (n.link) {
-    if (n.link.startsWith('section:')) {
-      const sName = n.link.replace('section:', '');
-      if (typeof showSection === 'function') showSection(sName, null);
-      else if (typeof window.showSection === 'function') window.showSection(sName, null);
-    }
+  if (n.link && n.link.startsWith('section:')) {
+    const sName = n.link.replace('section:', '');
+    if (typeof showSection === 'function') showSection(sName, null);
+    else if (typeof window.showSection === 'function') window.showSection(sName, null);
   }
 }
 
 function toggleNotifications() {
   const dd = document.getElementById('notifDropdown');
   if (!dd) return;
+  const opening = !dd.classList.contains('open');
   dd.classList.toggle('open');
+  if (opening) loadNotifications(); // refresh on open so it's never stale
 }
 
 function closeNotifDropdown() {
   document.getElementById('notifDropdown')?.classList.remove('open');
 }
 
-function markAllRead() {
-  const notifs = getNotifications();
-  notifs.forEach(n => n.read = true);
-  saveNotifications(notifs);
-  renderNotifications();
+async function markAllRead() {
+  try {
+    await api.patch('/api/notifications/read-all', {});
+    notifCache.forEach(n => n.read = true);
+    renderNotifications(0);
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 function getTimeAgo(iso) {
@@ -900,58 +909,13 @@ document.addEventListener('click', e => {
   if (wrapper && !wrapper.contains(e.target)) closeNotifDropdown();
 });
 
-// Poll for new inquiries and shipments every 60 seconds
-let _lastInquiryCount = 0;
-let _lastShipmentCount = 0;
-
-async function pollForUpdates() {
-  try {
-    const [stats, inqData] = await Promise.all([
-      api.get('/api/shipments/stats'),
-      api.get('/api/inquiries'),
-    ]);
-
-    // New inquiry notification
-    const newInqCount = inqData.total || 0;
-    if (_lastInquiryCount > 0 && newInqCount > _lastInquiryCount) {
-      const diff = newInqCount - _lastInquiryCount;
-      addNotification('inquiry',
-        `${diff} new inquir${diff > 1 ? 'ies' : 'y'} received`,
-        'Someone has sent a message through your contact form',
-        'section:inquiries'
-      );
-    }
-    _lastInquiryCount = newInqCount;
-
-    // New shipment notification
-    const newShipCount = stats.total || 0;
-    if (_lastShipmentCount > 0 && newShipCount > _lastShipmentCount) {
-      const diff = newShipCount - _lastShipmentCount;
-      addNotification('shipment',
-        `${diff} new shipment${diff > 1 ? 's' : ''} created`,
-        'A new shipment has been added to the system',
-        'section:shipments'
-      );
-    }
-    _lastShipmentCount = newShipCount;
-
-  } catch(e) { /* silent fail */ }
-}
-
-// Init notifications on load
+// Refresh notifications every 30 seconds — since notifications are now
+// created server-side the instant something happens, this poll is just
+// to pick up what other admins/devices triggered, not to detect changes
+// via count math.
 window.addEventListener('load', () => {
-  try { renderNotifications(); } catch(e) {}
-  setTimeout(async () => {
-    try {
-      const [stats, inqData] = await Promise.all([
-        api.get('/api/shipments/stats'),
-        api.get('/api/inquiries'),
-      ]);
-      _lastInquiryCount = inqData.total || 0;
-      _lastShipmentCount = stats.total || 0;
-    } catch(e) {}
-    setInterval(pollForUpdates, 60000);
-  }, 4000);
+  loadNotifications();
+  setInterval(loadNotifications, 30000);
 });
 
 
