@@ -3,6 +3,8 @@ const { body, validationResult } = require('express-validator');
 const Shipment   = require('../models/Shipment');
 const { protect }= require('../middleware/auth');
 const log        = require('../middleware/activityLogger');
+const sendBrevoEmail = require('../utils/sendBrevoEmail');
+const { shipmentCreatedEmail, shipmentStatusUpdateEmail } = require('../utils/shipmentEmails');
 
 const router = express.Router();
 
@@ -97,6 +99,17 @@ router.post('/',
       await s.save();
 
       await log(req, 'CREATE_SHIPMENT', s.tracking);
+
+      // Notify client by email (non-blocking — doesn't fail the request if email fails)
+      if (s.rEmail) {
+        sendBrevoEmail({
+          toEmail: s.rEmail,
+          toName: s.rName,
+          subject: `Your ZipCargo Shipment ${s.tracking} Has Been Created`,
+          htmlContent: shipmentCreatedEmail(s),
+        }).catch(e => console.error('Shipment creation email failed:', e.message));
+      }
+
       res.status(201).json(s);
     } catch (err) {
       if (err.code === 11000) return res.status(409).json({ error: 'Tracking number already exists.' });
@@ -136,6 +149,17 @@ router.put('/:id', async (req, res) => {
     s.$skipTimelineUpdate = true; // skip pre-save hook
     await s.save();
     await log(req, 'UPDATE_SHIPMENT', s.tracking);
+
+    // Notify client when status changes (non-blocking)
+    if (req.body.status && req.body.status !== oldStatus && s.rEmail) {
+      sendBrevoEmail({
+        toEmail: s.rEmail,
+        toName: s.rName,
+        subject: `Update on Your ZipCargo Shipment ${s.tracking}: ${s.status}`,
+        htmlContent: shipmentStatusUpdateEmail(s),
+      }).catch(e => console.error('Shipment status email failed:', e.message));
+    }
+
     res.json(s);
   } catch (err) {
     res.status(500).json({ error: 'Server error.' });
