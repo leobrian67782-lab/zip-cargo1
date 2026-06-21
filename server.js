@@ -103,6 +103,7 @@ app.use('/api/inquiries', require('./routes/inquiries'));
 app.use('/api/activity',  require('./routes/activity'));
 app.use('/api/ai-settings', require('./routes/ai-settings'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/contact-settings', require('./routes/contact-settings'));
 // Reviews route gets its own larger body limit (for optional base64 photo
 // uploads) — applied only here, not globally, to keep the rest of the API
 // protected against oversized payloads.
