@@ -5,6 +5,23 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Fetch current contact settings from the database for use in invoice/email
+// generation — replaces the old localStorage reads, which only ever saw
+// whatever was last set on this exact browser, not the real saved values.
+async function getContactSettingsForEmail() {
+  try {
+    const res = await fetch('/api/contact-settings');
+    const data = await res.json();
+    return {
+      website: data.website || '',
+      email:   data.email   || 'zipcargo99@gmail.com',
+      phone:   data.phone    || '',
+    };
+  } catch (e) {
+    return { website: '', email: 'zipcargo99@gmail.com', phone: '' };
+  }
+}
+
 // ===== TOKEN STORAGE (fallback for mobile browsers) =====
 const TokenStore = {
   set: (t) => { try { localStorage.setItem('zc_token', t); } catch(e) {} },
@@ -103,7 +120,7 @@ async function showSection(name, clickedEl) {
   if (name==='inquiries')  await loadInquiries();
   if (name==='reviews')    await loadReviews();
   if (name==='activity')   await loadActivity();
-  if (name==='settings')   loadContactSettings();
+  if (name==='settings')   await loadContactSettings();
 }
 
 let sidebarScrollLockY = 0;
@@ -308,11 +325,7 @@ async function createShipment() {
       // Send status update email if recipient email exists
       if (payload.rEmail) {
         try {
-          const settings = {
-            website: localStorage.getItem('zc_contact_website') || '',
-            email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
-            phone:   localStorage.getItem('zc_contact_phone')   || '',
-          };
+          const settings = await getContactSettingsForEmail();
           const updateRes = await fetch('/api/email/status-update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -370,11 +383,7 @@ async function createShipment() {
             deliveryAddress: payload.deliveryAddress,
           };
           // Pass admin settings so PDF uses correct domain/email
-          const settings = {
-            website: localStorage.getItem('zc_contact_website') || '',
-            email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
-            phone:   localStorage.getItem('zc_contact_phone')   || '',
-          };
+          const settings = await getContactSettingsForEmail();
           // Retry up to 3 times for reliability
           let emailData = null;
           for (let attempt = 1; attempt <= 3; attempt++) {
@@ -472,11 +481,7 @@ async function sendCrateInvoice() {
   msg.style.color = '#185fa5';
   msg.textContent = 'Generating invoice and sending email...';
 
-  const settings = {
-    website: localStorage.getItem('zc_contact_website') || '',
-    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
-    phone:   localStorage.getItem('zc_contact_phone')   || '',
-  };
+  const settings = await getContactSettingsForEmail();
 
   try {
     const res = await fetch('/api/email/crate-invoice', {
@@ -550,11 +555,7 @@ async function sendVaccineInvoice() {
   const msg            = document.getElementById('vaccineMsg');
   msg.style.color = '#185fa5';
   msg.textContent = 'Generating invoice and sending email...';
-  const settings = {
-    website: localStorage.getItem('zc_contact_website') || '',
-    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
-    phone:   localStorage.getItem('zc_contact_phone')   || '',
-  };
+  const settings = await getContactSettingsForEmail();
   try {
     const res = await fetch('/api/email/vaccine-invoice', {
       method: 'POST',
@@ -623,11 +624,7 @@ async function sendInsuranceInvoice() {
   const msg            = document.getElementById('insuranceMsg');
   msg.style.color = '#185fa5';
   msg.textContent = 'Generating invoice and sending email...';
-  const settings = {
-    website: localStorage.getItem('zc_contact_website') || '',
-    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
-    phone:   localStorage.getItem('zc_contact_phone')   || '',
-  };
+  const settings = await getContactSettingsForEmail();
   try {
     const res = await fetch('/api/email/insurance-invoice', {
       method: 'POST',
@@ -695,11 +692,7 @@ async function sendDeliveryAuthInvoice() {
   const msg            = document.getElementById('deliveryAuthMsg');
   msg.style.color = '#185fa5';
   msg.textContent = 'Generating invoice and sending email...';
-  const settings = {
-    website: localStorage.getItem('zc_contact_website') || '',
-    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
-    phone:   localStorage.getItem('zc_contact_phone')   || '',
-  };
+  const settings = await getContactSettingsForEmail();
   try {
     const res = await fetch('/api/email/delivery-auth', {
       method: 'POST',
@@ -767,11 +760,7 @@ async function sendTravelPermitInvoice() {
   const msg            = document.getElementById('travelPermitMsg');
   msg.style.color = '#185fa5';
   msg.textContent = 'Generating invoice and sending email...';
-  const settings = {
-    website: localStorage.getItem('zc_contact_website') || '',
-    email:   localStorage.getItem('zc_contact_email')   || 'zipcargo99@gmail.com',
-    phone:   localStorage.getItem('zc_contact_phone')   || '',
-  };
+  const settings = await getContactSettingsForEmail();
   try {
     const res = await fetch('/api/email/travel-permit', {
       method: 'POST',
@@ -1507,29 +1496,35 @@ async function changePassword() {
   } catch(e) { msg.style.color='#ef4444'; msg.textContent=e.message; }
 }
 
-// ===== CONTACT INFO SETTINGS =====
+// ===== CONTACT INFO SETTINGS (database-backed) =====
 var _contactFields = {
-  phone:   { key:'zc_contact_phone',   inputId:'ciPhoneInput',   valId:'ciPhoneVal',   editId:'ciPhoneEdit'   },
-  email:   { key:'zc_contact_email',   inputId:'ciEmailInput',   valId:'ciEmailVal',   editId:'ciEmailEdit'   },
-  website: { key:'zc_contact_website', inputId:'ciWebsiteInput', valId:'ciWebsiteVal', editId:'ciWebsiteEdit' },
-  hours:   { key:'zc_contact_hours',   inputId:'ciHoursInput',   valId:'ciHoursVal',   editId:'ciHoursEdit'   }
+  phone:   { inputId:'ciPhoneInput',   valId:'ciPhoneVal',   editId:'ciPhoneEdit'   },
+  email:   { inputId:'ciEmailInput',   valId:'ciEmailVal',   editId:'ciEmailEdit'   },
+  website: { inputId:'ciWebsiteInput', valId:'ciWebsiteVal', editId:'ciWebsiteEdit' },
+  hours:   { inputId:'ciHoursInput',   valId:'ciHoursVal',   editId:'ciHoursEdit'   }
 };
+var _contactSettingsCache = { phone:'', email:'', website:'', hours:'' };
 
-function loadContactSettings() {
-  Object.keys(_contactFields).forEach(function(field) {
-    var cfg = _contactFields[field];
-    var val = localStorage.getItem(cfg.key) || '';
-    var el  = document.getElementById(cfg.valId);
-    if (el && val) el.textContent = val;
-  });
+async function loadContactSettings() {
+  try {
+    const data = await api.get('/api/contact-settings');
+    _contactSettingsCache = data;
+    Object.keys(_contactFields).forEach(function(field) {
+      var cfg = _contactFields[field];
+      var val = data[field] || '';
+      var el  = document.getElementById(cfg.valId);
+      if (el) el.textContent = val || 'Not set';
+    });
+  } catch (e) {
+    console.error('Could not load contact settings', e);
+  }
 }
 
 function editContactField(field) {
   var cfg = _contactFields[field];
   var input = document.getElementById(cfg.inputId);
   var editDiv = document.getElementById(cfg.editId);
-  var val = localStorage.getItem(cfg.key) || document.getElementById(cfg.valId).textContent;
-  if (val === 'Not set' || val === '\u2014') val = '';
+  var val = _contactSettingsCache[field] || '';
   input.value = val;
   editDiv.style.display = 'block';
   input.focus();
@@ -1540,7 +1535,7 @@ function cancelContactField(field) {
   document.getElementById(cfg.editId).style.display = 'none';
 }
 
-function saveContactField(field) {
+async function saveContactField(field) {
   var cfg   = _contactFields[field];
   var input = document.getElementById(cfg.inputId);
   var val   = input.value.trim();
@@ -1551,32 +1546,24 @@ function saveContactField(field) {
     msg.style.color='#ef4444'; msg.textContent='Email cannot be empty.';
     setTimeout(function(){msg.textContent='';},3000); return;
   }
-  // phone and website CAN be cleared — remove from localStorage and show blank
-  if (!val) {
-    localStorage.removeItem(cfg.key);
-    document.getElementById(cfg.valId).textContent = 'Not set';
-    document.getElementById(cfg.editId).style.display = 'none';
-    var siteEl   = document.getElementById('site'+field.charAt(0).toUpperCase()+field.slice(1));
-    var footerEl = document.getElementById('footer'+field.charAt(0).toUpperCase()+field.slice(1));
-    if (siteEl)   siteEl.textContent = '\u2014';
-    if (footerEl) { footerEl.textContent = ''; footerEl.parentElement.style.display='none'; }
-    msg.style.color='#16a34a'; msg.textContent='\u2713 ' + field.charAt(0).toUpperCase()+field.slice(1) + ' removed from the site.';
-    showToast(field.charAt(0).toUpperCase()+field.slice(1)+' removed.','success');
-    setTimeout(function(){msg.textContent='';},4000);
-    return;
-  }
 
-  localStorage.setItem(cfg.key, val);
-  document.getElementById(cfg.valId).textContent = val;
-  document.getElementById(cfg.editId).style.display = 'none';
-  var siteEl   = document.getElementById('site'+field.charAt(0).toUpperCase()+field.slice(1));
-  var footerEl = document.getElementById('footer'+field.charAt(0).toUpperCase()+field.slice(1));
-  if (siteEl)   siteEl.textContent   = val;
-  if (footerEl) { footerEl.textContent = val; footerEl.parentElement.style.display=''; }
-  msg.style.color='#16a34a';
-  msg.textContent='\u2713 ' + field.charAt(0).toUpperCase()+field.slice(1) + ' updated on the site!';
-  showToast(field.charAt(0).toUpperCase()+field.slice(1)+' updated successfully!','success');
-  setTimeout(function(){msg.textContent='';},4000);
+  try {
+    const data = await api.put('/api/contact-settings', { [field]: val });
+    _contactSettingsCache = data.settings;
+    document.getElementById(cfg.valId).textContent = val || 'Not set';
+    document.getElementById(cfg.editId).style.display = 'none';
+    var label = field.charAt(0).toUpperCase() + field.slice(1);
+    msg.style.color='#16a34a';
+    msg.textContent = val
+      ? '\u2713 ' + label + ' updated on the site!'
+      : '\u2713 ' + label + ' removed from the site.';
+    showToast(val ? label + ' updated successfully!' : label + ' removed.', 'success');
+    setTimeout(function(){msg.textContent='';},4000);
+  } catch (e) {
+    msg.style.color='#ef4444';
+    msg.textContent = e.message || 'Could not save. Please try again.';
+    setTimeout(function(){msg.textContent='';},4000);
+  }
 }
 
 function saveSettings() {

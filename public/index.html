@@ -564,15 +564,25 @@
 
 <script>
 (function(){
-  var phone=localStorage.getItem('zc_contact_phone')||'';
-  var email=localStorage.getItem('zc_contact_email')||'info@zipcargo.com';
-  var hours=localStorage.getItem('zc_contact_hours')||'Mon–Fri: 8am – 8pm (GMT)';
+  // Contact info now lives in the database (set by the admin panel) so
+  // every visitor sees the real values, not just whichever browser the
+  // admin last edited from. Falls back to sensible defaults if the
+  // request fails (e.g. offline), so the footer never looks broken.
   var fPhone=document.getElementById('footerPhone');
   var fEmail=document.getElementById('footerEmail');
   var fHours=document.getElementById('footerHours');
-  if(fPhone){fPhone.textContent=phone;if(!phone)fPhone.parentElement.style.display='none';}
-  if(fEmail)fEmail.textContent=email;
-  if(fHours)fHours.textContent=hours;
+  fetch('/api/contact-settings').then(function(r){return r.json();}).then(function(data){
+    var phone = data.phone || '';
+    var email = data.email || 'info@zipcargo.com';
+    var hours = data.hours || 'Available 24/7';
+    if(fPhone){fPhone.textContent=phone;if(!phone)fPhone.parentElement.style.display='none';}
+    if(fEmail)fEmail.textContent=email;
+    if(fHours)fHours.textContent=hours;
+  }).catch(function(){
+    if(fEmail)fEmail.textContent='info@zipcargo.com';
+    if(fHours)fHours.textContent='Available 24/7';
+    if(fPhone)fPhone.parentElement.style.display='none';
+  });
 })();
 </script>
 <script src="script.js?v=3.9"></script>

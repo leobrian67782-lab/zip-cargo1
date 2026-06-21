@@ -3,10 +3,10 @@
 <head>
 
   <meta charset="UTF-8"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=4.6"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=4.6"/>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4.6"/>
-  <link rel="manifest" href="manifest.json?v=4.6"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=4.7"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=4.7"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4.7"/>
+  <link rel="manifest" href="manifest.json?v=4.7"/>
   <meta name="theme-color" content="#0d1f35"/>
   <meta name="description" content="Read what our customers say about ZipCargo. Trusted by thousands of clients worldwide for pet transport, package delivery, and freight services."/>
   <meta name="keywords" content="ZipCargo reviews, customer testimonials, logistics reviews, pet transport reviews"/>
@@ -23,7 +23,7 @@
   <link rel="canonical" href="https://zipcargo-app.onrender.com/testimonials"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Customer Reviews & Testimonials | ZipCargo</title>
-  <link rel="stylesheet" href="style.css?v=4.6"/>
+  <link rel="stylesheet" href="style.css?v=4.7"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
@@ -61,7 +61,7 @@
 <div class="nav-overlay" id="navOverlay"></div>
 <nav class="navbar scrolled" id="navbar">
   <div class="nav-container">
-    <a href="index.html" class="logo"><img src="logo.png?v=4.6" alt="ZipCargo" height="40" style="display:block;"/></a>
+    <a href="index.html" class="logo"><img src="logo.png?v=4.7" alt="ZipCargo" height="40" style="display:block;"/></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="services.html"><i class="fa-solid fa-boxes-stacked" style="color:#e8820c;width:18px;"></i> Services</a></li>
@@ -265,7 +265,7 @@
 <footer class="footer" role="contentinfo">
   <div class="footer-content">
     <div class="footer-brand">
-      <div class="logo"><img src="logo-light.png?v=4.6" alt="ZipCargo" height="32" style="display:block;"/></div>
+      <div class="logo"><img src="logo-light.png?v=4.7" alt="ZipCargo" height="32" style="display:block;"/></div>
       <span class="footer-tagline">Global Logistics Solutions</span>
       <p>Delivering trust, one shipment at a time — across 150+ countries worldwide.</p>
       
@@ -285,17 +285,26 @@
   var fPhone=document.getElementById('footerPhone');
   var fEmail=document.getElementById('footerEmail');
   var fHours=document.getElementById('footerHours');
-  var phone=localStorage.getItem('zc_contact_phone')||'';
-  var email=localStorage.getItem('zc_contact_email')||'info@zipcargo.com';
-  var hours=localStorage.getItem('zc_contact_hours')||'Mon–Fri: 8am – 8pm (GMT)';
-  if(fPhone){fPhone.textContent=phone;if(!phone)fPhone.parentElement.style.display='none';}
-  if(fEmail)fEmail.textContent=email;
-  if(fHours)fHours.textContent=hours;
+  // Contact info now lives in the database (set by the admin panel) so
+  // every visitor sees the real values, not just whichever browser the
+  // admin last edited from.
+  fetch('/api/contact-settings').then(function(r){return r.json();}).then(function(data){
+    var phone = data.phone || '';
+    var email = data.email || 'info@zipcargo.com';
+    var hours = data.hours || 'Available 24/7';
+    if(fPhone){fPhone.textContent=phone;if(!phone)fPhone.parentElement.style.display='none';}
+    if(fEmail)fEmail.textContent=email;
+    if(fHours)fHours.textContent=hours;
+  }).catch(function(){
+    if(fEmail)fEmail.textContent='info@zipcargo.com';
+    if(fHours)fHours.textContent='Available 24/7';
+    if(fPhone)fPhone.parentElement.style.display='none';
+  });
 })();
 </script>
-<script src="script.js?v=4.6"></script>
+<script src="script.js?v=4.7"></script>
 
-<script src="chat.js?v=4.6"></script>
+<script src="chat.js?v=4.7"></script>
 
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 <script>
