@@ -35,6 +35,33 @@
   });
 })();
 
+// ===== HERO PARALLAX =====
+// Background drifts slightly slower than the page scroll for subtle depth.
+// Respects prefers-reduced-motion and only runs while the hero is visible,
+// so it costs nothing on pages without a hero or for motion-sensitive users.
+(function () {
+  var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var heroSlides = document.getElementById('heroSlides');
+  if (!heroSlides || prefersReducedMotion) return;
+
+  var ticking = false;
+  function updateParallax() {
+    var scrolled = window.scrollY;
+    // Only move while the hero is still roughly in view — no point
+    // computing this once the user has scrolled well past it.
+    if (scrolled < window.innerHeight * 1.2) {
+      heroSlides.style.transform = 'translateY(' + (scrolled * 0.25) + 'px)';
+    }
+    ticking = false;
+  }
+  window.addEventListener('scroll', function () {
+    if (!ticking) {
+      window.requestAnimationFrame(updateParallax);
+      ticking = true;
+    }
+  });
+})();
+
 // ===== NAVBAR SCROLL =====
 window.addEventListener('scroll', () => {
   const nav = document.getElementById('navbar');
