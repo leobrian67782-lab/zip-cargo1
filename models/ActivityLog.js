@@ -6,7 +6,7 @@ const activityLogSchema = new mongoose.Schema({
   action:    { type: String, required: true },
   detail:    { type: String, default: '' },
   ip:        { type: String, default: '' },
-  timestamp: { type: Date, default: Date.now, index: true },
+  timestamp: { type: Date, default: Date.now },
 });
 
 activityLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 });
