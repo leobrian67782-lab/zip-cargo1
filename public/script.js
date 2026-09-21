@@ -752,10 +752,9 @@ function initRouteMap(oC, dC, cC, oN, dN, cN, status) {
 async function buildMap(oC, dC, cC, oN, dN, cN, status) {
   leafletMap = L.map('trackMap', { zoomControl: true, attributionControl: true });
 
-  // Clean professional map tiles — OpenStreetMap Voyager (free, no API key, shows everything)
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
-    subdomains: ['a','b','c','d'],
+  // Free OpenStreetMap tiles — no API key needed, works everywhere
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
   }).addTo(leafletMap);
 
