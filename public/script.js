@@ -755,11 +755,10 @@ async function buildMap(oC, dC, cC, oN, dN, cN, status) {
   // Add zoom control to bottom right
   L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
 
-  // ── Dark map tiles (CartoDB Dark Matter — free, no API key) ──
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19,
+  // ── Dark map tiles — Stadia Alidade Smooth Dark (truly free, no API key) ──
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 20,
   }).addTo(leafletMap);
 
   // ── Pulse animation style ──
