@@ -764,11 +764,13 @@ async function buildMap(oC, dC, cC, oN, dN, cN, status) {
   L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
 
   // ── Mapbox Dark tiles ──
-  const MAPBOX_TOKEN = 'pk.eyJ1Ijoic2hhbnRpMDAxMSIsImEiOiJjbXViNnQ5M2ExcGxrMnhvcGtwNHo1azFpIn0.JaMGA-_QJn4hHZeMmFjxYQ';
-  L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`, {
+  const MAPBOX_TOKEN = 'pk.eyJ1Ijoic2hhbnRpMDAxMSIsImEiOiJjbXViNnFtdnkxbWdhMnhwbWRwNm4wbTNhIn0.cSJ2PwccBgDjc8-CBgxo3Q';
+  L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`, {
     attribution: '© <a href="https://www.mapbox.com/">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    tileSize: 256,
+    tileSize: 512,
+    zoomOffset: -1,
     maxZoom: 22,
+    crossOrigin: true,
   }).addTo(leafletMap);
 
   // ── Animations ──
