@@ -750,116 +750,131 @@ function initRouteMap(oC, dC, cC, oN, dN, cN, status) {
 }
 
 async function buildMap(oC, dC, cC, oN, dN, cN, status) {
-  leafletMap = L.map('trackMap', { zoomControl: false, attributionControl: true });
+  const mapEl = document.getElementById('trackMap');
+  if (!mapEl) return;
 
-  // Add zoom control to bottom right
+  // ── Init map ──
+  leafletMap = L.map('trackMap', {
+    zoomControl: false,
+    attributionControl: true,
+    zoomAnimation: true,
+    fadeAnimation: true,
+  });
+
   L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
 
-  // ── Map tiles — OpenStreetMap (free, no key, no auth, no watermarks) ──
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 19,
+  // ── Mapbox Dark tiles ──
+  const MAPBOX_TOKEN = 'pk.eyJ1Ijoic2hhbnRpMDAxMSIsImEiOiJjbXViNnQ5M2ExcGxrMnhvcGtwNHo1azFpIn0.JaMGA-_QJn4hHZeMmFjxYQ';
+  L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`, {
+    attribution: '© <a href="https://www.mapbox.com/">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    tileSize: 512,
+    zoomOffset: -1,
+    maxZoom: 22,
   }).addTo(leafletMap);
 
-  // ── Pulse animation style ──
+  // ── Animations ──
   if (!document.getElementById('mapPulseStyle')) {
     const st = document.createElement('style'); st.id = 'mapPulseStyle';
     st.textContent = `
-      @keyframes mapPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,130,12,.7)}50%{box-shadow:0 0 0 14px rgba(232,130,12,0)}}
-      @keyframes mapPulseGreen{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.7)}50%{box-shadow:0 0 0 14px rgba(34,197,94,0)}}
+      @keyframes mapPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,130,12,.8)}70%{box-shadow:0 0 0 16px rgba(232,130,12,0)}}
+      @keyframes mapPulseGreen{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.8)}70%{box-shadow:0 0 0 16px rgba(34,197,94,0)}}
+      @keyframes mapFadeIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+      .map-marker-anim{animation:mapFadeIn .4s ease-out forwards}
     `;
     document.head.appendChild(st);
   }
 
-  // ── Origin marker — green truck icon (like reference) ──
+  // ── Markers ──
   const originIcon = L.divIcon({
-    html: `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-      <div style="background:#16a34a;width:36px;height:36px;border-radius:50%;border:3px solid white;box-shadow:0 2px 14px rgba(22,163,74,.8);display:flex;align-items:center;justify-content:center;animation:mapPulseGreen 2s ease-in-out infinite;">
-        <i class='fa-solid fa-truck-fast' style='color:white;font-size:14px;'></i>
+    html: `<div class="map-marker-anim" style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <div style="background:#16a34a;width:40px;height:40px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 0 rgba(34,197,94,.8);animation:mapPulseGreen 2s ease-in-out infinite;display:flex;align-items:center;justify-content:center;">
+        <i class='fa-solid fa-truck-fast' style='color:white;font-size:15px;'></i>
       </div>
-      <div style="background:#16a34a;color:white;font-size:9px;font-weight:800;padding:2px 8px;border-radius:4px;white-space:nowrap;font-family:'Outfit',sans-serif;letter-spacing:.5px;box-shadow:0 2px 8px rgba(0,0,0,.5);">ORIGIN</div>
+      <div style="background:#16a34a;color:white;font-size:9px;font-weight:800;padding:3px 9px;border-radius:4px;white-space:nowrap;letter-spacing:1px;box-shadow:0 2px 8px rgba(0,0,0,.6);">ORIGIN</div>
     </div>`,
-    className: '', iconSize: [70, 52], iconAnchor: [18, 18]
+    className: '', iconSize: [80, 58], iconAnchor: [20, 20]
   });
 
-  // ── Destination marker — red pin (like reference) ──
   const destIcon = L.divIcon({
-    html: `<div style="display:flex;flex-direction:column;align-items:center;gap:0px;">
-      <div style="background:#ef4444;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 14px rgba(239,68,68,.8);">
-        <div style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
-          <i class='fa-solid fa-location-dot' style='color:white;font-size:13px;margin-top:2px;'></i>
-        </div>
+    html: `<div class="map-marker-anim" style="display:flex;flex-direction:column;align-items:center;gap:3px;animation-delay:.2s">
+      <div style="width:36px;height:36px;background:#ef4444;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 14px rgba(239,68,68,.8);display:flex;align-items:center;justify-content:center;">
+        <i class='fa-solid fa-location-dot' style='color:white;font-size:13px;transform:rotate(45deg);margin-top:3px;'></i>
       </div>
-      <div style="background:#ef4444;color:white;font-size:9px;font-weight:800;padding:2px 8px;border-radius:4px;white-space:nowrap;font-family:'Outfit',sans-serif;letter-spacing:.5px;box-shadow:0 2px 8px rgba(0,0,0,.5);margin-top:4px;">DEST</div>
+      <div style="background:#ef4444;color:white;font-size:9px;font-weight:800;padding:3px 9px;border-radius:4px;white-space:nowrap;letter-spacing:1px;box-shadow:0 2px 8px rgba(0,0,0,.6);margin-top:2px;">DEST</div>
     </div>`,
-    className: '', iconSize: [70, 52], iconAnchor: [16, 16]
+    className: '', iconSize: [80, 58], iconAnchor: [18, 18]
   });
 
-  // ── Package position icon (status-based) ──
   const statusConfig = {
-    'Delivered':        { icon: 'fa-circle-check',  color: '#16a34a', pulse: false },
-    'In Transit':       { icon: 'fa-truck-fast',    color: '#2563eb', pulse: true  },
-    'Out for Delivery': { icon: 'fa-truck-fast',    color: '#e8820c', pulse: true  },
-    'Pending':          { icon: 'fa-clock',         color: '#f59e0b', pulse: false },
-    'On Hold':          { icon: 'fa-circle-pause',  color: '#ef4444', pulse: false },
+    'Delivered':        { icon: 'fa-circle-check', pulse: false },
+    'In Transit':       { icon: 'fa-truck-fast',   pulse: true  },
+    'Out for Delivery': { icon: 'fa-truck-fast',   pulse: true  },
+    'Pending':          { icon: 'fa-clock',        pulse: false },
+    'On Hold':          { icon: 'fa-circle-pause', pulse: false },
   };
-  const sc = statusConfig[status] || { icon: 'fa-box', color: '#64748b', pulse: false };
-  const pulseStyle = sc.pulse ? 'animation:mapPulse 1.6s ease-in-out infinite;' : '';
-
+  const sc = statusConfig[status] || { icon: 'fa-box', pulse: false };
   const pkgIco = L.divIcon({
-    html: `<div style="background:#e8820c;width:38px;height:38px;border-radius:50%;border:3px solid white;box-shadow:0 3px 16px rgba(232,130,12,.8);display:flex;align-items:center;justify-content:center;font-size:16px;${pulseStyle}">
-      <i class='fa-solid ${sc.icon}' style='color:white;'></i>
+    html: `<div class="map-marker-anim" style="background:#e8820c;width:40px;height:40px;border-radius:50%;border:3px solid white;box-shadow:0 3px 18px rgba(232,130,12,.9);display:flex;align-items:center;justify-content:center;${sc.pulse ? 'animation:mapPulse 1.8s ease-in-out infinite;' : ''}animation-delay:.4s">
+      <i class='fa-solid ${sc.icon}' style='color:white;font-size:16px;'></i>
     </div>`,
-    className: '', iconSize: [38, 38], iconAnchor: [19, 19]
+    className: '', iconSize: [40, 40], iconAnchor: [20, 20]
   });
 
-  // ── Add markers ──
-  L.marker([oC.lat, oC.lng], { icon: originIcon })
-    .addTo(leafletMap)
-    .bindPopup(`<b style="color:#16a34a;">Origin</b><br/>${oN}`);
-
-  L.marker([dC.lat, dC.lng], { icon: destIcon })
-    .addTo(leafletMap)
-    .bindPopup(`<b style="color:#ef4444;">Destination</b><br/>${dN}`);
-
-  // ── Route ──
+  // ── Calculate route first ──
   document.getElementById('trackMapStatus').textContent = 'Calculating route…';
   const { pts, type } = await getBestRoute(oC, dC);
 
-  // Progress ratio based on status
   const progressRatio = { 'Pending': 0.05, 'In Transit': 0.45, 'Out for Delivery': 0.85, 'Delivered': 1.0, 'On Hold': 0.25 }[status] ?? 0.1;
   const splitIdx = Math.min(Math.floor(progressRatio * (pts.length - 1)), pts.length - 2);
-
-  // Remaining route — orange dashed (like reference image)
-  const remainingPts = pts.slice(splitIdx);
-  if (remainingPts.length > 1) {
-    L.polyline(remainingPts, {
-      color: '#e8820c',
-      weight: 2.5,
-      opacity: 0.85,
-      dashArray: '10, 8',
-    }).addTo(leafletMap);
-  }
-
-  // Travelled route — solid bright orange line
-  const travelledPts = pts.slice(0, splitIdx + 1);
-  if (travelledPts.length > 1) {
-    L.polyline(travelledPts, { color: '#e8820c', weight: 10, opacity: 0.12 }).addTo(leafletMap); // glow
-    L.polyline(travelledPts, { color: '#e8820c', weight: 3.5, opacity: 1.0 }).addTo(leafletMap); // line
-  }
-
-  // ── Package current position ──
   const same = Math.abs(cC.lat - oC.lat) < 0.05 && Math.abs(cC.lng - oC.lng) < 0.05;
   const pkgPt = same ? pts[splitIdx] : [cC.lat, cC.lng];
 
-  L.marker(pkgPt, { icon: pkgIco, zIndexOffset: 1000 })
-    .addTo(leafletMap)
-    .bindPopup(`<b>Package</b><br/>Status: ${status}${!same ? '<br/>' + cN : ''}`)
-    .openPopup();
-
-  // Fit map bounds
+  // ── Start zoomed out, then fly into route ──
   const bounds = L.latLngBounds([[oC.lat, oC.lng], [dC.lat, dC.lng], pkgPt]);
-  leafletMap.fitBounds(bounds, { padding: [60, 60] });
+  leafletMap.fitBounds(bounds, { padding: [80, 80], animate: false });
+
+  // After tiles load, fly in smoothly
+  leafletMap.once('load', () => {});
+  setTimeout(() => {
+    leafletMap.flyToBounds(bounds, {
+      padding: [70, 70],
+      duration: 2.0,
+      easeLinearity: 0.25,
+    });
+  }, 400);
+
+  // ── Draw route lines ──
+  // Remaining — dashed orange
+  const remainingPts = pts.slice(splitIdx);
+  if (remainingPts.length > 1) {
+    L.polyline(remainingPts, { color: '#e8820c', weight: 2.5, opacity: 0.9, dashArray: '10, 8' }).addTo(leafletMap);
+  }
+  // Travelled — solid glowing orange
+  const travelledPts = pts.slice(0, splitIdx + 1);
+  if (travelledPts.length > 1) {
+    L.polyline(travelledPts, { color: '#e8820c', weight: 12, opacity: 0.15 }).addTo(leafletMap);
+    L.polyline(travelledPts, { color: '#e8820c', weight: 4, opacity: 1.0 }).addTo(leafletMap);
+  }
+
+  // ── Add markers with slight delay for animation effect ──
+  setTimeout(() => {
+    L.marker([oC.lat, oC.lng], { icon: originIcon })
+      .addTo(leafletMap)
+      .bindPopup(`<div style="font-weight:700;color:#16a34a;margin-bottom:4px;">📍 Origin</div><div>${oN}</div>`);
+  }, 600);
+
+  setTimeout(() => {
+    L.marker([dC.lat, dC.lng], { icon: destIcon })
+      .addTo(leafletMap)
+      .bindPopup(`<div style="font-weight:700;color:#ef4444;margin-bottom:4px;">📍 Destination</div><div>${dN}</div>`);
+  }, 900);
+
+  setTimeout(() => {
+    L.marker(pkgPt, { icon: pkgIco, zIndexOffset: 1000 })
+      .addTo(leafletMap)
+      .bindPopup(`<div style="font-weight:700;color:#e8820c;margin-bottom:4px;">📦 Package</div><div>Status: <b>${status}</b>${!same ? '<br/>' + cN : ''}</div>`)
+      .openPopup();
+  }, 1200);
 
   const routeType = type === 'road' ? 'Road route' : 'Flight path';
   document.getElementById('trackMapStatus').textContent = `${routeType}: ${oN} → ${dN}`;
